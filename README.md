@@ -1,2 +1,9 @@
-# dg_text
-data grand text contest 2018
+## 数据集基本情况
+    
+    * 训练集共有 102277个训练样本
+    
+    * 训练集中"phrase_leve"上字典维度有 875129 , 
+    
+    * 
+
+    
