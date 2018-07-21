@@ -44,7 +44,7 @@ def checkdata(filename):
     print("word dictionary size is {} ".format(str(len(phrase_dict))))
 
 def main():
-    train_data_file = "../init_data/train_set.csv"
+    train_data_file = "../data/train_set.csv"
 
     checkdata(train_data_file)
 

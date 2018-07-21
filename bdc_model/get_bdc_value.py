@@ -87,9 +87,9 @@ def cal_bdc_value(train_file,word_dict_url,bdc_pickle):
 
 def main():
 
-    train_file = "../pre_process_data/phrase_level_data.csv"
-    word_dict_url = "../pre_process_data/phrase_level_word_dict.pk"
-    bdc_pickle = "../pre_process_data/phrase_level_bdcValue.pk"
+    train_file = "../processed_data/phrase_level_data.csv"
+    word_dict_url = "../processed_data/phrase_level_word_dict.pk"
+    bdc_pickle = "../processed_data/phrase_level_bdcValue.pk"
     cal_bdc_value(train_file,word_dict_url,bdc_pickle)
     pass
 
