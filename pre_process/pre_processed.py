@@ -13,13 +13,9 @@ def phrase_filter(tf_pickle,idf_pickle,bdc_pickle,train_file,word_dict_file):
     filter_count = 0
     for (word,word_id) in word_dict:
 
-        # 条件一
         if tf_value_dict[word] == 1 :
-
             pass
 
-
-    #
     # with open(train_file,'r',encoding='utf-8') as f:
     #
     #     for line in f.readlines():

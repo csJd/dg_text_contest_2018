@@ -49,6 +49,29 @@ if __name__ == '__main__':
     
     * word_level训练集
     
+## processed_data/数据文件说明
+    
+* phrase_level_data.csv
+    * “phrase”级别的文档表示,分为两列，<label,phrase_doc>  
+    * 调用文件../pre_process/data_util.py中方法extract_data
+* word_level_data.csv                        
+    * "word"级别上的文档表示，分为两列，<label,word_doc>
+    * 调用文件../pre_process/data_util.py中方法extract_data(..)
+* phrase_level_tf.pk
+    * “phrase”级别上词频文件，格式： dict{word:word_frequence}
+    * 调用文件../tf_idf_model/tf_idf.py中方法cal_tf(..)
+* phrase_level_bdcValue.pk
+    * "phrase"级别上词bdc值，格式： dict{word:bdc_value}
+    * 调用文件../bdc_model/get_bdc_value.py中方法cal_bdc_value(..)
+* phrase_level_idf.pk
+    * "phrase"级别上词的逆文档向量 格式：dict{word:idf_value}
+    * 调用文件../tf_idf_model/tf_idf.py中方法cal_idf(..)
+* phrase_level_tfbdc.pk
+    * "phrase"级别上词的tfbdc权重向量，格式: dict{word:tfbdc_value}
+    * 调用文件../bdc_model/get_tf_bdc.py中方法get_tf_bdc_value(..)
+
+      
+    
     
 ## 初步分工
 

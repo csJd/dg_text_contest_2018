@@ -4,6 +4,7 @@
 # Data files
 data/
 processed_data/
+cnn_model/processed_data/
 !data/.gitkeep
 !processed_data/.gitkeep
 
