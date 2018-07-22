@@ -147,6 +147,27 @@ def calc_labelCount_per_words(train_file,labelFrequency_pickle):
     # save
     pk.dump(lf_dict,open(labelFrequency_pickle,'wb'))
 
+# 计算每个词的文档频率
+def cal_document_frequency(train_file,df_pickle):
+    """
+    Args:
+        train_file:
+        df_pickle:
+
+    Returns:
+    """
+    df_dict = collections.defaultdict(int)
+    with open(train_file,'r',encoding='utf-8') as f:
+
+        for line in f.readlines():
+            line_list = line.strip().split(',')
+            word_list = list(set(line_list[1].strip().split()))
+            for word in word_list:
+                df_dict[word] += 1
+    f.close()
+
+    #save
+    pk.dump(df_dict,open(df_pickle,'wb'))
 
 def main():
     ''''''
@@ -166,9 +187,16 @@ def main():
     '''
         生成lf——单词在多少个类别中出现。
     '''
-    data_file = "E:\deve-program\pycharm-workplace\dg_text\processed_data\phrase_level_data.csv"
-    labelFrequency_pickle = "../processed_data/phrase_level_lf.pk"
-    calc_labelCount_per_words(data_file,labelFrequency_pickle)
+    # data_file = "E:\deve-program\pycharm-workplace\dg_text\processed_data\phrase_level_data.csv"
+    # labelFrequency_pickle = "../processed_data/phrase_level_lf.pk"
+    # calc_labelCount_per_words(data_file,labelFrequency_pickle)
+
+    '''
+        生成df——单词存在于多少个文档中出现
+    '''
+    train_file = "E:\deve-program\pycharm-workplace\dg_text\processed_data\phrase_level_data.csv"
+    df_pickle = "../processed_data/phrase_level_df.pk"
+    cal_document_frequency(train_file, df_pickle)
     pass
 
 

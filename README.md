@@ -75,6 +75,9 @@ if __name__ == '__main__':
 * phrase_level_lf.pk
     * "phrase"级别上词出现的类别频率，格式： dict{word:lf_value}
     * 调用文件../pre_process/data_util.py中方法 calc_labelCount_per_words(..)
+* phrase_level_df.pk
+    * "phrase"级别上次出现的文档频率，格式: dict{word:df_value}
+    * 调用文件../pre_process/data_util.py中方法cal_document_frequency(..)
 
       
     
