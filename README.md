@@ -1,8 +1,8 @@
 ## Pycharm 建议设置
 
 * 换行符统一为'\n'
-  * File | Settings | Code Style | Line separator
-    * 选择 `Unix and OS X (\n)`
+  * File | Settings | Code Style
+    * `Line separator` 选择 `Unix and OS X (\n)`
 
 * 编码统一为`UTF-8`
   * File | Settings | Editor | File Encodings
