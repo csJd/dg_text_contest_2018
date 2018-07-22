@@ -1,3 +1,38 @@
+## Pycharm 建议设置
+
+* 换行符统一为'\n'
+  * File | Settings | Code Style
+    * `Line separator` 选择 `Unix and OS X (\n)`
+
+* 编码统一为`UTF-8`
+  * File | Settings | Editor | File Encodings
+    * Global 和 Project 都选择 `UTF-8`
+    * 下方 Default encoding for properties files也选择 `UTF-8`
+
+* Python Doc 使用 Google 风格
+  * File | Settings | Tools | Python Integrated Tools
+    * `Docstring format` 选择 `Google`
+
+* 设置Python 默认代码
+  * File | Settings | Editor | File and Code Templates
+    * 选择 `Python Script` 粘贴以下内容, `${USER}`可换为自己想显示的昵称
+    * 可以自己按需修改
+
+```python
+# coding: utf-8
+# created by ${USER} on ${DATE}
+
+
+def main():
+    pass
+
+
+if __name__ == '__main__':
+    main()
+
+```
+
+
 ## 数据集基本情况
     
 * 文件基本说明
