@@ -28,6 +28,14 @@ def test2():
 
     print(len(data))
 
+def test3():
+
+    data_set = set()
+    data_set.add('a')
+    data_set.add('a')
+
+    print(len(data_set))
+
 
 if __name__ == "__main__":
-    test2()
+    test3()

@@ -20,13 +20,12 @@ def filter_words(tf_pickle,bdc_pickle,tf_bdc_picle,vocab_pickle):
     tf_bdc_dict = pk.load(open(tf_bdc_picle,'rb'))
     vocab_dict = pk.load(open(vocab_pickle,'rb'))
 
-
     # 过滤条件 = 查询
     del_count = 0
     for (word,word_id) in vocab_dict.items():
 
-        # 出现过一次
-        if tf_dict[word] == 3 and bdc_dict[word] == 1 :
+        # 单词出现过一次，而且bdc值为1
+        if tf_dict[word] <= 2 and bdc_dict[word] == 1 :
             del_count += 1
 
     print(del_count)

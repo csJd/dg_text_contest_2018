@@ -3,6 +3,7 @@
 import pandas as pd
 import numpy as np
 import pickle as pk
+import collections
 
 """
     本python文件说明:
@@ -113,27 +114,61 @@ def split_data(filename,train_percent,train_filename,test_filename):
     test_filename = open(test_filename,'wb')
     pk.dump(test_list,test_filename)
 
+# 统计一个词出现过多少个类别中
+def calc_labelCount_per_words(train_file,labelFrequency_pickle):
+    """
+    Args:
+        train_file: 训练文件， 如： ../data/train_set.csv ，分为两列 <label,doc_words>
+        labelFrequency_pickle: 单词的类别频率picdle路径
+    Returns:
+        None
+    """
+    lf_label_dict = {}
+    lf_dict = collections.defaultdict(int)
+    with open(train_file,'r',encoding='utf-8') as f:
+        for line in f.readlines():
+            line_list = line.strip().split(',')
+            label = line_list[0]
+            word_list = line_list[1].strip().split()
+
+            for word in word_list:
+
+                if word not in lf_label_dict.keys():
+                    lf_label_dict[word] = set()
+
+                lf_label_dict[word].add(label)
+
+        for (word,data_set) in lf_label_dict.items():
+
+            lf_dict[word] = len(data_set)
+
+    f.close()
+
+    # save
+    pk.dump(lf_dict,open(labelFrequency_pickle,'wb'))
+
+
 def main():
-
-    # 生成 “phrase”级别 和 "word"级别的data
+    ''''''
+    '''
+        生成 “phrase”级别 和 "word"级别的data
+    '''
+    # init_train_file = "../data/train_set.csv"
+    # extracted_file = "../processed_data/word_level_data.csv"
+    # extract_data(init_train_file,[3,1],extracted_file)
 
     '''
-    init_train_file = "../data/train_set.csv"
-    extracted_file = "../processed_data/word_level_data.csv"
-    extract_data(init_train_file,[3,1],extracted_file)
+        对data文件建立词典
     '''
+    # data_file = "../processed_data/phrase_level_data.csv"
+    # load_word_dict(data_file,"../processed_data/phrase_level_word_dict.pk")
 
-    # 对data文件建立词典
     '''
-    data_file = "../processed_data/phrase_level_data.csv"
-    load_word_dict(data_file,"../processed_data/phrase_level_word_dict.pk")
+        生成lf——单词在多少个类别中出现。
     '''
-
-    # tf_pickle = "E:\deve-program\pycharm-workplace\daguanbei\processed_data\phrase_level_tf.pk"
-    # bdc_pickle = "E:\deve-program\pycharm-workplace\daguanbei\processed_data\phrase_level_bdcValue.pk"
-    # current_word_dict_pickle = "E:\deve-program\pycharm-workplace\daguanbei\processed_data\phrase_level_word_dict.pk"
-    # new_word_dict_pickle = "../processed_data/phrase_level_new_word_dict.pk"
-    # tf_bdc_filter(tf_pickle, bdc_pickle, current_word_dict_pickle, new_word_dict_pickle)
+    data_file = "E:\deve-program\pycharm-workplace\dg_text\processed_data\phrase_level_data.csv"
+    labelFrequency_pickle = "../processed_data/phrase_level_lf.pk"
+    calc_labelCount_per_words(data_file,labelFrequency_pickle)
     pass
 
 

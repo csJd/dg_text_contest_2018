@@ -72,6 +72,9 @@ if __name__ == '__main__':
 * phrase_level_tfbdc.pk
     * "phrase"级别上词的tfbdc权重向量，格式: dict{word:tfbdc_value}
     * 调用文件../bdc_model/get_tf_bdc.py中方法get_tf_bdc_value(..)
+* phrase_level_lf.pk
+    * "phrase"级别上词出现的类别频率，格式： dict{word:lf_value}
+    * 调用文件../pre_process/data_util.py中方法 calc_labelCount_per_words(..)
 
       
     
