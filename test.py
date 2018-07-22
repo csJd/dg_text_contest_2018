@@ -1,6 +1,7 @@
 #coding=utf-8
 import collections
 import numpy as np
+import pickle as pk
 
 # 查询训练集基本信息
 # 训练集中 共有102278个训练样本
@@ -10,7 +11,7 @@ import numpy as np
 
 def test1():
 
-    filename = "./pre_process_data/phrase_level_data.csv"
+    filename = "./processed_data/phrase_level_data.csv"
     line_count = 0
     with open(filename,'r',encoding='utf-8') as f:
 
@@ -23,10 +24,10 @@ def test1():
 
 def test2():
 
-    dict = {'1':12,"2":34}
+    data = pk.load(open("E:\deve-program\pycharm-workplace\dg_text\processed_data\phrase_level_word_dict.pk",'rb'))
 
-    print(dict.get('1',0))
+    print(len(data))
 
 
 if __name__ == "__main__":
-    test2()
+    test1()

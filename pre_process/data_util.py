@@ -128,15 +128,21 @@ def split_data(filename,train_percent,train_filename,test_filename):
     pk.dump(test_list,test_filename)
 
 def main():
+
+    # 生成 “phrase”级别 和 "word"级别的data
+
+    '''
     init_train_file = "../data/train_set.csv"
-    train_filename = "../processed_data/train_data.pk"
-    test_filename = "../processed_data/test_data.pk"
-    # split_data(filename,0.7,train_filename,test_filename)
+    extracted_file = "../processed_data/word_level_data.csv"
+    extract_data(init_train_file,[3,1],extracted_file)
+    '''
 
-    extracted_file = "../processed_data/phrase_level_data.csv"
-    extract_data(init_train_file,[3,2],extracted_file)
+    # 对data文件建立词典
+    '''
+    data_file = "../processed_data/phrase_level_data.csv"
+    load_word_dict(data_file,"../processed_data/phrase_level_word_dict.pk")
+    '''
 
-    # load_word_dict(extracted_file,"../pre_process_data/phrase_level_word_dict.pk")
     # tf_pickle = "E:\deve-program\pycharm-workplace\daguanbei\processed_data\phrase_level_tf.pk"
     # bdc_pickle = "E:\deve-program\pycharm-workplace\daguanbei\processed_data\phrase_level_bdcValue.pk"
     # current_word_dict_pickle = "E:\deve-program\pycharm-workplace\daguanbei\processed_data\phrase_level_word_dict.pk"
