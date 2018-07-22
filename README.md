@@ -10,7 +10,7 @@
         ** 共有 102277个训练样本
         ** 训练集中"phrase_leve"上字典维度有 875129 
     
-    * word_level训练级
+    * word_level训练集
         
         
         
