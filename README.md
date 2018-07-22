@@ -1,7 +1,7 @@
 ## Pycharm 建议设置
 
 * 换行符统一为'\n'
-  * File | Settings | Code Style
+  * File | Settings | Editor | Code Style
     * `Line separator` 选择 `Unix and OS X (\n)`
 
 * 编码统一为`UTF-8`
@@ -30,6 +30,15 @@ def main():
 if __name__ == '__main__':
     main()
 
+```
+
+* Python代码中的文件路径
+  * 建议所有路径都使用 `utils` 包下的 `path_util.from_project_root` 方法得到绝对路径
+  * 例如要访问`data/train_set.csv`时，先鼠标右键复制`train_set.csv`的相对路径，然后直接调用方法就好
+```python
+from utils.path_util import from_project_root
+train_data_url = from_project_root('data/train_set.csv')
+print(train_data_url)
 ```
 
 
