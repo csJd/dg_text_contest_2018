@@ -10,8 +10,12 @@ def phrase_filter(tf_pickle,idf_pickle,bdc_pickle,train_file,word_dict_file):
 
     word_dict = pk.load(open(word_dict_file,'rb'))
 
+    filter_count = 0
     for (word,word_id) in word_dict:
 
+        # 条件一
+        if tf_value_dict[word] == 1 :
+            pass
         pass
 
 

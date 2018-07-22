@@ -51,8 +51,14 @@ def calc_category_fre(train_file):
 
     return category_dict
 
-
+# 计算bdc权重的主函数
 def cal_bdc_value(train_file,word_dict_url,bdc_pickle):
+    """
+    :param train_file:
+    :param word_dict_url:
+    :param bdc_pickle:
+    :return:
+    """
 
     wordInCategory_dict = cal_wordInCategory_fre(train_file)
     category_dict = calc_category_fre(train_file)
@@ -60,6 +66,7 @@ def cal_bdc_value(train_file,word_dict_url,bdc_pickle):
 
     # 分别计算每个词的bdc_value
     bdc_value_dict = collections.defaultdict(float)
+
     for (word,word_id) in word_dict.items():
 
         sum_A = 0
@@ -90,6 +97,7 @@ def main():
     train_file = "../processed_data/phrase_level_data.csv"
     word_dict_url = "../processed_data/phrase_level_word_dict.pk"
     bdc_pickle = "../processed_data/phrase_level_bdcValue.pk"
+
     cal_bdc_value(train_file,word_dict_url,bdc_pickle)
     pass
 

@@ -134,14 +134,14 @@ def main():
     # split_data(filename,0.7,train_filename,test_filename)
 
     extracted_file = "../processed_data/phrase_level_data.csv"
-    # extract_data(init_train_file,[3,2],extracted_file)
+    extract_data(init_train_file,[3,2],extracted_file)
 
     # load_word_dict(extracted_file,"../pre_process_data/phrase_level_word_dict.pk")
-    tf_pickle = "E:\deve-program\pycharm-workplace\daguanbei\processed_data\phrase_level_tf.pk"
-    bdc_pickle = "E:\deve-program\pycharm-workplace\daguanbei\processed_data\phrase_level_bdcValue.pk"
-    current_word_dict_pickle = "E:\deve-program\pycharm-workplace\daguanbei\processed_data\phrase_level_word_dict.pk"
-    new_word_dict_pickle = "../processed_data/phrase_level_new_word_dict.pk"
-    tf_bdc_filter(tf_pickle, bdc_pickle, current_word_dict_pickle, new_word_dict_pickle)
+    # tf_pickle = "E:\deve-program\pycharm-workplace\daguanbei\processed_data\phrase_level_tf.pk"
+    # bdc_pickle = "E:\deve-program\pycharm-workplace\daguanbei\processed_data\phrase_level_bdcValue.pk"
+    # current_word_dict_pickle = "E:\deve-program\pycharm-workplace\daguanbei\processed_data\phrase_level_word_dict.pk"
+    # new_word_dict_pickle = "../processed_data/phrase_level_new_word_dict.pk"
+    # tf_bdc_filter(tf_pickle, bdc_pickle, current_word_dict_pickle, new_word_dict_pickle)
     pass
 
 
