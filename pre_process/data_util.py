@@ -5,40 +5,21 @@ import numpy as np
 import pickle as pk
 
 """
-    utils:
+    本python文件说明:
         get_set_len(filename) :  
             filename: 
             查询数据集中训练样本个数[其实就是计算文件的行数]
          
         extract_data(filename,extract_index,extracted_file)：
-            
             根据列坐标提取对应的列，并成成文件
-        split_data(filename,train_percent,train_filename,test_filename):将训练集打乱并根据比例划分数据集 
-        load_word_dict(train_file,word_dict_pickle) : 根据训练文件建立词典,train_file格式 <label,word_doc>
-        tf_bdc_filter(..) : 根据词频tf和bdc权重过滤大量对分类无用的词（噪音）
+            
+        split_data(filename,train_percent,train_filename,test_filename)
+            将训练集打乱并根据比例划分数据集
+             
+        load_word_dict(train_file,word_dict_pickle) 
+            根据训练文件建立词典,train_file格式 <label,word_doc>
+            
 """
-
-# 根据词频 和 bdc权重值 过滤不重要的词
-def tf_bdc_filter(tf_pickle,bdc_pickle,current_word_dict_pickle,new_word_dict_pickle):
-    """
-    :param tf_pickle:
-    :param bdc_pickle:
-    :param current_word_dict_pickle:
-    :param new_word_dict_pickle:
-    :return:
-    """
-    tf_value_dict = pk.load(open(tf_pickle,'rb'))
-    bdc_value_dict = pk.load(open(bdc_pickle,'rb'))
-    current_word_dict = pk.load(open(current_word_dict_pickle,'rb'))
-
-    temp_count = 0
-    for (word,word_id) in current_word_dict.items():
-
-        if tf_value_dict[word] == 1 and bdc_value_dict[word] == 1:
-            temp_count+=1
-
-    print(temp_count)
-
 # 建立词典 dict(word:id)
 def load_word_dict(train_file,word_dict_pickle):
     """
