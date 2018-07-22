@@ -6,8 +6,13 @@ import pickle as pk
 
 """
     utils:
-        get_set_len(filename) : 获取数据集中训练样本个数    
-        extract_data(filename,extract_index,extracted_file)：根据列坐标提取对应的列，并成成文件
+        get_set_len(filename) :  
+            filename: 
+            查询数据集中训练样本个数[其实就是计算文件的行数]
+         
+        extract_data(filename,extract_index,extracted_file)：
+            
+            根据列坐标提取对应的列，并成成文件
         split_data(filename,train_percent,train_filename,test_filename):将训练集打乱并根据比例划分数据集 
         load_word_dict(train_file,word_dict_pickle) : 根据训练文件建立词典,train_file格式 <label,word_doc>
         tf_bdc_filter(..) : 根据词频tf和bdc权重过滤大量对分类无用的词（噪音）

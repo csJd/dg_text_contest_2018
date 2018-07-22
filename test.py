@@ -24,10 +24,10 @@ def test1():
 
 def test2():
 
-    data = pk.load(open("E:\deve-program\pycharm-workplace\dg_text\processed_data\phrase_level_word_dict.pk",'rb'))
+    data = pk.load(open("E:\deve-program\pycharm-workplace\dg_text\processed_data\phrase_level_tfbdc.pk",'rb'))
 
     print(len(data))
 
 
 if __name__ == "__main__":
-    test1()
+    test2()

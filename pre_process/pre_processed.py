@@ -15,8 +15,8 @@ def phrase_filter(tf_pickle,idf_pickle,bdc_pickle,train_file,word_dict_file):
 
         # 条件一
         if tf_value_dict[word] == 1 :
+
             pass
-        pass
 
 
     #
@@ -26,8 +26,6 @@ def phrase_filter(tf_pickle,idf_pickle,bdc_pickle,train_file,word_dict_file):
     #         line_list = line.strip().split(',')
     #         label = line_list[0]
     #         word_list = line_list[1].strip().split()
-    #
-    #
     #     f.close()
 
     pass

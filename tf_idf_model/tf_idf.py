@@ -55,8 +55,11 @@ def cal_idf(train_file,idf_dict_pickle):
     f.close()
 def main():
     train_file = "../processed_data/phrase_level_data.csv"
+    # 计算tf_value 值
+    '''
     tf_dict_pickle = "../processed_data/phrase_level_tf.pk"
-    # cal_tf(train_file,tf_dict_pickle)
+    cal_tf(train_file,tf_dict_pickle)
+    '''
     idf_dict_pickle = "../processed_data/phrase_level_idf.pk"
     cal_idf(train_file,idf_dict_pickle)
     pass
