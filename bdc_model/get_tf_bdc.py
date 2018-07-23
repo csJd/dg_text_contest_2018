@@ -18,7 +18,7 @@ def get_tf_bdc_value(tf_pickle,bdc_pickle,word_dict_pickle,tf_bdc_pickle):
 
 def main():
     tf_pickle = "E:\deve-program\pycharm-workplace\dg_text\processed_data\phrase_level_tf.pk"
-    bdc_pickle="E:\deve-program\pycharm-workplace\dg_text\processed_data\phrase_level_bdcValue.pk"
+    bdc_pickle="E:\deve-program\pycharm-workplace\dg_text\processed_data\phrase_level_bdc.pk"
     word_dict_pickle="E:\deve-program\pycharm-workplace\dg_text\processed_data\phrase_level_word_dict.pk"
     tf_bdc_pickle= "../processed_data/phrase_level_tfbdc.pk"
     get_tf_bdc_value(tf_pickle, bdc_pickle, word_dict_pickle, tf_bdc_pickle)

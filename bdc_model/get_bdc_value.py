@@ -84,6 +84,7 @@ def cal_bdc_value(train_file,word_dict_url,bdc_pickle):
             if A == 0:
                 continue
 
+
             sum_B += (A * np.log(A))
         #
         bdc_value = 1 + (sum_B / np.log(len(wordInCategory_dict)))
@@ -96,7 +97,7 @@ def main():
 
     train_file = "../processed_data/phrase_level_data.csv"
     word_dict_url = "../processed_data/phrase_level_word_dict.pk"
-    bdc_pickle = "../processed_data/phrase_level_bdcValue.pk"
+    bdc_pickle = "../processed_data/phrase_level_bdc.pk"
 
     cal_bdc_value(train_file,word_dict_url,bdc_pickle)
     pass
