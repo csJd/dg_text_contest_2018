@@ -86,7 +86,7 @@ def cal_bdc_value(train_file,word_dict_url,bdc_pickle):
 
             sum_B += (A * np.log(A))
         #
-        bdc_value = 1 + (sum_B / np.log(len(category)))
+        bdc_value = 1 + (sum_B / np.log(len(wordInCategory_dict)))
 
         bdc_value_dict[word] = bdc_value
     #

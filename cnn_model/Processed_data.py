@@ -27,8 +27,11 @@ def filter_words(tf_pickle,bdc_pickle,tf_bdc_picle,vocab_pickle):
         # 单词出现过一次，而且bdc值为1
         if tf_dict[word] <= 2 and bdc_dict[word] == 1 :
             del_count += 1
+        #
 
     print(del_count)
+
+#
 
 def main():
 
