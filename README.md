@@ -24,67 +24,88 @@
 ## processed_data/数据文件说明
     
 * select_data/根据sentence_type，将源数据集转化成<label，sentence_type>的csv数据集
+
 	* phrase_level_data.csv
 	    * “phrase”级别的文档表示,分为两列，<label,phrase_doc>  
 	    * 调用文件../pre_process/data_util.py中方法extract_data
+	    
 	* word_level_data.csv                        
 		* "word"级别上的文档表示，分为两列，<label,word_doc>
 		* 调用文件../pre_process/data_util.py中方法extract_data(..)
+		
 * pickle_weight/根据weight_type，将各个词的权重值以字典{“word”：weight}的形式存成pickle文件
+
 	* phrase_level_tf.pk
 		* “phrase”级别上词频文件，格式： dict{word:word_frequence}
 		* 调用文件../term_weighting_model/text_represent.py中方法cal_tf(..)
+		
 	* phrase_level_bdcValue.pk
 		* "phrase"级别上词bdc值，格式： dict{word:bdc_value}
 		* 调用文件../term_weighting_model/text_represent.py中方法cal_bdc_value(..)或者方法dc_bdc(..)
+		
 	* phrase_level_idf.pk
 		* "phrase"级别上词的逆文档向量 格式：dict{word:idf_value}
 		* 调用文件../term_weighting_model/text_represent.py中方法cal_idf(..)或者方法idf(..)
+		
 	* phrase_level_tfbdc.pk
 		* "phrase"级别上词的tfbdc权重向量，格式: dict{word:tfbdc_value}
 		* 调用文件../term_weighting_model/text_represent.py中方法get_tf_bdc_value(..)
+		
 * csv_weight/根据weight_type，将各个词的权重值存入csv文件，列名["word", "weight", "count"]
+
 	* phrase_level_idf.csv
 		* "phrase"级别上词的idf值
 		* 调用文件../term_weighting_model/text_represent.py中方法idf(..)
+		
 	* phrase_level_dc.csv
 		* "phrase"级别上词的dc值
 		* 调用文件../term_weighting_model/text_represent.py中方法dc_bdc(..)
+		
 	* phrase_level_bdc.csv
 		* "phrase"级别上词的bdc值
 		* 调用文件../term_weighting_model/text_represent.py中方法dc_bdc(..)
+		
 	* phrase_level_one_hot.csv
 		* "phrase"级别上词的one_hot值
 		* 调用文件../term_weighting_model/text_represent.py中方法one_hot(..)
+		
 * vector/根据weight_type将数据集转化成稀疏矩阵，并存储到本地文件
+
 	* phrase_dc_train.mtx
 		* "phrase"级别上以dc值将训练数据集转化成稀疏矩阵
 		* 调用文件../term_weighting_model/text_represent.py中方法weihgt_vector(..)
+		
 * word_distribution/对词的分布统计
+
 	* phrase_level_lf.pk
 		* "phrase"级别上词出现的类别频率，格式： dict{word:lf_value}
 		* 调用文件../pre_process/data_util.py中方法 calc_labelCount_per_words(..)
+		
 	* phrase_level_df.pk
 		* "phrase"级别上次出现的文档频率，格式: dict{word:df_value}
 		* 调用文件../pre_process/data_util.py中方法cal_document_frequency(..)
+		
 	* phrase_label_count.csv
 		* "phrase"级别上词出现在各个类别的文档数
 		* 调用文件./pre_process/data_util.py中方法word_in_label(..)
+		
 * com_result/结果的比较
 
 ## term_weighting_model/特征权重模型文件说明
 
 * text_represent.py/所有特征权重函数均放在这个模块里
-	```python
-	sentence_to_vector(sentence_data, word_list, word_df, is_tf=False):
-		将数据集转化成稀疏矩阵
-		:param sentence_data:
-		:param word_list:
-		:param word_df:
-		:param is_tf:
-		:return:
-    
-    ```
+```python
+def sentence_to_vector(sentence_data, word_list, word_df, is_tf=False):
+    """
+	将数据集转化成稀疏矩阵
+	:param sentence_data:
+	:param word_list:
+	:param word_df:
+	:param is_tf:
+	:return:
+    """
+```
+
 ## 初步分工
 
 * 分配部分
