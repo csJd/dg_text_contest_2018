@@ -26,12 +26,13 @@ def load_raw_data(data_url):
     return labels, sentences
 
 
-def train_dev_split(data_url, dev_size=0.2):
+def train_dev_split(data_url, dev_size=0.2, including_header=False):
     """ split .csv data into train data and dev data and save them in the same dir
 
     Args:
         data_url: url to original data
         dev_size: the ratio of dev_data in data
+        including_header: if the data file including header
 
     """
     print("splitting data file %s" % data_url)
@@ -41,6 +42,8 @@ def train_dev_split(data_url, dev_size=0.2):
             open(train_url, "w", encoding='utf-8', newline='\n') as train_file, \
             open(dev_url, "w", encoding='utf-8', newline='\n') as dev_file:
         lines = data_file.readlines()
+        if including_header:
+            lines = lines[1:]
 
         # use specific random_state to generate the same data all the time
         train_lines, dev_lines = train_test_split(lines, test_size=dev_size, random_state=233)

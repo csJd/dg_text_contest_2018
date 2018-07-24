@@ -106,6 +106,21 @@ def sentence_to_vector(sentence_data, word_list, word_df, is_tf=False):
     """
 ```
 
+## utils 下部分工具方法说明
+
+* `json_util`, 将`dict`类型保存到json文件可以看到数据而且读入方便，个人觉得比pickle更适合保存dict和list类型
+```python
+from utils.path_util import from_project_root
+import utils.json_util as ju
+bdc_json_url = from_project_root("processed_data/phrase_level_bdc.json")
+bdc_dict = ju.load(bdc_json_url)  # load from json file
+ju.dump(bdc_dict, bdc_json_url)  # dump dict object to json file
+```
+
+* `data_util`, 提供一些读入和操作数据的公用方法
+  * `train_dev_split`, 将csv数据文件8:2划分为固定的训练集和验证集
+
+
 ## 初步分工
 
 * 分配部分
