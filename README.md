@@ -74,15 +74,16 @@
 ## term_weighting_model/特征权重模型文件说明
 
 * text_represent.py/所有特征权重函数均放在这个模块里
-	* sentence_to_vector(sentence_data, word_list, word_df, is_tf=False):
-		*将数据集转化成稀疏矩阵
-		*:param sentence_data:
-		*:param word_list:
-		*:param word_df:
-		*:param is_tf:
-		*:return:
+	```python
+	sentence_to_vector(sentence_data, word_list, word_df, is_tf=False):
+		将数据集转化成稀疏矩阵
+		:param sentence_data:
+		:param word_list:
+		:param word_df:
+		:param is_tf:
+		:return:
     
-    
+    ```
 ## 初步分工
 
 * 分配部分
