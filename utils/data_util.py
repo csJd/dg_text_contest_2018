@@ -26,7 +26,7 @@ def load_raw_data(data_url):
     return labels, sentences
 
 
-def train_dev_data(data_url, dev_size=0.2):
+def train_dev_split(data_url, dev_size=0.2):
     """ split .csv data into train data and dev data and save them in the same dir
 
     Args:
@@ -46,13 +46,13 @@ def train_dev_data(data_url, dev_size=0.2):
         train_lines, dev_lines = train_test_split(lines, test_size=dev_size, random_state=233)
         train_file.writelines(train_lines)
         dev_file.writelines(dev_lines)
-        print("finished split data(%d samples) into train_data(%d samples) and dev_data(%d samples)"
+        print("finished splitting data(%d samples) into train_data(%d samples) and dev_data(%d samples)"
               % (len(lines), len(train_lines), len(dev_lines)))
 
 
 def main():
     data_url = from_project_root("processed_data/phrase_level_data.csv")
-    train_dev_data(data_url)
+    train_dev_split(data_url)
     pass
 
 
