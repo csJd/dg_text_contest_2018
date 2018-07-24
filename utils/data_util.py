@@ -53,6 +53,8 @@ def train_dev_split(data_url, dev_size=0.2):
 def main():
     data_url = from_project_root("processed_data/phrase_level_data.csv")
     train_dev_split(data_url)
+    # train_data_url = from_project_root("processed_data/phrase_level_data_train.csv")
+    # labels, sentences = load_raw_data(train_data_url)
     pass
 
 
