@@ -49,6 +49,7 @@ def read_data_df(filename, data_type):
     :param data_type:
     :return:
     """
+    filename = from_project_root(filename)
     if data_type == "train":
         data_df = pd.read_csv(filename, chunksize=10000,
                               dtype={"id": str, "article": str, "word_seg": str, "classify": np.int}, engine="c")
@@ -105,6 +106,7 @@ def read_word_df(filename):
 
 
 def write_data_df(filename, param_data_df):
+    filename = from_project_root(filename)
     param_data_df.to_csv(filename, index=False)
 
 
@@ -167,7 +169,7 @@ def write_vector(sentence_vector, weight_type, sentence_type, data_type):
     :param data_type: str，数据集形式，取值"test"或者"train"
     :return: None
     """
-    vector_filename = "processed/vector/" + sentence_type + "_" + weight_type + "_" + data_type +  ".mtx"
+    vector_filename = "processed_data/vector/" + sentence_type + "_" + weight_type + "_" + data_type +  ".mtx"
     vector_filename = from_project_root(vector_filename)
     mmwrite(vector_filename, sentence_vector)
 

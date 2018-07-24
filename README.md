@@ -70,6 +70,7 @@
 	* phrase_label_count.csv
 		* "phrase"级别上词出现在各个类别的文档数
 		* 调用文件./pre_process/data_util.py中方法word_in_label(..)
+* com_result/结果的比较
 
 ## term_weighting_model/特征权重模型文件说明
 

@@ -9,10 +9,10 @@ def train_model(clf, x_train, y_train, x_test, y_test):
 
     clf.fit(x_train, y_train)
     predict_test = clf.predict(x_test)
-    dp.cal_compare_label("./com_result/compare_test.csv", predict_test, y_test)
+    dp.cal_compare_label("processed_data/com_result/compare_test.csv", predict_test, y_test)
     output_F_value(predict_test, y_test)
     predict_train = clf.predict(x_train)
-    dp.cal_compare_label("./com_result/compare_train.csv", predict_train, y_train)
+    dp.cal_compare_label("processed_data/com_result/compare_train.csv", predict_train, y_train)
     output_F_value(predict_train, y_train)
 
 def train_model_proba(clf, x_train, y_train, x_test, y_test):
@@ -20,12 +20,12 @@ def train_model_proba(clf, x_train, y_train, x_test, y_test):
     clf.fit(x_train, y_train)
     predict_test = clf.predict_proba(x_test)
     predict_test = np.argmax(predict_test, axis=1) + 1
-    dp.cal_compare_label("./com_result/compare_test.csv", predict_test, y_test)
+    dp.cal_compare_label("processed_data/com_result/compare_test.csv", predict_test, y_test)
     output_F_value(predict_test, y_test)
     predict_train = clf.predict_proba(x_train)
     predict_train = np.argmax(predict_train, axis=1) + 1
     output_F_value(predict_train, y_train)
-    dp.cal_compare_label("./com_result/compare_train.csv", predict_train, y_train)
+    dp.cal_compare_label("processed_data/com_result/compare_train.csv", predict_train, y_train)
 
 def output_F_value(predict_y, original_y):
 
