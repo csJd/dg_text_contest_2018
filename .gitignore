@@ -1,4 +1,5 @@
 local_test.py
+models/
 
 # pycharm IDE files
 .idea/
