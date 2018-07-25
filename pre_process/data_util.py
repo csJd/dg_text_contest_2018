@@ -384,6 +384,36 @@ def cal_document_frequency(train_file,df_pickle):
     #save
     pk.dump(df_dict,open(df_pickle,'wb'))
 
+def main():
+    ''''''
+    '''
+        生成 “phrase”级别 和 "word"级别的data
+    '''
+    # init_train_file = "../data/train_set.csv"
+    # extracted_file = "../processed_data/word_level_data.csv"
+    # extract_data(init_train_file,[3,1],extracted_file)
+
+    '''
+        对data文件建立词典
+    '''
+    # data_file = "../processed_data/phrase_level_data.csv"
+    # load_word_dict(data_file,"../processed_data/phrase_level_word_dict.pk")
+
+    '''
+        生成lf——单词在多少个类别中出现。
+    '''
+    # data_file = "E:\deve-program\pycharm-workplace\dg_text\processed_data\phrase_level_data.csv"
+    # labelFrequency_pickle = "../processed_data/phrase_level_lf.pk"
+    # calc_labelCount_per_words(data_file,labelFrequency_pickle)
+
+    '''
+        生成df——单词存在于多少个文档中出现
+    '''
+    # train_file = "E:\deve-program\pycharm-workplace\dg_text\processed_data\phrase_level_data.csv"
+    # df_pickle = "../processed_data/phrase_level_df.pk"
+    # cal_document_frequency(train_file, df_pickle)
+    pass
+
 if __name__ == "__main__":
     train_data_filename = "./data/small_train.csv"
     # extract_data(train_data_filename, sentence_type="word_seg", output_filename="./data/word_seg.csv")
