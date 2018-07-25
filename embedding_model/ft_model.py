@@ -134,8 +134,6 @@ def print_model_details(clf):
     sentences = [' '.join(sentence) for sentence in sentences]
     # ft predicted label is a list
     pred_labels = [int(label[0]) for label in clf.predict(sentences)]
-    print(sentences[:10])
-    print(pred_labels[:10])
     macro_f1 = f1_score(labels, pred_labels, average='macro')
     acc = accuracy_score(labels, pred_labels)
 

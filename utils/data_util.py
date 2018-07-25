@@ -3,6 +3,7 @@
 
 from sklearn.model_selection import train_test_split
 from utils.path_util import from_project_root
+import pre_process.data_util as pdu
 
 
 def load_raw_data(data_url):
@@ -53,9 +54,21 @@ def train_dev_split(data_url, dev_size=0.2, including_header=False):
               % (len(lines), len(train_lines), len(dev_lines)))
 
 
+def gen_phrase_data(data_url):
+    """ generate phrase level data
+
+    Args:
+        data_url: original data url
+
+    """
+    # processed_data/phrase_level_data.csv
+    phrase_data_url = from_project_root("processed_data/phrase_level_data.csv")
+    pdu.extract_data(data_url, [3, 1], phrase_data_url)
+
+
 def main():
-    data_url = from_project_root("processed_data/phrase_level_data.csv")
-    train_dev_split(data_url)
+    data_url = from_project_root("data/train_set.csv")
+    gen_phrase_data(data_url)
     # train_data_url = from_project_root("processed_data/phrase_level_data_train.csv")
     # labels, sentences = load_raw_data(train_data_url)
     pass
