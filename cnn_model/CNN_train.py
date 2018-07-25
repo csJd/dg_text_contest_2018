@@ -15,7 +15,7 @@ from utils.path_util import from_project_root
 #==================================================================================================
 
 #dev percent 验证集的大小
-tf.flags.DEFINE_float("dev_sample_percentage",0.004,"Percentage of the training data to use for validation")
+tf.flags.DEFINE_float("dev_sample_percentage",0.001,"Percentage of the training data to use for validation")
 
 #Model HypereParameters
 tf.flags.DEFINE_integer("embedding_dim",64,"Dimensionality of character embedding")
@@ -37,7 +37,7 @@ tf.flags.DEFINE_boolean("allow_soft_placement", True, "Allow device soft device 
 tf.flags.DEFINE_boolean("log_device_placement", False, "Log placement of ops on devices")
 
 #Training file path # 训练数据，已经分好词
-tf.flags.DEFINE_string("train_file","cnn_model/processed_data/filtered_data_file","Training file")
+tf.flags.DEFINE_string("train_file","cnn_model/processed_data/filtered_data__train.csv","Training file")
 
 FLAGS = tf.flags.FLAGS
 # FLAGS._parse_flags()
