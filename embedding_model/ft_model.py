@@ -43,7 +43,7 @@ def ft_process(data_url):
     return save_url
 
 
-def ft_train(data_url, model_url, args):
+def train_ft_model(data_url, model_url, args):
     """ load the ft model or train a new one
 
     Args:
@@ -110,7 +110,7 @@ def args_to_url(args):
         args: args dict
 
     Returns:
-        str: model_url for tf_train
+        str: model_url for train_ft_model
 
     """
     filename = '_'.join([str(x) for x in args.values()]) + '.bin'
@@ -150,7 +150,7 @@ def main():
         'ngram': 2
     }
     model_url = args_to_url(args)
-    clf = ft_train(TRAIN_URL, model_url, args)
+    clf = train_ft_model(TRAIN_URL, model_url, args)
     print_model_details(clf)
 
     pass
