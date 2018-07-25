@@ -145,9 +145,9 @@ def main():
     args = {
         'lr': 0.1,
         'dim': 100,
-        'ws': 5,
-        'epochs': 10,
-        'ngram': 2
+        'ws': 10,
+        'epochs': 30,
+        'ngram': 1
     }
     model_url = args_to_url(args)
     clf = train_ft_model(TRAIN_URL, model_url, args)
