@@ -21,16 +21,16 @@ tf.flags.DEFINE_float("dev_sample_percentage",0.001,"Percentage of the training 
 tf.flags.DEFINE_integer("embedding_dim",64,"Dimensionality of character embedding")
 tf.flags.DEFINE_string("filter_size","3,4,5","the size of the filter")
 tf.flags.DEFINE_integer("num_filters",64,"the num of channels in per filter")
-tf.flags.DEFINE_float("dropout_keep_prob",0.9,"Dropout keep probability for regularization")
+tf.flags.DEFINE_float("dropout_keep_prob",0.5,"Dropout keep probability for regularization")
 tf.flags.DEFINE_float("l2_reg_lambda",0.0,"l2 regularization lambda fro regularization")
 
 #Training Parameters
-tf.flags.DEFINE_integer("batch_size", 50, "Batch Size (default: 64)")
+tf.flags.DEFINE_integer("batch_size", 100, "Batch Size (default: 64)")
 tf.flags.DEFINE_integer("num_epochs", 200, "Number of training epochs (default: 200)")
 tf.flags.DEFINE_integer("evaluate_every", 50, "Evaluate model on dev set after this many steps (default: 100)")
 tf.flags.DEFINE_integer("checkpoint_every", 100, "Save model after this many steps (default: 100)")
 tf.flags.DEFINE_integer("num_checkpoints", 5, "Number of checkpoints to store (default: 5)")
-tf.flags.DEFINE_float("learning_rate",1e-1,"Learning rate for the optimizer")
+tf.flags.DEFINE_float("learning_rate",0.2,"Learning rate for the optimizer")
 
 # Misc Parameters
 tf.flags.DEFINE_boolean("allow_soft_placement", True, "Allow device soft device placement")
