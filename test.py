@@ -2,6 +2,7 @@
 import collections
 import numpy as np
 import pickle as pk
+import tensorflow as tf
 
 # 查询训练集基本信息
 # 训练集中 共有102278个训练样本
@@ -28,6 +29,18 @@ def test2():
     sorted_tuple = sorted(d.items(), key=lambda x: x[1], reverse=False)
     print(sorted_tuple)
 
+def test3():
+    A = np.array([[1, 2, 3], [4, 5, 6]])
+    x = tf.transpose(A, [1, 0])
+    print(A.shape)
+    B = np.array([[[1, 2, 3], [4, 5, 6]]])
+    y = tf.transpose(B, [2, 1, 0])
+
+    with tf.Session() as sess:
+        print(sess.run(x).shape)
+
+
+
 
 if __name__ == "__main__":
-    test2()
+    test3()

@@ -26,7 +26,6 @@ class CNN_Model(object):
             #在现有的基础上增加一个维度,因为 [batch,sequance_len,embeding_dim,channel]
             self.embedding_chars_expanded = tf.expand_dims(self.embedding_chars,-1)
 
-
         #Create a convolution + maxpool layer for each filter size
         pooled_outputs = []  #对于每一个filter_size ，将每个池化层得到
         for i, filter_size in enumerate(filter_sizes):
@@ -34,24 +33,35 @@ class CNN_Model(object):
             with tf.name_scope("conv-maxpool-%s" % filter_size):
 
                 #Convolution Layer
-                filter_shape = [filter_size,embedding_size,1,num_filters]
-                W = tf.Variable(tf.truncated_normal(filter_shape,stddev=0.1),name="W")
-                b = tf.Variable(tf.constant(0.1,shape=[num_filters]),name="b")
+                filter_shape1 = [filter_size,embedding_size,1,num_filters]
+                W1 = tf.Variable(tf.truncated_normal(filter_shape1,stddev=0.1),name="W1")
+                b1 = tf.Variable(tf.constant(0.1,shape=[num_filters]),name="b1")
 
-                #卷积层
-                conv = tf.nn.conv2d(self.embedding_chars_expanded,W,strides=[1,1,1,1],padding='VALID',name="pool")
-
+                #卷积层 shape: [batch, sequence_length - filter_szie + 1 , 1 , num_filters]
+                conv1 = tf.nn.conv2d(self.embedding_chars_expanded,W1,strides=[1,1,1,1],padding='VALID',name="conv1")
                 #非线性激活函数
-                h  = tf.nn.relu( tf.nn.bias_add(conv,b),name="relu")
-
-                #采用最大池化层
-                pooled = tf.nn.max_pool(h,ksize=[1,sequence_length - filter_size + 1,1,1],strides=[1,1,1,1],padding='VALID',name="pool")
-
+                h1  = tf.nn.relu( tf.nn.bias_add(conv1,b1),name="relu1")
+                # 采用最大池化层 pooled.shap = [batch,]
+                pooled1 = tf.nn.max_pool(h1,ksize=[1,sequence_length - filter_size + 1,1,1],strides=[1,1,1,1],padding='VALID',name="pool1")
                 #汇总所有不同filter_size的池化结果
-                pooled_outputs.append(pooled)
+                pooled_outputs.append(pooled1)
+
+                # 由于需要考虑更长的词语
+                # transpose trans_conv1.shape = [batch,sen_len-filter_size+1,num_filters,1]
+                trans_conv1 = tf.transpose(conv1,[0,1,3,2])
+                filter_shape2 = [2,num_filters,1,num_filters]
+                W2 = tf.Variable(tf.truncated_normal(filter_shape2,stddev=0.1),name="W2")
+                b2 = tf.Variable(tf.constant(0.1,shape=[num_filters],name="b2"))
+                # conv2.shape = [batch, sen_len-filter_size+1-2+1,1,num_filters]
+                conv2 = tf.nn.conv2d(trans_conv1,W2,strides=[1,1,1,1],padding='VALID',name="conv2")
+                h2 = tf.nn.relu(tf.nn.bias_add(conv2,b2),name='relu2')
+                # max_pooling pooled shape
+                pooled2 = tf.nn.max_pool(h2,ksize=[1,sequence_length-filter_size,1,1],strides=[1,1,1,1],padding='VALID',name="pool2")
+                #
+                pooled_outputs.append(pooled2)
 
         #汇总所有的池化后的特征
-        num_filters_total = num_filters * len( filter_sizes)
+        num_filters_total = (num_filters * 2) * len( filter_sizes)
         self.h_pool = tf.concat(pooled_outputs,3)
         self.h_pool_flat = tf.reshape(self.h_pool,[-1,num_filters_total])
 
@@ -86,5 +96,3 @@ class CNN_Model(object):
 
                 correct_prediction = tf.equal(self.predictions,tf.argmax(self.input_y,1))
                 self.accuracy = tf.reduce_mean( tf.cast(correct_prediction,"float"),name="accuracy")
-
-
