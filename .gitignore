@@ -1,3 +1,5 @@
+local_test.py
+
 # pycharm IDE files
 .idea/
 
@@ -5,8 +7,7 @@
 data/
 processed_data/
 cnn_model/processed_data/
-!data/.gitkeep
-!processed_data/.gitkeep
+!.gitkeep
 
 # tensorflow runs dir
 runs/

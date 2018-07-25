@@ -16,37 +16,111 @@
         * 训练集中"phrase_leve"上字典维度有 875129 
     
     * word_level训练集
+
+* 变量说明
+	* 源数据集的“article”对应sentencen_type=“word”
+	* 源数据集的“word_seg”对应的sentence_type=“phrase”
     
 ## processed_data/数据文件说明
     
-* phrase_level_data.csv
-    * “phrase”级别的文档表示,分为两列，<label,phrase_doc>  
-    * 调用文件../pre_process/data_util.py中方法extract_data
-* word_level_data.csv                        
-    * "word"级别上的文档表示，分为两列，<label,word_doc>
-    * 调用文件../pre_process/data_util.py中方法extract_data(..)
-* phrase_level_tf.pk
-    * “phrase”级别上词频文件，格式： dict{word:word_frequence}
-    * 调用文件../tf_idf_model/tf_idf.py中方法cal_tf(..)
-* phrase_level_bdcValue.pk
-    * "phrase"级别上词bdc值，格式： dict{word:bdc_value}
-    * 调用文件../bdc_model/get_bdc_value.py中方法cal_bdc_value(..)
-* phrase_level_idf.pk
-    * "phrase"级别上词的逆文档向量 格式：dict{word:idf_value}
-    * 调用文件../tf_idf_model/tf_idf.py中方法cal_idf(..)
-* phrase_level_tfbdc.pk
-    * "phrase"级别上词的tfbdc权重向量，格式: dict{word:tfbdc_value}
-    * 调用文件../bdc_model/get_tf_bdc.py中方法get_tf_bdc_value(..)
-* phrase_level_lf.pk
-    * "phrase"级别上词出现的类别频率，格式： dict{word:lf_value}
-    * 调用文件../pre_process/data_util.py中方法 calc_labelCount_per_words(..)
-* phrase_level_df.pk
-    * "phrase"级别上次出现的文档频率，格式: dict{word:df_value}
-    * 调用文件../pre_process/data_util.py中方法cal_document_frequency(..)
+* select_data/根据sentence_type，将源数据集转化成<label，sentence_type>的csv数据集
 
-      
-    
-    
+	* phrase_level_data.csv
+	    * “phrase”级别的文档表示,分为两列，<label,phrase_doc>  
+	    * 调用文件../pre_process/data_util.py中方法extract_data
+	    
+	* word_level_data.csv                        
+		* "word"级别上的文档表示，分为两列，<label,word_doc>
+		* 调用文件../pre_process/data_util.py中方法extract_data(..)
+		
+* pickle_weight/根据weight_type，将各个词的权重值以字典{“word”：weight}的形式存成pickle文件
+
+	* phrase_level_tf.pk
+		* “phrase”级别上词频文件，格式： dict{word:word_frequence}
+		* 调用文件../term_weighting_model/text_represent.py中方法cal_tf(..)
+		
+	* phrase_level_bdcValue.pk
+		* "phrase"级别上词bdc值，格式： dict{word:bdc_value}
+		* 调用文件../term_weighting_model/text_represent.py中方法cal_bdc_value(..)或者方法dc_bdc(..)
+		
+	* phrase_level_idf.pk
+		* "phrase"级别上词的逆文档向量 格式：dict{word:idf_value}
+		* 调用文件../term_weighting_model/text_represent.py中方法cal_idf(..)或者方法idf(..)
+		
+	* phrase_level_tfbdc.pk
+		* "phrase"级别上词的tfbdc权重向量，格式: dict{word:tfbdc_value}
+		* 调用文件../term_weighting_model/text_represent.py中方法get_tf_bdc_value(..)
+		
+* csv_weight/根据weight_type，将各个词的权重值存入csv文件，列名["word", "weight", "count"]
+
+	* phrase_level_idf.csv
+		* "phrase"级别上词的idf值
+		* 调用文件../term_weighting_model/text_represent.py中方法idf(..)
+		
+	* phrase_level_dc.csv
+		* "phrase"级别上词的dc值
+		* 调用文件../term_weighting_model/text_represent.py中方法dc_bdc(..)
+		
+	* phrase_level_bdc.csv
+		* "phrase"级别上词的bdc值
+		* 调用文件../term_weighting_model/text_represent.py中方法dc_bdc(..)
+		
+	* phrase_level_one_hot.csv
+		* "phrase"级别上词的one_hot值
+		* 调用文件../term_weighting_model/text_represent.py中方法one_hot(..)
+		
+* vector/根据weight_type将数据集转化成稀疏矩阵，并存储到本地文件
+
+	* phrase_dc_train.mtx
+		* "phrase"级别上以dc值将训练数据集转化成稀疏矩阵
+		* 调用文件../term_weighting_model/text_represent.py中方法weihgt_vector(..)
+		
+* word_distribution/对词的分布统计
+
+	* phrase_level_lf.pk
+		* "phrase"级别上词出现的类别频率，格式： dict{word:lf_value}
+		* 调用文件../pre_process/data_util.py中方法 calc_labelCount_per_words(..)
+		
+	* phrase_level_df.pk
+		* "phrase"级别上次出现的文档频率，格式: dict{word:df_value}
+		* 调用文件../pre_process/data_util.py中方法cal_document_frequency(..)
+		
+	* phrase_label_count.csv
+		* "phrase"级别上词出现在各个类别的文档数
+		* 调用文件./pre_process/data_util.py中方法word_in_label(..)
+		
+* com_result/结果的比较
+
+## term_weighting_model/特征权重模型文件说明
+
+* text_represent.py/所有特征权重函数均放在这个模块里
+```python
+def sentence_to_vector(sentence_data, word_list, word_df, is_tf=False):
+    """
+	将数据集转化成稀疏矩阵
+	:param sentence_data:
+	:param word_list:
+	:param word_df:
+	:param is_tf:
+	:return:
+    """
+```
+
+## utils 下部分工具方法说明
+
+* `json_util`, 将`dict`类型保存到json文件可以看到数据而且读入方便，个人觉得比pickle更适合保存dict和list类型
+```python
+from utils.path_util import from_project_root
+import utils.json_util as ju
+bdc_json_url = from_project_root("processed_data/phrase_level_bdc.json")
+bdc_dict = ju.load(bdc_json_url)  # load from json file
+ju.dump(bdc_dict, bdc_json_url)  # dump dict object to json file
+```
+
+* `data_util`, 提供一些读入和操作数据的公用方法
+  * `train_dev_split`, 将csv数据文件8:2划分为固定的训练集和验证集
+
+
 ## 初步分工
 
 * 分配部分
