@@ -72,8 +72,8 @@ def extract_data(filename, sentence_type, output_filename):
     :return: None
     '''
     raw_data_df = read_data_df(filename, data_type="train")
-    sentence_data_df = raw_data_df[[sentence_type, "class"]].copy()
-    sentence_data_df.to_csv(output_filename, index=False)
+    sentence_data_df = raw_data_df[[ "classify", sentence_type]].copy()
+    sentence_data_df.to_csv(output_filename, index=False, header=False)
 
 
 def load_word_dict(train_file, sentence_type, word_dict_pickle):

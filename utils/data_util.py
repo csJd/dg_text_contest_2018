@@ -63,7 +63,7 @@ def gen_phrase_data(data_url):
     """
     # processed_data/phrase_level_data.csv
     phrase_data_url = from_project_root("processed_data/phrase_level_data.csv")
-    pdu.extract_data(data_url, [3, 1], phrase_data_url)
+    pdu.extract_data(data_url, 'word_seg', phrase_data_url)
 
 
 def main():
