@@ -37,7 +37,7 @@ def eval_F_value(predict_y, d_test):
 
 from sklearn.neighbors import KNeighborsClassifier
 def knn(x_train, y_train, x_test, y_test):
-    clf = KNeighborsClassifier(n_neighbors=2)
+    clf = KNeighborsClassifier(n_neighbors=3)
     train_model(clf, x_train, y_train, x_test, y_test)
     print("knn")
 
@@ -58,14 +58,15 @@ def ls(x_train, y_train, x_test, y_test):
 from sklearn.naive_bayes import MultinomialNB
 
 def m_nb(x_train, y_train, x_test, y_test):
-    clf = MultinomialNB(alpha=0.2)
+    clf = MultinomialNB()
     train_model_proba(clf, x_train, y_train, x_test, y_test)
     print("nb")
 
 from sklearn.ensemble import RandomForestClassifier
 
 def rf(x_train, y_train, x_test, y_test):
-    clf = RandomForestClassifier(min_samples_leaf=5, n_estimators=200)
+    #clf = RandomForestClassifier(min_samples_leaf=5, n_estimators=200)
+    clf = OneVsRestClassifier(RandomForestClassifier(min_samples_leaf=5, n_estimators=200))
     train_model(clf, x_train, y_train, x_test, y_test)
     print("rf")
 

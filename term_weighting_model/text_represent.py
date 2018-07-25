@@ -45,7 +45,7 @@ def sentence_to_vector(sentence_data, word_list, word_df, is_tf=False):
     return sentence_vector
 
 
-def weihgt_vector(train_data, test_data, sentence_type, is_tf, weight_type, weight_tes=0, count_tes=0):
+def weight_vector(train_data, test_data, sentence_type, is_tf, weight_type, weight_tes=0, count_tes=0):
     """
     根据各种特征权重值将语句转化成向量空间模型
     :param train_data:
@@ -127,8 +127,8 @@ def tf_idf(train_data, test_data, weight_type, sentence_type):
     :param sentence_type:
     :return:
     """
-    # tfidf_vectorizer = TfidfVectorizer(min_df=3, max_df=0.9,  use_idf=1, smooth_idf=1, sublinear_tf=1)
-    tfidf_vectorizer = TfidfVectorizer()
+    tfidf_vectorizer = TfidfVectorizer(min_df=3, max_df=0.9,  use_idf=1, smooth_idf=1, sublinear_tf=1)
+    # tfidf_vectorizer = TfidfVectorizer(use_idf=1, smooth_idf=1, sublinear_tf=1)
     train_vector = tfidf_vectorizer.fit_transform(train_data)
     test_vector = tfidf_vectorizer.transform(test_data)
     du.write_vector(train_vector, weight_type, sentence_type, data_type="train")
@@ -144,9 +144,9 @@ def dc_bdc(sentence_type, is_bdc):
     :return:
     """
     if is_bdc:
-        filename = "processed_data/word_distribution/label_bdc_" + sentence_type + "_count.csv"
+        filename = "processed_data/word_distribution/" + sentence_type + "_label_bdc_count.csv"
     else:
-        filename = "processed_data/word_distribution/label_" + sentence_type + "_count.csv"
+        filename = "processed_data/word_distribution/" + sentence_type + "_label_count.csv"
     filename = from_project_root(filename)
     word_label_df = du.read_word_df(filename)
     raw_num, col_num = word_label_df.shape
@@ -333,7 +333,6 @@ if __name__ == "__main__":
     # validation_train_data = du.read_data_df(validation_train_data_filename, data_type="train")
     print("start")
     start_time = datetime.datetime.now()
-    # word_in_label(validation_train_data, type="word", is_bdc=False)
     idf("./word_distribution/label_word_count.csv", "./data/small_train.csv",
         "./processed_data/phrase_level_tf.pk", sentence_type="phrase", smooth_idf=0)
     # one_hot(validation_train_data, type="word")

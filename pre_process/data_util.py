@@ -52,7 +52,7 @@ def read_data_df(filename, data_type):
     filename = from_project_root(filename)
     if data_type == "train":
         data_df = pd.read_csv(filename, chunksize=10000,
-                              dtype={"id": str, "article": str, "word_seg": str, "classify": np.int}, engine="c")
+                              dtype={"id": str, "article": str, "word_seg": str, "class": np.int}, engine="c")
     elif data_type == "test":
         data_df = pd.read_csv(filename, chunksize=10000,
                               dtype={"id": str, "article": str, "word_seg": str}, engine="c")
@@ -100,6 +100,7 @@ def read_word_df(filename):
     :param filename:
     :return:
     """
+    filename = from_project_root(filename)
     word_label_df = pd.read_csv(filename, dtype={"word": str}, engine="c")
     word_label_df.set_index("word", inplace=True)
     return word_label_df
@@ -150,7 +151,7 @@ def read_weight_csv(weight_type, sentence_type):
     :param sentence_type: str，句子级别
     :return: DataFrame
     """
-    csv_filename = "processed_data/csv_weight/" + sentence_type + "_level" + weight_type + ".csv"
+    csv_filename = "processed_data/csv_weight/" + sentence_type + "_level_" + weight_type + ".csv"
     csv_filename = from_project_root(csv_filename)
     word_weight_df = pd.read_csv(csv_filename, dtype={"word": str}, engine="c")
     word_weight_df.set_index("word", inplace=True)
@@ -169,7 +170,7 @@ def write_vector(sentence_vector, weight_type, sentence_type, data_type):
     :param data_type: str，数据集形式，取值"test"或者"train"
     :return: None
     """
-    vector_filename = "processed_data/vector/" + sentence_type + "_" + weight_type + "_" + data_type +  ".mtx"
+    vector_filename = "processed_data/vector/" + sentence_type + "_" + weight_type + "_" + data_type + ".mtx"
     vector_filename = from_project_root(vector_filename)
     mmwrite(vector_filename, sentence_vector)
 
@@ -183,8 +184,15 @@ def read_csr(filename):
     csr = mmread(filename)
     return csr
 
-#数组的写入与读取
+
 def save_array(filename, param_arr):
+    """
+    数据的写入与读取
+    :param filename:str，本地文件路径
+    :param param_arr: array
+    :return:
+    """
+    filename = from_project_root(filename)
     np.save(filename, param_arr)
 
 def load_array(filename):
@@ -223,9 +231,9 @@ def word_in_label(data_df, sentence_type, is_bdc=False):
     word_sum = df.apply(lambda x: x.sum(), axis=1)
     if is_bdc:
         df = df.apply(lambda x: x/label_sum, axis=1)
-        filename = "processed_data/word_distribution/"+ sentence_type + "_label_bdc_"  + "_count.csv"
+        filename = "processed_data/word_distribution/"+ sentence_type + "_label_bdc_count.csv"
     else:
-        filename = "processed_data/word_distribution/" + sentence_type + "_label_" + "_count.csv"
+        filename = "processed_data/word_distribution/" + sentence_type + "_label_count.csv"
     filename = from_project_root(filename)
     df["count"] = word_sum
     df = df.reset_index()
@@ -240,12 +248,12 @@ def load_vector_label(weight_type, sentence_type):
     :param sentence_type: str，句子级别
     :return:
     """
-    train_label_filename = from_project_root("processed_data/label/Validation_train_label.npy")
-    test_label_filename = from_project_root("processed_data/label/Validation_test_label.npy")
+    train_label_filename = from_project_root("processed_data/label/train_label.npy")
+    test_label_filename = from_project_root("processed_data/label/test_label.npy")
     train_label = load_array(train_label_filename)
     test_label = load_array(test_label_filename)
-    train_vector_filename = from_project_root("processed/vector/" + sentence_type + "_" + weight_type + "_" + "train.mtx")
-    test_vector_filename = from_project_root("processed/vector/" + sentence_type + "_" + weight_type + "_" + "test.mtx")
+    train_vector_filename = from_project_root("processed_data/vector/" + sentence_type + "_" + weight_type + "_" + "train.mtx")
+    test_vector_filename = from_project_root("processed_data/vector/" + sentence_type + "_" + weight_type + "_" + "test.mtx")
     train_vector = read_csr(train_vector_filename)
     test_vector = read_csr(test_vector_filename)
     return train_vector, train_label, test_vector, test_label
@@ -258,10 +266,18 @@ def split_data(param_data_df):
     write_data_df("./data/small_train.csv", train_df)
     write_data_df("./data/small_test.csv", validation_df)
 
-def get_data_label(param_data_df, type, data_type):
-    if type == "char":
+
+def get_data_label(param_data_df, sentence_type, data_type):
+    """
+    根据sentence_type返回相应的数据集，如果是训练集，还要label
+    :param param_data_df: DataFrame
+    :param sentence_type: str，句子级别
+    :param data_type: str,取“train”或者“test”
+    :return: 如果是“trian”，则返回数据集和label；如果是“test”，则返回数据集
+    """
+    if sentence_type == "word":
         column = "article"
-    elif type == "word":
+    elif sentence_type == "phrase":
         column = "word_seg"
     data_list = param_data_df[column].values
     if data_type == "train":
