@@ -9,13 +9,13 @@ def load_data_and_labels(train_file):
     x_text = []
     y = []
 
-    pd_data = pd.read_csv(train_file,sep=",")[:1000]
+    pd_data = pd.read_csv(train_file,sep=",")
     for index,row in pd_data.iterrows():
 
-        x_text.append(row[2])
+        x_text.append(row[1])
 
         #垃圾邮件 [1,0]  正常邮件 [0,1]
-        train_label = row[3]
+        train_label = row[0]
 
         #构造label
         label = [0] * 19

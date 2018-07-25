@@ -194,9 +194,9 @@ def main():
     '''
         生成df——单词存在于多少个文档中出现
     '''
-    train_file = "E:\deve-program\pycharm-workplace\dg_text\processed_data\phrase_level_data.csv"
-    df_pickle = "../processed_data/phrase_level_df.pk"
-    cal_document_frequency(train_file, df_pickle)
+    # train_file = "E:\deve-program\pycharm-workplace\dg_text\processed_data\phrase_level_data.csv"
+    # df_pickle = "../processed_data/phrase_level_df.pk"
+    # cal_document_frequency(train_file, df_pickle)
     pass
 
 

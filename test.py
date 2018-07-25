@@ -24,18 +24,10 @@ def test1():
 
 def test2():
 
-    data = pk.load(open("E:\deve-program\pycharm-workplace\dg_text\processed_data\phrase_level_tfbdc.pk",'rb'))
-
-    print(len(data))
-
-def test3():
-
-    data_set = set()
-    data_set.add('a')
-    data_set.add('a')
-
-    print(len(data_set))
+    d = {'a':1,'b':4,'c':2}
+    sorted_tuple = sorted(d.items(), key=lambda x: x[1], reverse=False)
+    print(sorted_tuple)
 
 
 if __name__ == "__main__":
-    test3()
+    test2()

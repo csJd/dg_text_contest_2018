@@ -8,25 +8,26 @@ from CNN_Model import CNN_Model
 import time
 import os
 import datetime
+from utils.path_util import from_project_root
 
 #Setting parameters
 
 #==================================================================================================
 
 #dev percent 验证集的大小
-tf.flags.DEFINE_float("dev_sample_percentage",0.1,"Percentage of the training data to use for validation")
+tf.flags.DEFINE_float("dev_sample_percentage",0.004,"Percentage of the training data to use for validation")
 
 #Model HypereParameters
 tf.flags.DEFINE_integer("embedding_dim",64,"Dimensionality of character embedding")
 tf.flags.DEFINE_string("filter_size","3,4,5","the size of the filter")
-tf.flags.DEFINE_integer("num_filters",32,"the num of channels in per filter")
-tf.flags.DEFINE_float("dropout_keep_prob",0.5,"Dropout keep probability for regularization")
+tf.flags.DEFINE_integer("num_filters",64,"the num of channels in per filter")
+tf.flags.DEFINE_float("dropout_keep_prob",0.9,"Dropout keep probability for regularization")
 tf.flags.DEFINE_float("l2_reg_lambda",0.0,"l2 regularization lambda fro regularization")
 
 #Training Parameters
 tf.flags.DEFINE_integer("batch_size", 50, "Batch Size (default: 64)")
 tf.flags.DEFINE_integer("num_epochs", 200, "Number of training epochs (default: 200)")
-tf.flags.DEFINE_integer("evaluate_every", 100, "Evaluate model on dev set after this many steps (default: 100)")
+tf.flags.DEFINE_integer("evaluate_every", 50, "Evaluate model on dev set after this many steps (default: 100)")
 tf.flags.DEFINE_integer("checkpoint_every", 100, "Save model after this many steps (default: 100)")
 tf.flags.DEFINE_integer("num_checkpoints", 5, "Number of checkpoints to store (default: 5)")
 tf.flags.DEFINE_float("learning_rate",1e-3,"Learning rate for the optimizer")
@@ -36,7 +37,7 @@ tf.flags.DEFINE_boolean("allow_soft_placement", True, "Allow device soft device 
 tf.flags.DEFINE_boolean("log_device_placement", False, "Log placement of ops on devices")
 
 #Training file path # 训练数据，已经分好词
-tf.flags.DEFINE_string("train_file","../init_data/train_set.csv","Training file")
+tf.flags.DEFINE_string("train_file","cnn_model/processed_data/filtered_data_file","Training file")
 
 FLAGS = tf.flags.FLAGS
 # FLAGS._parse_flags()
@@ -58,39 +59,38 @@ print("")
 #y : label example: [[0,1],[1,0],...]
 
 print("Loading Data...")
-x_text,y = Data_helper.load_data_and_labels(FLAGS.train_file)
-
-y = np.array(y)
+x_text,y = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file))
 
 #=======================================================================================================================
 
 #Build Vacabulary  由于卷积神经网络需要固定句子的长度
 max_document_length = max(len(x.split(" ")) for x in x_text)
-vocab_processor = learn.preprocessing.VocabularyProcessor(max_document_length) #创建一个字典处理器,并设置句子固定长度
+vocab_processor = learn.preprocessing.VocabularyProcessor(2000) #创建一个字典处理器,并设置句子固定长度
 x = np.array( list( vocab_processor.fit_transform(x_text)))   #x就转化为字典的下表表示的数组
 
 #格式化输出
 print("Vocabulary size :{:d}".format(len(vocab_processor.vocabulary_)))
 
+
 #=======================================================================================================================
 
 #由于读进来的数据的label可能是有规律的，因此，使用洗牌
-np.random.seed(10)
-shuffle_indices = np.random.permutation(np.arange(len(y))) #使用permutation对有序列进行重新随机排列
-
-x_shuffled = x[shuffle_indices]
-y_shuffled = y[shuffle_indices]
+# np.random.seed(10)
+# shuffle_indices = np.random.permutation(np.arange(len(y))) #使用permutation对有序列进行重新随机排列
+#
+# x_shuffled = x[shuffle_indices]
+# y_shuffled = y[shuffle_indices]
 
 #=======================================================================================================================
 #数据集划分
 
 dev_sample_index = -1 * int( FLAGS.dev_sample_percentage * len(y))
 
-x_train,x_dev = x_shuffled[:dev_sample_index],x_shuffled[dev_sample_index:]
-y_train,y_dev = y_shuffled[:dev_sample_index],y_shuffled[dev_sample_index:]
+x_train,x_dev = x[:dev_sample_index],x[dev_sample_index:]
+y_train,y_dev = y[:dev_sample_index],y[dev_sample_index:]
 
 #情况内存
-del x,y,x_shuffled,y_shuffled
+del x,y
 
 #格式化输出
 print("Train / Dev split: {:d} / {:d}".format(len(y_train),len(y_dev)))
@@ -112,7 +112,7 @@ with tf.Graph().as_default():
 
         cnn = CNN_Model(
             sequence_length= x_train.shape[1],
-            num_classes = y_train.shape[1],
+            num_classes = np.array(y_train).shape[1],
             vocab_size = len(vocab_processor.vocabulary_),
             embedding_size=FLAGS.embedding_dim,
             filter_sizes = list(map(int, FLAGS.filter_size.split(","))),
