@@ -21,10 +21,9 @@ def load_raw_data(data_url):
 
     """
     with open(data_url, "r", encoding="utf-8") as data_file:
-        lines = data_file.readlines()
         labels = list()
         sentences = list()
-        for line in lines:
+        for line in data_file:
             line = line.split(',')
             labels.append(int(line[0]))
             sentences.append(line[1].split())

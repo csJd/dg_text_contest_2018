@@ -77,7 +77,7 @@
 		
 	* phrase_level_bdc.json
 	    * "phrase" 级别上的bdc值
-	    * 调用文件../term_weighting_model/clac_weightings.py中的方法calc_bdc(..)
+	    * 调用文件../term_weighting_model/calc_weightings.py中的方法calc_bdc(..)
 		
 * vector/根据weight_type将数据集转化成稀疏矩阵，并存储到本地文件
 

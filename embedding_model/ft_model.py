@@ -14,7 +14,7 @@ DEV_URL = from_project_root("processed_data/phrase_level_data_dev.csv")
 
 # Define some static args for ft model
 FT_LABEL_PREFIX = '__label__'
-THREAD = 4
+N_JOBS = 4
 
 
 def ft_process(data_url):
@@ -34,7 +34,7 @@ def ft_process(data_url):
     if exists(save_url):
         return save_url
 
-    with open(save_url, "w", encoding='utf-8') as ft_file:
+    with open(save_url, "w", encoding='utf-8', newline='\n') as ft_file:
         labels, sentences = load_raw_data(data_url)
         for i in range(len(labels)):
             label = FT_LABEL_PREFIX + str(labels[i])
@@ -43,12 +43,11 @@ def ft_process(data_url):
     return save_url
 
 
-def train_ft_model(data_url, model_url, args):
+def train_ft_model(data_url, args):
     """ load the ft model or train a new one
 
     Args:
         data_url: train data url
-        model_url: url to save trained model
         args: args for model
 
     Returns:
@@ -59,6 +58,7 @@ def train_ft_model(data_url, model_url, args):
         data_url = ft_process(data_url)
 
     # model specified by model_url is already trained and saved
+    model_url = args_to_url(data_url, args)
     if exists(model_url):
         return ft.load_model(model_url, label_prefix=FT_LABEL_PREFIX)
 
@@ -92,7 +92,7 @@ def train_ft_model(data_url, model_url, args):
     '''
 
     s_time = time()
-    clf = ft.supervised(data_url, model_url, thread=THREAD, label_prefix=FT_LABEL_PREFIX,
+    clf = ft.supervised(data_url, model_url, thread=N_JOBS, label_prefix=FT_LABEL_PREFIX,
                         lr=args['lr'],
                         dim=args['dim'],
                         ws=args['ws'],
@@ -103,17 +103,19 @@ def train_ft_model(data_url, model_url, args):
     return clf
 
 
-def args_to_url(args):
+def args_to_url(data_url, args):
     """ generate model_url from args
 
     Args:
+        data_url: for ft_model
         args: args dict
 
     Returns:
         str: model_url for train_ft_model
 
     """
-    filename = '_'.join([str(x) for x in args.values()]) + '.bin'
+    level = ['phrase'] if 'phrase' in data_url else ['word']
+    filename = '_'.join(level + [str(x) for x in args.values()]) + '.bin'
     return from_project_root("embedding_model/models/ft_phrase_" + filename)
 
 
@@ -149,8 +151,7 @@ def main():
         'epochs': 30,
         'ngram': 1
     }
-    model_url = args_to_url(args)
-    clf = train_ft_model(TRAIN_URL, model_url, args)
+    clf = train_ft_model(TRAIN_URL, args)
     print_model_details(clf)
 
     pass
