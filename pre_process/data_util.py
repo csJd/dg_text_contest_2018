@@ -72,7 +72,7 @@ def extract_data(filename, sentence_type, output_filename):
     :return: None
     '''
     raw_data_df = read_data_df(filename, data_type="train")
-    sentence_data_df = raw_data_df[[sentence_type, "class"]].copy()
+    sentence_data_df = raw_data_df[[ "classify",sentence_type]].copy()
     sentence_data_df.to_csv(output_filename, index=False)
 
 
@@ -392,11 +392,12 @@ def cal_document_frequency(train_file,df_pickle):
     pk.dump(df_dict,open(df_pickle,'wb'))
 
 if __name__ == "__main__":
-    train_data_filename = "./data/small_train.csv"
-    # extract_data(train_data_filename, sentence_type="word_seg", output_filename="./data/word_seg.csv")
-    train_data_df = read_data_df(train_data_filename, data_type="train")
+    train_data_filename = from_project_root("data/train_set.csv")
+    extract_data(train_data_filename, sentence_type="word_seg",
+                 output_filename="../lstm_model/processed_data/word_seg.csv")
+    # train_data_df = read_data_df(train_data_filename, data_type="train")
 
     #load_word_dict("./data/word_seg.csv", "word_seg", "./processed_data/phrase_level_word_dict.pk")
-    word_in_label(train_data_df, sentence_type="phrase", is_bdc=False)
+    # word_in_label(train_data_df, sentence_type="phrase", is_bdc=False)
     #分割数据集
     #split_data(train_data_df)
