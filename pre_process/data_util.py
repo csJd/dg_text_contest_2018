@@ -72,8 +72,8 @@ def extract_data(filename, sentence_type, output_filename):
     :return: None
     '''
     raw_data_df = read_data_df(filename, data_type="train")
-    sentence_data_df = raw_data_df[[ "classify", sentence_type]].copy()
-    sentence_data_df.to_csv(output_filename, index=False, header=False)
+    sentence_data_df = raw_data_df[[sentence_type, "class"]].copy()
+    sentence_data_df.to_csv(output_filename, index=False)
 
 
 def load_word_dict(train_file, sentence_type, word_dict_pickle):
@@ -262,9 +262,16 @@ from sklearn.model_selection import train_test_split
 
 
 def split_data(param_data_df):
+    """
+    划分数据集
+    :param param_data_df:
+    :return:
+    """
     train_df, validation_df = train_test_split(param_data_df, test_size=0.2)
-    write_data_df("./data/small_train.csv", train_df)
-    write_data_df("./data/small_test.csv", validation_df)
+    train_filename = from_project_root("data/small_train.csv")
+    test_filename = from_project_root(("data/small_test.csv"))
+    write_data_df(train_filename, train_df)
+    write_data_df(test_filename, validation_df)
 
 
 def get_data_label(param_data_df, sentence_type, data_type):
@@ -383,36 +390,6 @@ def cal_document_frequency(train_file,df_pickle):
 
     #save
     pk.dump(df_dict,open(df_pickle,'wb'))
-
-def main():
-    ''''''
-    '''
-        生成 “phrase”级别 和 "word"级别的data
-    '''
-    # init_train_file = "../data/train_set.csv"
-    # extracted_file = "../processed_data/word_level_data.csv"
-    # extract_data(init_train_file,[3,1],extracted_file)
-
-    '''
-        对data文件建立词典
-    '''
-    # data_file = "../processed_data/phrase_level_data.csv"
-    # load_word_dict(data_file,"../processed_data/phrase_level_word_dict.pk")
-
-    '''
-        生成lf——单词在多少个类别中出现。
-    '''
-    # data_file = "E:\deve-program\pycharm-workplace\dg_text\processed_data\phrase_level_data.csv"
-    # labelFrequency_pickle = "../processed_data/phrase_level_lf.pk"
-    # calc_labelCount_per_words(data_file,labelFrequency_pickle)
-
-    '''
-        生成df——单词存在于多少个文档中出现
-    '''
-    # train_file = "E:\deve-program\pycharm-workplace\dg_text\processed_data\phrase_level_data.csv"
-    # df_pickle = "../processed_data/phrase_level_df.pk"
-    # cal_document_frequency(train_file, df_pickle)
-    pass
 
 if __name__ == "__main__":
     train_data_filename = "./data/small_train.csv"
