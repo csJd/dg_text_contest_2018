@@ -31,7 +31,7 @@ tf.flags.DEFINE_integer("num_filters",64,"the num of channels in per filter")
 tf.flags.DEFINE_float("rnn_input_keep_prob",0.7,"rnn_input_keep_prob")
 tf.flags.DEFINE_float("rnn_output_keep_prob",1.0,"rnn_output_keep_prob")
 
-tf.flags.DEFINE_string("train_file","lstm_model/processed_data/filtered_word_seg_train.csv","train file url")
+tf.flags.DEFINE_string("train_file","lstm_model/processed_data/filtered_phrase_data.csv","train file url")
 
 FLAGS = tf.flags.FLAGS
 

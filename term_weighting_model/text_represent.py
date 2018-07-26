@@ -364,8 +364,10 @@ if __name__ == "__main__":
     # validation_train_data = du.read_data_df(validation_train_data_filename, data_type="train")
     print("start")
     start_time = datetime.datetime.now()
-    idf("./word_distribution/label_word_count.csv", "./data/small_train.csv",
-        "./processed_data/phrase_level_tf.pk", sentence_type="phrase", smooth_idf=0)
+    cal_tf(from_project_root("lstm_model/processed_data/phrase_level_data.csv"),
+           from_project_root("lstm_model/processed_data/phrase_tf.pk"))
+    # idf("./word_distribution/label_word_count.csv", "./data/small_train.csv",
+    #     "./processed_data/phrase_level_tf.pk", sentence_type="phrase", smooth_idf=0)
     # one_hot(validation_train_data, type="word")
     # dc_bdc(type="word", is_bdc=False)
     end_time = datetime.datetime.now()
