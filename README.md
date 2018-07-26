@@ -26,21 +26,26 @@
     
 ## processed_data/数据文件说明
     
-* select_data/根据sentence_type，将源数据集转化成<label，sentence_type>的csv数据集
 
-	* phrase_level_data.csv
-	    * “phrase”级别的文档表示,分为两列，<label,phrase_doc>  
-	    * 调用文件../pre_process/data_util.py中方法extract_data
+* phrase_level_data.csv
+    * “phrase”级别的文档表示,分为两列，<label,phrase_doc>  
+    * 调用文件../pre_process/data_util.py中方法extract_data
 	    
-	* word_level_data.csv                        
-		* "word"级别上的文档表示，分为两列，<label,word_doc>
-		* 调用文件../pre_process/data_util.py中方法extract_data(..)
+* word_level_data.csv                        
+	* "word"级别上的文档表示，分为两列，<label,word_doc>
+	* 调用文件../pre_process/data_util.py中方法extract_data(..)
 		
-* pickle_weight/根据weight_type，将各个词的权重值以字典{“word”：weight}的形式存成pickle文件
+* saved_weight/  各种格式保存的权值文件
 
-	* phrase_level_tf.pk
-		* “phrase”级别上词频文件，格式： dict{word:word_frequence}
-		* 调用文件../term_weighting_model/text_represent.py中方法cal_tf(..)
+  > **\*.pk**  根据weight_type, 将各个词的权重值以字典{“word”：weight}的形式存成pickle文件
+  
+  > **\*.csv** 根据weight_type, 将各个词的权重值存入csv文件，列名["word", "weight", "count"]
+  
+  > **\*.json** 根据weight_type, 将权值dict存入json文件, `ju.load(url)`可以直接读取为`dict`
+   
+    * phrase_level_tf.pk
+	    * “phrase”级别上词频文件，格式： dict{word:word_frequence}
+	    * 调用文件../term_weighting_model/text_represent.py中方法cal_tf(..)
 		
 	* phrase_level_bdcValue.pk
 		* "phrase"级别上词bdc值，格式： dict{word:bdc_value}
@@ -54,8 +59,6 @@
 		* "phrase"级别上词的tfbdc权重向量，格式: dict{word:tfbdc_value}
 		* 调用文件../term_weighting_model/text_represent.py中方法get_tf_bdc_value(..)
 		
-* csv_weight/根据weight_type，将各个词的权重值存入csv文件，列名["word", "weight", "count"]
-
 	* phrase_level_idf.csv
 		* "phrase"级别上词的idf值
 		* 调用文件../term_weighting_model/text_represent.py中方法idf(..)
@@ -71,6 +74,10 @@
 	* phrase_level_one_hot.csv
 		* "phrase"级别上词的one_hot值
 		* 调用文件../term_weighting_model/text_represent.py中方法one_hot(..)
+		
+	* phrase_level_bdc.json
+	    * "phrase" 级别上的bdc值
+	    * 调用文件../term_weighting_model/clac_weightings.py中的方法calc_bdc(..)
 		
 * vector/根据weight_type将数据集转化成稀疏矩阵，并存储到本地文件
 
