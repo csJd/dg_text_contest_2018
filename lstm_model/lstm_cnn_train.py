@@ -14,7 +14,7 @@ tf.flags.DEFINE_integer("num_classes",19,"number of classes")
 tf.flags.DEFINE_integer("embedding_size",128,"Dimensionality of word embedding")
 tf.flags.DEFINE_integer("hidden_size",80,"Dimensionality of GRU hidden layer(default 50)") #===============
 tf.flags.DEFINE_float("dev_sample_percentage",0.004,"dev_sample_percentage")
-tf.flags.DEFINE_integer("batch_size",200,"Batch Size of training data(default 50)")
+tf.flags.DEFINE_integer("batch_size",100,"Batch Size of training data(default 50)")
 tf.flags.DEFINE_integer("checkpoint_every",100,"Save model after this many steps (default 100)")
 tf.flags.DEFINE_integer("num_checkpoints",5,"Number of checkpoints to store (default 5)")
 tf.flags.DEFINE_integer("evaluate_every",50,"evaluate every this many batches")
@@ -31,7 +31,7 @@ tf.flags.DEFINE_integer("num_filters",64,"the num of channels in per filter")
 tf.flags.DEFINE_float("rnn_input_keep_prob",0.7,"rnn_input_keep_prob")
 tf.flags.DEFINE_float("rnn_output_keep_prob",1.0,"rnn_output_keep_prob")
 
-tf.flags.DEFINE_string("train_file","lstm_model/processed_data/filtered_phrase_data.csv","train file url")
+tf.flags.DEFINE_string("train_file","lstm_model/processed_data/filtered_phrase_data_train.csv","train file url")
 
 FLAGS = tf.flags.FLAGS
 
