@@ -37,7 +37,7 @@ def eval_F_value(predict_y, d_test):
 
 from sklearn.neighbors import KNeighborsClassifier
 def knn(x_train, y_train, x_test, y_test):
-    clf = KNeighborsClassifier(n_neighbors=3)
+    clf = KNeighborsClassifier(n_neighbors=10)
     train_model(clf, x_train, y_train, x_test, y_test)
     print("knn")
 
@@ -51,16 +51,22 @@ def ovr(x_train, y_train, x_test, y_test):
     print("ovr")
 
 def ls(x_train, y_train, x_test, y_test):
-    clf = LinearSVC()
+    clf = LinearSVC(dual=False, tol=1e-3, penalty="l2")
     train_model(clf, x_train, y_train, x_test, y_test)
     print("ls")
 
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.naive_bayes import BernoulliNB
 
 def m_nb(x_train, y_train, x_test, y_test):
-    clf = MultinomialNB()
+    clf = MultinomialNB(alpha=0.1)
     train_model_proba(clf, x_train, y_train, x_test, y_test)
-    print("nb")
+    print("m_nb")
+
+def b_nb(x_train, y_train, x_test, y_test):
+    clf =  BernoulliNB(alpha=0.1)
+    train_model_proba(clf, x_train, y_train, x_test, y_test)
+    print("b_nb")
 
 from sklearn.ensemble import RandomForestClassifier
 
@@ -70,7 +76,42 @@ def rf(x_train, y_train, x_test, y_test):
     train_model(clf, x_train, y_train, x_test, y_test)
     print("rf")
 
+from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import SGDClassifier
+from sklearn.linear_model import RidgeClassifier
+from sklearn.linear_model import PassiveAggressiveClassifier
+from sklearn.linear_model import Perceptron
+
+def lr(x_train, y_train, x_test, y_test):
+    clf = LogisticRegression()
+    train_model(clf, x_train, y_train, x_test, y_test)
+    print("lr")
+
+
+def sgdc(x_train, y_train, x_test, y_test):
+    clf = SGDClassifier(alpha=0.0001, max_iter=500, penalty="elasticnet")
+    train_model(clf, x_train, y_train, x_test, y_test)
+    print("sgdc")
+
+
+def rd(x_train, y_train, x_test, y_test):
+    clf = RidgeClassifier(tol=1e-2, solver="lsqr")
+    train_model(clf, x_train, y_train, x_test, y_test)
+    print("rd")
+
+def pas(x_train, y_train, x_test, y_test):
+    clf = PassiveAggressiveClassifier(max_iter=500)
+    train_model(clf, x_train, y_train, x_test, y_test)
+    print("pas")
+
+def pp(x_train, y_train, x_test, y_test):
+    clf = Perceptron(max_iter=500)
+    train_model(clf, x_train, y_train, x_test, y_test)
+    print("pp")
+
+
 from sklearn.ensemble import GradientBoostingClassifier
+
 
 def gbc(x_train, y_train, x_test, y_test):
     clf = GradientBoostingClassifier()

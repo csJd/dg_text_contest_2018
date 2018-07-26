@@ -39,8 +39,13 @@ def test3():
     with tf.Session() as sess:
         print(sess.run(x).shape)
 
-
+# test tqdm
+def test4():
+    from tqdm import tqdm
+    pbar = tqdm(["a", "b", "c", "d"]) # 在迭代的时候
+    for char in pbar:
+        pbar.set_description("Processing %s" % char)
 
 
 if __name__ == "__main__":
-    test3()
+    test4()

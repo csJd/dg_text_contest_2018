@@ -11,6 +11,7 @@ import pickle as pk
 from utils.path_util import from_project_root
 
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.preprocessing import normalize
 
 
 def sentence_to_vector(sentence_data, word_list, word_df, is_tf=False):
@@ -26,6 +27,7 @@ def sentence_to_vector(sentence_data, word_list, word_df, is_tf=False):
     col = []
     value = []
     i = 0
+    not_in_dic = []
     for sentence in tqdm(sentence_data):
         sentence_split = sentence.split(" ")
         sentence_count = Counter(sentence_split)
@@ -34,18 +36,19 @@ def sentence_to_vector(sentence_data, word_list, word_df, is_tf=False):
                 col_value = word_df.loc[word, "index"]
                 weight_value = word_df.loc[word, "weight"]
                 if is_tf:
-                    weight_value = weight_value * count
+                    weight_value = weight_value * (np.log(count) + 1)
                 col.append(col_value)
                 value.append(weight_value)
                 row.append(i)
             except KeyError:
-                continue
+                not_in_dic.append(word)
         i = i + 1
+    print(len(Counter(not_in_dic)))
     sentence_vector = csr_matrix((value, (row, col)), shape=(len(sentence_data), len(word_list)))
     return sentence_vector
 
 
-def weight_vector(train_data, test_data, sentence_type, is_tf, weight_type, weight_tes=0, count_tes=0):
+def weight_vector(train_data, test_data, sentence_type, is_tf, weight_type, min_weight=0, min_df=0, max_df=1):
     """
     根据各种特征权重值将语句转化成向量空间模型
     :param train_data:
@@ -53,21 +56,49 @@ def weight_vector(train_data, test_data, sentence_type, is_tf, weight_type, weig
     :param sentence_type:
     :param is_tf:
     :param weight_type:
-    :param weight_tes:
-    :param count_tes:
+    :param min_weight:
+    :param min_df:
+    :param max_df:
     :return:
     """
+    sample_num = len(train_data)
+    max_df = max_df * sample_num
     word_weight_df = du.read_weight_csv(weight_type, sentence_type)
-    word_select_df = word_weight_df[(word_weight_df["weight"] > weight_tes) & (word_weight_df["count"] > count_tes)].copy()
+    word_select_df = word_weight_df[(word_weight_df["weight"] > min_weight) & (word_weight_df["count"] > min_df) & (word_weight_df["count"] < max_df)].copy()
     word_list = np.array(word_select_df.index, dtype=str)
     len_row = word_select_df.shape[0]
     print("word_length: ", len_row)
     word_select_df["index"] = np.arange(len_row)
     train_vector = sentence_to_vector(train_data, word_list, word_select_df, is_tf=is_tf)
     test_vector = sentence_to_vector(test_data, word_list, word_select_df, is_tf=is_tf)
+    train_vector = normalize(train_vector, axis=1, norm="l2")
+    test_vector = normalize(test_vector, axis=1, norm="l2")
     du.write_vector(train_vector, weight_type, sentence_type, data_type="train")
     du.write_vector(test_vector, weight_type, sentence_type, data_type="test")
     return train_vector, test_vector
+
+
+def concat(weight_type1, weight_type2, sentence_type):
+    """
+    将weight_list中的特征权重组合起来
+    :param weight_list: list，元素是weight_type
+    :param sentence_type:
+    :return: None
+    """
+    word_weight_df1 = du.read_weight_csv(weight_type1, sentence_type)
+    word_weight_df2 = du.read_weight_csv(weight_type2, sentence_type)
+    word_list = np.array(word_weight_df1.index, dtype=str)
+    word_weight = []
+    for word in word_list:
+        weight_value = word_weight_df1.loc[word, "weight"] * word_weight_df2.loc[word, "weight"]
+        word_weight.append(weight_value)
+    word_sum = word_weight_df2["count"].values
+    new_weight_type = weight_type1 + "_" + weight_type2
+    # 将词的权重值保存到pickle中，格式{"word": idf_value}
+    du.write_weight_pickle(word_list, word_weight, weight_type=new_weight_type, sentence_type=sentence_type)
+    # 将词的权重值保存到csv中，格式为["word", "weight", "count"]
+    du.write_weight_csv(word_list, word_weight, word_sum, weight_type=new_weight_type, sentence_type=sentence_type)
+
 
 
 def one_hot(param_data, sentence_type):
@@ -84,7 +115,7 @@ def one_hot(param_data, sentence_type):
     elif sentence_type == "word":
         data = param_data["article"].values
     for sentence in tqdm(data):
-        word_list = sentence.split()
+        word_list = sentence.split(" ")
         word_list_only = list(set(word_list))
         word_dictionary.extend(word_list_only)
     word_dictionary_count = Counter(word_dictionary)
@@ -92,7 +123,7 @@ def one_hot(param_data, sentence_type):
     word_value = [1] * len(word_dictionary_only)
     word_df = pd.DataFrame(word_dictionary_only, columns=["word", "count"])
     word_df["weight"] = word_value
-    filename = "processed_data/weight/" + sentence_type + "_one_hot_" + ".csv"
+    filename = "processed_data/csv_weight/" + sentence_type + "_level_one_hot.csv"
     filename = from_project_root(filename)
     word_df.to_csv(filename, index=False)
 
@@ -111,7 +142,7 @@ def idf(word_filename, raw_filename, sentence_type, smooth_idf=0):
     word_count = word_label_df["count"].values
     data_df = du.read_data_df(raw_filename, data_type="train")
     sentence_count = data_df.shape[0]
-    word_idf = np.log(sentence_count / (word_count+smooth_idf))
+    word_idf = np.log((sentence_count + 1)/ (word_count+smooth_idf)) + 1
     # 将词的idf保存到pickle中，格式{"word": idf_value}
     du.write_weight_pickle(word_list, word_idf, weight_type="idf", sentence_type=sentence_type)
     # 将词的idf保存到csv中，格式为["word", "weight", "count"]

@@ -63,6 +63,7 @@ class CNN_Model(object):
         #汇总所有的池化后的特征
         num_filters_total = (num_filters * 2) * len( filter_sizes)
         self.h_pool = tf.concat(pooled_outputs,3)
+        # h_pool_flat.shape = [batch, num_filters_total]
         self.h_pool_flat = tf.reshape(self.h_pool,[-1,num_filters_total])
 
         #添加 dropout，规则化
@@ -72,17 +73,32 @@ class CNN_Model(object):
         # 构造损失函数，优化函数，和 预测 输出层
         with tf.name_scope("output"):
 
-            W = tf.get_variable(
-                "W",
-                shape=[num_filters_total,num_classes],
+            # 建立两层全连接层
+            # 第一层
+            W1 = tf.get_variable(
+                "W1",
+                shape=[num_filters_total,num_filters],
                 initializer=tf.contrib.layers.xavier_initializer()
             )
-            b = tf.Variable(tf.constant(0.1,shape=[num_classes]),name="b")
-            #使用L2范式，
-            l2_loss += tf.nn.l2_loss(W)
-            l2_loss += tf.nn.l2_loss(b)
+            b1 = tf.Variable(tf.constant(0.1,shape=[num_filters]),name="b1")
+            # fc1.shape = [batch,num_classes]
+            fc1  = tf.nn.xw_plus_b(self.h_drop,W1,b1,name="fc1")
 
-            self.scores  = tf.nn.xw_plus_b(self.h_drop,W,b,name="scores")
+            # 第二层
+            W2 = tf.get_variable(
+                "W2",
+                shape=[num_filters,num_classes],
+                initializer=tf.contrib.layers.xavier_initializer()
+            )
+            b2 = tf.Variable(tf.constant(0.1,shape=[num_classes]),name="b2")
+            fc2 = tf.nn.xw_plus_b(fc1,W2,b2,name="scores")
+
+            #使用L2范式，
+            l2_loss += tf.nn.l2_loss(W2)
+            l2_loss += tf.nn.l2_loss(b2)
+
+            # softmax no test
+            self.scores = tf.nn.softmax(fc2,name="scores")
             self.predictions = tf.argmax(self.scores,1,name="prediction")
 
             #Calculate mean cross-entrpy loss

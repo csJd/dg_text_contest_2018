@@ -2,6 +2,7 @@
 # created by Pengpeng on 2018/7/22
 import pickle as pk
 from utils.path_util import from_project_root
+from utils.data_util import train_dev_split
 
 # 根据各种权重，过滤语料中的词语
 def filter_words(tf_pickle,bdc_pickle,tf_bdc_picle,df_pickle,lf_pickle,vocab_pickle):
@@ -109,6 +110,10 @@ def  transfer_pk_to_csv(pickle_file,save_csv_file):
 
 
 def main():
+
+    # 划分数据集
+    train_dev_split(from_project_root("cnn_model/processed_data/filtered_data_file"))
+    exit()
 
     tf_pickle = from_project_root("processed_data/phrase_level_tf.pk")
     bdc_pickle = from_project_root("processed_data/phrase_level_bdc.pk")
