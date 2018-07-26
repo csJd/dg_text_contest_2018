@@ -37,10 +37,7 @@ def pre_processed_data(data_file,tf_pickle,filted_data_file):
                 empty_list_count += 1
                 filtered_word_list = word_list
                 print("empty_list:{}".format(empty_list_count))
-
-
             wf.write("{},{}\n".format(label," ".join(filtered_word_list)))
-
     pass
 
 def process_sen(tf_dict,word_list):
