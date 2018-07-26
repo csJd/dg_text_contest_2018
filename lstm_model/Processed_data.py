@@ -106,14 +106,38 @@ def  transfer_pk_to_csv(pickle_file,save_csv_file):
 
             f.write("{},{}\n".format(word,value))
 
-#
+# 将原训练文件，提取对应的列
+def extract_data(train_file,extract_index,save_file):
+    """
+    Args:
+        train_file: train_set.csv
+        extract_index:  [3,2] : phrase_level and [3,1] : word_level
+        save_file:
+    Returns:
+    """
+    with open(train_file,'r',encoding='utf-8') as f,open(save_file,'w',encoding='utf-8') as wf:
+        for line in f.readlines()[1:]:
+            line_list = line.strip().split(',')
+
+            for i in range(len(extract_index)):
+                wf.write(line_list[extract_index[i]])
+                if i < len(extract_index)-1:
+                    wf.write(",")
+
+            wf.write("\n")
+
 
 
 def main():
 
+    # extract data
+    # extract_data(from_project_root("data/train_set.csv"),[3,2],
+    #              from_project_root("lstm_model/processed_data/phrase_level_data.csv"))
+    # exit()
+
     # 划分数据集
-    train_dev_split(from_project_root("cnn_model/processed_data/filtered_data_file"))
-    exit()
+    # train_dev_split(from_project_root("lstm_model/processed_data/phrase_level_data.csv"))
+    # exit()
 
     tf_pickle = from_project_root("processed_data/phrase_level_tf.pk")
     bdc_pickle = from_project_root("processed_data/phrase_level_bdc.pk")
