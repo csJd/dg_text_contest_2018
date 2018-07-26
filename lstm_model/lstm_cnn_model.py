@@ -175,7 +175,7 @@ class LSTM_CNN_Model():
                 pooled_outputs.append(average_pooled)
 
         # 汇总所有的池化后的特征
-        num_filters_total = self.num_filters * len(self.filter_sizes)
+        num_filters_total = (self.num_filters * 2) * len(self.filter_sizes)
         h_pool = tf.concat(pooled_outputs, 3)
 
         # h_pool_flat.shape = [batch, num_filters_total]
