@@ -25,7 +25,7 @@ tf.flags.DEFINE_integer("max_word_in_sent",1500,"max_word_in_sent")
 tf.flags.DEFINE_float("regularization_rate",0.055,"regularization rate random") #=======================
 
 # cnn
-tf.flags.DEFINE_string("filter_sizes","3,5","the size of the filter")
+tf.flags.DEFINE_string("filter_sizes","3","the size of the filter")
 tf.flags.DEFINE_integer("num_filters",64,"the num of channels in per filter")
 
 tf.flags.DEFINE_float("rnn_input_keep_prob",0.9,"rnn_input_keep_prob")
