@@ -3,61 +3,82 @@
 import tensorflow as tf
 import time
 import os
-from data_helper_MSRP import load_dataset
-from data_helper_MSRP import get_embedding_mat
-from model import Model as MODEL
+from lstm_cnn_model import LSTM_CNN_Model as LSTM_CNN_Model
 import numpy as np
+import Data_helper
+from utils.path_util import from_project_root
+from tensorflow.contrib import learn
 
 #Data loading params
-tf.flags.DEFINE_integer("vocab_size",16478,"vocabulary size")
-tf.flags.DEFINE_integer("num_classes",2,"number of classes")
-tf.flags.DEFINE_integer("embedding_size",300,"Dimensionality of word embedding")
+tf.flags.DEFINE_integer("num_classes",19,"number of classes")
+tf.flags.DEFINE_integer("embedding_size",128,"Dimensionality of word embedding")
 tf.flags.DEFINE_integer("hidden_size",80,"Dimensionality of GRU hidden layer(default 50)") #===============
-tf.flags.DEFINE_integer("dev_batch_size",1750,"dev_training_data_size")
-tf.flags.DEFINE_integer("batch_size",50,"Batch Size of training data(default 50)")
-tf.flags.DEFINE_integer("num_epoches",100,"Number of training epochs(default 50)")
-tf.flags.DEFINE_integer("checkpoint_every",50,"Save model after this many steps (default 100)")
+tf.flags.DEFINE_float("dev_sample_percentage",0.004,"dev_sample_percentage")
+tf.flags.DEFINE_integer("batch_size",100,"Batch Size of training data(default 50)")
+tf.flags.DEFINE_integer("checkpoint_every",100,"Save model after this many steps (default 100)")
 tf.flags.DEFINE_integer("num_checkpoints",5,"Number of checkpoints to store (default 5)")
 tf.flags.DEFINE_integer("evaluate_every",50,"evaluate every this many batches")
-tf.flags.DEFINE_float("learning_rate",0.006,"learning rate")  #====================
+tf.flags.DEFINE_float("learning_rate",0.01,"learning rate")  #====================
 tf.flags.DEFINE_integer("grad_clip",5,"grad clip to prevent gradient explode")
 tf.flags.DEFINE_integer("epoch",20,"number of epoch")
-tf.flags.DEFINE_integer("max_word_in_sent",35,"max_word_in_sent")
+tf.flags.DEFINE_integer("max_word_in_sent",1500,"max_word_in_sent")
 tf.flags.DEFINE_float("regularization_rate",0.055,"regularization rate random") #=======================
+
+# cnn
+tf.flags.DEFINE_string("filter_sizes","3,4,5","the size of the filter")
+tf.flags.DEFINE_integer("num_filters",64,"the num of channels in per filter")
 
 tf.flags.DEFINE_float("rnn_input_keep_prob",0.5,"rnn_input_keep_prob")
 tf.flags.DEFINE_float("rnn_output_keep_prob",1.0,"rnn_output_keep_prob")
 
-#file path
-tf.flags.DEFINE_string("vocab_path","./pre_process_msrp/msr_paraphrase_vocab.pickle","vocabulary path")
-tf.flags.DEFINE_list("msr_paths",["../dataset/MSRP/msr_paraphrase_train.txt","../dataset/MSRP/msr_paraphrase_test.txt"],"msr_paths")
-tf.flags.DEFINE_string("msr_data_path","./pre_process_msrp/msr_paraphrase_data.pickle","msr_data_path")
-tf.flags.DEFINE_string("google_embedding_path","../static_dataset/GoogleNews-vectors-negative300.bin","google_embedding_path")
-tf.flags.DEFINE_string("init_embedding_path","./pre_process_msrp/init_embedding_mat.txt","init_embedding_path")
+tf.flags.DEFINE_string("train_file","lstm_model/processed_data/filtered_word_seg_train.csv","train file url")
 
 FLAGS = tf.flags.FLAGS
 
-#load the training data
-train_data_x1, train_data_x2, train_y, test_data_x1, test_data_x2, test_y = load_dataset(
-    FLAGS.msr_paths,FLAGS.msr_data_path,FLAGS.vocab_path,FLAGS.max_word_in_sent
-)
-train_data_x1 = np.array(train_data_x1)
-train_data_x2 = np.array(train_data_x2)
-train_y = np.array(train_y)
+# =====================load data========================================================================================
+# load the training data
+# 准备数据
+# x_text : 分好词的字符串数组 , example: ["a b c","d e f g h"]
+# y : label example: [[0,1],[1,0],...]
 
-test_data_x1 = np.array(test_data_x1)
-test_data_x2 = np.array(test_data_x2)
-test_y = np.array(test_y)
+print("Loading Data...")
+x_text,y = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file))
 
-#load embedding mat
+# =====================end load data =======================================================================================
 
-#google embedding
-# embedding_mat = get_embedding_mat(FLAGS.google_embedding_path,FLAGS.init_embedding_path,FLAGS.vocab_path,FLAGS.msr_paths)
-embedding_mat = tf.Variable(tf.truncated_normal((FLAGS.vocab_size,FLAGS.embedding_size)))
+# =====================build vocab =====================================================================================
 
-# context_weight = tf.Variable(tf.truncated_normal([FLAGS.hidden_size * 2]))
-# fully_weight = tf.Variable(tf.truncated_normal([FLAGS.max_doc_length, FLAGS.hidden_size * 2]))
-# fully_bias = tf.Variable(tf.ones([FLAGS.hidden_size * 2]))
+# Build Vacabulary  由于卷积神经网络需要固定句子的长度
+max_document_length = max(len(x.split(" ")) for x in x_text)
+print("max_document_length : {}".format(max_document_length))
+vocab_processor = learn.preprocessing.VocabularyProcessor(FLAGS.max_word_in_sent) # 创建一个字典处理器,并设置句子固定长度
+x = np.array( list( vocab_processor.fit_transform(x_text)))   # x就转化为字典的下表表示的数组
+
+#格式化输出
+print("Vocabulary size :{:d}".format(len(vocab_processor.vocabulary_)))
+
+# =====================build vocab =====================================================================================
+
+# =====================split dev and text ==============================================================================
+
+# 数据集划分
+
+dev_sample_index = -1 * int( FLAGS.dev_sample_percentage * len(y))
+
+x_train,x_dev = x[:dev_sample_index],x[dev_sample_index:]
+y_train,y_dev = y[:dev_sample_index],y[dev_sample_index:]
+
+# 清除内存
+del x,y
+
+# 格式化输出
+print("Train / Dev split: {:d} / {:d}".format(len(y_train),len(y_dev)))
+
+# =====================split dev and text ==============================================================================
+
+
+# load embedding mat
+embedding_mat = tf.Variable(tf.truncated_normal((len(vocab_processor.vocabulary_),FLAGS.embedding_size)))
 
 print("data load finished!!!")
 
@@ -66,13 +87,14 @@ vocab_size,num_classes,embedding_size=300,hidden_size=50
 '''
 
 with tf.Session() as sess:
-    new_model = MODEL(
-        vocab_size = FLAGS.vocab_size,
+    new_model = LSTM_CNN_Model(
         num_classes=FLAGS.num_classes,
         embedding_size = FLAGS.embedding_size,
         hidden_size = FLAGS.hidden_size,
         init_embedding_mat = embedding_mat,
-        max_doc_length = FLAGS.max_word_in_sent
+        max_doc_length = FLAGS.max_word_in_sent,
+        filter_sizes = list(map(int, FLAGS.filter_sizes.split(","))),
+        num_filters = FLAGS.num_filters
     )
 
     with tf.name_scope("loss"):
@@ -93,12 +115,12 @@ with tf.Session() as sess:
         label = tf.argmax(new_model.input_y,axis=1,name="label")
         acc = tf.reduce_mean(tf.cast(tf.equal(predict,label),tf.float32))
 
-    #create model path
+    # create model path
     timestamp = str( int(time.time()))
     out_dir = os.path.abspath(os.path.join(os.path.curdir,"runs",timestamp))
     print("Wrinting to {} \n".format(out_dir))
 
-    #global step
+    # global step
     global_step = tf.Variable(0,trainable=False)
     optimizer = tf.train.AdamOptimizer(FLAGS.learning_rate)
 
@@ -108,7 +130,7 @@ with tf.Session() as sess:
     grads_and_vars = tuple(zip(grads, tvars))
     train_op = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
 
-    #Keep track of gradient values and sparsity(optional)
+    # Keep track of gradient values and sparsity(optional)
     # Keep track of gradient values and sparsity (optional)
     grad_summaries = []
     for g, v in grads_and_vars:
@@ -136,14 +158,14 @@ with tf.Session() as sess:
     saver = tf.train.Saver(tf.global_variables(),max_to_keep=FLAGS.num_checkpoints)
 
     sess.run(tf.global_variables_initializer())
+    # Write vocabulary
+    vocab_processor.save(os.path.join(out_dir, "vocab"))
 
-    def train_step(x1_batch,x2_batch,y_batch):
+    def train_step(x_batch,y_batch):
 
         feed_dict={
-            new_model.input_x_1:x1_batch,
-            new_model.input_x_2:x2_batch,
+            new_model.input_x:x_batch,
             new_model.input_y:y_batch,
-            new_model.batch_size:FLAGS.batch_size,
             new_model.rnn_input_keep_prob:FLAGS.rnn_input_keep_prob,
             new_model.rnn_output_keep_prob:FLAGS.rnn_output_keep_prob
         }
@@ -154,13 +176,11 @@ with tf.Session() as sess:
 
         return step
 
-    def dev_step(x1_batch,x2_batch,y_batch,writer=None):
+    def dev_step(x_batch,y_batch,writer=None):
 
         feed_dict={
-            new_model.input_x_1:x1_batch,
-            new_model.input_x_2:x2_batch,
+            new_model.input_x:x_batch,
             new_model.input_y:y_batch,
-            new_model.batch_size: FLAGS.dev_batch_size,
             new_model.rnn_input_keep_prob: 1.0,
             new_model.rnn_output_keep_prob: 1.0
         }
@@ -178,17 +198,15 @@ with tf.Session() as sess:
     for epoch in range(FLAGS.epoch):
         print('current epoch %s' % (epoch + 1))
 
-        for i in range(0,4076-FLAGS.batch_size,FLAGS.batch_size):
+        for i in range(0,len(y_train)-FLAGS.batch_size,FLAGS.batch_size):
 
-            x1_batch = train_data_x1[i:i+FLAGS.batch_size]
-            x2_batch = train_data_x2[i:i+FLAGS.batch_size]
-            y_batch = train_y[i:i+FLAGS.batch_size]
-            step = train_step(x1_batch,x2_batch,y_batch)
+            x_batch = x_train[i:i+FLAGS.batch_size]
+            y_batch = y_train[i:i+FLAGS.batch_size]
+            step = train_step(x_batch,y_batch)
 
             if step % FLAGS.evaluate_every == 0:
-                dev_step(test_data_x1, test_data_x2,test_y,dev_summary_writer)
+                dev_step(x_dev,y_dev,dev_summary_writer)
 
             if step % FLAGS.checkpoint_every == 0 :
                 path = saver.save(sess,checkpoint_prefix,global_step=step)
                 print("Saved model checkpoint to {} \n".format(path))
-
