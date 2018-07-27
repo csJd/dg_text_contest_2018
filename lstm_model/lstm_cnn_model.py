@@ -167,13 +167,15 @@ class LSTM_CNN_Model():
                 h = tf.nn.relu( tf.nn.bias_add(conv,b),name="relu1")
 
                 # 采用最大池化层 pooled.shap = [batch,1,1,num_filters]
-                pooled = tf.nn.max_pool(h,ksize=[1,self.max_doc_length-filter_size+1,1,1],strides=[1,1,1,1],padding='VALID',name="pool1")
+                max_pooled = tf.nn.max_pool(h,ksize=[1,self.max_doc_length-filter_size+1,1,1],strides=[1,1,1,1],padding='VALID',name="pool1")
+                average_pooled = tf.nn.avg_pool(h,ksize=[1,self.max_doc_length-filter_size+1,1,1],strides=[1,1,1,1],padding='VALID',name="pool2")
 
                 # 汇总所有不同filter_size的池化结果
-                pooled_outputs.append(pooled)
+                pooled_outputs.append(max_pooled)
+                pooled_outputs.append(average_pooled)
 
         # 汇总所有的池化后的特征
-        num_filters_total = self.num_filters * len(self.filter_sizes)
+        num_filters_total = (self.num_filters * 2) * len(self.filter_sizes)
         h_pool = tf.concat(pooled_outputs, 3)
 
         # h_pool_flat.shape = [batch, num_filters_total]

@@ -16,14 +16,14 @@ from sklearn.metrics import accuracy_score
 tf.flags.DEFINE_boolean("allow_soft_placement", True, "Allow device soft device placement")
 tf.flags.DEFINE_boolean("log_device_placement", False, "Log placement of ops on devices")
 # 预测文件路径
-tf.flags.DEFINE_string("predict_filename","lstm_model/processed_data/filtered_word_seg_dev.csv","predict_filename path")
+tf.flags.DEFINE_string("predict_filename","lstm_model/processed_data/filtered_phrase_data_dev.csv","predict_filename path")
 
 # vocabulary path
-tf.flags.DEFINE_string("vocabulary_path","./runs/1532577530/vocab","vocabulary_path")
+tf.flags.DEFINE_string("vocabulary_path","./runs/1532608255/vocab","vocabulary_path")
 
 # model checkpoint path
-tf.flags.DEFINE_string("meta_path","./runs/1532577530/checkpoints/model-2000.meta","meta_path")
-tf.flags.DEFINE_string("model_path","./runs/1532577530/checkpoints/model-2000","model_path")
+tf.flags.DEFINE_string("meta_path","./runs/1532608255/checkpoints/model-5600.meta","meta_path")
+tf.flags.DEFINE_string("model_path","./runs/1532608255/checkpoints/model-5600","model_path")
 
 # result output filename
 tf.flags.DEFINE_string("result_path","./result/result_predict.txt","result path")
@@ -64,7 +64,7 @@ with graph.as_default():
         rnn_output_keep_prob = graph.get_operation_by_name("placeholder/rnn_output_keep_prob").outputs[0]
 
         #
-        predictions = graph.get_operation_by_name("classification/prediction").outputs[0]
+        predictions = graph.get_operation_by_name("fully_connection_layer/prediction").outputs[0]
 
         #
         per_predict_limit = 400

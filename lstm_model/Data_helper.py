@@ -34,13 +34,17 @@ def get_predict_data(filename):
     :return: 一个字符串数组
     '''
 
-    pd_data = pd.read_csv(filename, sep=",")
-    contexts = []
-    for index, row in pd_data.iterrows():
-        context = row[2]
-        contexts.append(context)
+    x_text = []
+    y = []
 
-    return contexts
+    pd_data = pd.read_csv(filename, sep=",")
+    for index, row in pd_data.iterrows():
+        x_text.append(row[1])
+
+        # 垃圾邮件 [1,0]  正常邮件 [0,1]
+        train_label = row[0]
+        y.append(train_label)
+    return y,x_text
 
 
 def batch_iter(data, batch_size, num_epochs, shuffle=True):
