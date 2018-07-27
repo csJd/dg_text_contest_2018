@@ -9,8 +9,8 @@ from time import time
 from sklearn.metrics import f1_score, accuracy_score
 
 # Define some url
-TRAIN_URL = from_project_root("processed_data/phrase_level_data_train.csv")
-DEV_URL = from_project_root("processed_data/phrase_level_data_dev.csv")
+TRAIN_URL = from_project_root("processed_data/phrase_level_data_train_tw_precessed.csv")
+DEV_URL = from_project_root("processed_data/phrase_level_data_dev_tw_precessed.csv")
 
 # Define some static args for ft model
 FT_LABEL_PREFIX = '__label__'
@@ -116,7 +116,7 @@ def args_to_url(data_url, args):
     """
     level = ['phrase'] if 'phrase' in data_url else ['word']
     filename = '_'.join(level + [str(x) for x in args.values()]) + '.bin'
-    return from_project_root("embedding_model/models/ft_phrase_" + filename)
+    return from_project_root("embedding_model/models/ft_" + filename)
 
 
 def print_model_details(clf):
@@ -147,7 +147,7 @@ def main():
     args = {
         'lr': 0.1,
         'dim': 100,
-        'ws': 10,
+        'ws': 5,
         'epochs': 30,
         'ngram': 1
     }

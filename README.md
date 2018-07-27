@@ -34,6 +34,10 @@
 * word_level_data.csv                        
 	* "word"级别上的文档表示，分为两列，<label,word_doc>
 	* 调用文件../pre_process/data_util.py中方法extract_data(..)
+	
+* \*_tw_processed.csv
+    * 经过 term weighting 规则处理过滤的结果
+    * 调用文件../pre_process/term_weighting_filter.py 中方法 process_data(..)
 		
 * saved_weight/  各种格式保存的权值文件
 
