@@ -47,28 +47,29 @@ class LSTM_CNN_Model():
 
         # 共享attention layer中的所有参数
         # word_encoded.shape [batch , max_doc_lenght , hiddent_size * 2]
-        word_context = tf.Variable(tf.truncated_normal(shape=[self.hidden_size * 2], dtype=tf.float32))
-        W_word = tf.Variable(
-            tf.truncated_normal(shape=[self.hidden_size * 2, self.hidden_size * 2], dtype=tf.float32),
-            name="word_context_weight")
-        b_word = tf.Variable(tf.truncated_normal(shape=[self.hidden_size*2], dtype=tf.float32),
-                                 name="word_context_bias")
-        # word attention
-        weight_x = self.AttentionLayer(self.word_encoded_x,word_context,W_word,b_word,name="attention_1")
-
-        # 根据新的embedding,和 weights ，计算两个句子的距离。 # feature one #############
-        with tf.name_scope("sentence_encode"): # [batch,hidden_size * 2]
-            self.rnn_atten_encode = self.sentence_encoder(self.word_encoded_x,weight_x)
+        # word_context = tf.Variable(tf.truncated_normal(shape=[self.hidden_size * 2], dtype=tf.float32))
+        # W_word = tf.Variable(
+        #     tf.truncated_normal(shape=[self.hidden_size * 2, self.hidden_size * 2], dtype=tf.float32),
+        #     name="word_context_weight")
+        # b_word = tf.Variable(tf.truncated_normal(shape=[self.hidden_size*2], dtype=tf.float32),
+        #                          name="word_context_bias")
+        # # word attention
+        # weight_x = self.AttentionLayer(self.word_encoded_x,word_context,W_word,b_word,name="attention_1")
+        #
+        # # 根据新的embedding,和 weights ，计算两个句子的距离。 # feature one #############
+        # with tf.name_scope("sentence_encode"): # [batch,hidden_size * 2]
+        #     self.rnn_atten_encode = self.sentence_encoder(self.word_encoded_x,weight_x)
 
         # 根据gru编码的encode 在进行CNN
         # word_encode_x.shape = [-1,max_doc_lenght,hiddent_size * 2 ]
-        # cnn_output.shape = [batch, num_filters * len(filter_sizes)]
+        # cnn_output.shape = [batch, num_filters * 2 * len(filter_sizes)]
         with tf.name_scope("cnn_layer") :
             cnn_output = self.cnn_layer(self.word_encoded_x)
 
         # 再接入一个全连接层
         with tf.name_scope("fully_connection_layer") :
-            self.out = self.fully_connection_layer(cnn_output,self.rnn_atten_encode)
+            # self.out = self.fully_connection_layer(cnn_output,self.rnn_atten_encode)
+            self.out = self.fully_connection_layer(cnn_output)
 
     # embedding_layer
     def word2vec(self,input,scope_name):
@@ -175,7 +176,8 @@ class LSTM_CNN_Model():
                 pooled_outputs.append(average_pooled)
 
         # 汇总所有的池化后的特征
-        num_filters_total = (self.num_filters * 2) * len(self.filter_sizes)
+        num_filters_total = self.num_filters * 2 * len(self.filter_sizes)
+
         h_pool = tf.concat(pooled_outputs, 3)
 
         # h_pool_flat.shape = [batch, num_filters_total]
@@ -188,14 +190,15 @@ class LSTM_CNN_Model():
         return h_drop
 
     # 全连接层
-    def fully_connection_layer(self,cnn_output,rnn_atten_encode):
+    def fully_connection_layer(self,cnn_output):
         """
-        :param cnn_output: cnn传入的feature . shape = [batch,num_filters * len(filter_sizes)]
+        :param cnn_output: cnn传入的feature . shape = [batch,num_filters * 2 * len(filter_sizes)]
         :param rnn_atten_encode: shape=[batch,hidden_size * 2]
         :return: fc_output
         """
         # 拼接
-        sum_input = tf.concat([cnn_output,rnn_atten_encode],1)
+        # sum_input = tf.concat([cnn_output,rnn_atten_encode],1)
+        sum_input = cnn_output
 
         # fc_output.shape = [batch ,num_classes]
         fc_output = tf.contrib.layers.fully_connected(inputs=sum_input, num_outputs=self.num_classes, activation_fn=None)

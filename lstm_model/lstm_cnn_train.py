@@ -11,9 +11,9 @@ from tensorflow.contrib import learn
 
 #Data loading params
 tf.flags.DEFINE_integer("num_classes",19,"number of classes")
-tf.flags.DEFINE_integer("embedding_size",128,"Dimensionality of word embedding")
-tf.flags.DEFINE_integer("hidden_size",128,"Dimensionality of GRU hidden layer(default 50)") #===============
-tf.flags.DEFINE_float("dev_sample_percentage",0.004,"dev_sample_percentage")
+tf.flags.DEFINE_integer("embedding_size",64,"Dimensionality of word embedding")
+tf.flags.DEFINE_integer("hidden_size",64,"Dimensionality of GRU hidden layer(default 50)") #===============
+tf.flags.DEFINE_float("dev_sample_percentage",0.001,"dev_sample_percentage")
 tf.flags.DEFINE_integer("batch_size",100,"Batch Size of training data(default 50)")
 tf.flags.DEFINE_integer("checkpoint_every",100,"Save model after this many steps (default 100)")
 tf.flags.DEFINE_integer("num_checkpoints",10,"Number of checkpoints to store (default 5)")
@@ -21,8 +21,8 @@ tf.flags.DEFINE_integer("evaluate_every",50,"evaluate every this many batches")
 tf.flags.DEFINE_float("learning_rate",0.01,"learning rate")  #====================
 tf.flags.DEFINE_integer("grad_clip",5,"grad clip to prevent gradient explode")
 tf.flags.DEFINE_integer("epoch",5,"number of epoch")
-tf.flags.DEFINE_integer("max_word_in_sent",1500,"max_word_in_sent")
-tf.flags.DEFINE_float("regularization_rate",0.055,"regularization rate random") #=======================
+tf.flags.DEFINE_integer("max_word_in_sent",700,"max_word_in_sent")
+tf.flags.DEFINE_float("regularization_rate",0.001,"regularization rate random") #=======================
 
 # cnn
 tf.flags.DEFINE_string("filter_sizes","3","the size of the filter")
@@ -43,7 +43,6 @@ FLAGS = tf.flags.FLAGS
 
 print("Loading Data...")
 x_text,y = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file))
-
 # =====================end load data =======================================================================================
 
 # =====================build vocab =====================================================================================
