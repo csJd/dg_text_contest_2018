@@ -14,7 +14,7 @@ def filter_words(tf_pickle):
     del_count = 0
     for (word,tf_value) in tf_dict.items():
 
-        if tf_dict[word] <= 5 or tf_dict[word] >= 6000:
+        if tf_dict[word] <= 1 or tf_dict[word] >= 6000:
             del_count += 1
 
     print(del_count)
@@ -45,7 +45,7 @@ def process_sen(tf_dict,word_list):
     filtered_word_list = []
     for word in word_list:
 
-        if tf_dict[word] < 5 or tf_dict[word] >= 6000:
+        if tf_dict[word] <=2 or tf_dict[word] >= 6000:
            continue
         filtered_word_list.append(word)
 
@@ -85,9 +85,30 @@ def extract_data(train_file,extract_index,save_file):
 
             wf.write("\n")
 
+# 查询训练集平均句子长度
+def get_average_sen_len(filename):
 
+    sum_len = 0
+    sen_count = 0
+    limit_up_1000_count = 0
+    with open(filename,'r',encoding='utf-8') as f:
+        for line in f.readlines():
+            sen_count += 1
+            line_list = line.strip().split(',')
+            sen_len = len(line_list[1].strip().split())
+            if sen_len > 1500:
+                limit_up_1000_count += 1
+            sum_len += sen_len
+    average_len = sum_len / sen_count
+    print("句子平均长度：{}".format(average_len))
+    print("句子长度大于1500: {}".format(limit_up_1000_count))
+    return average_len
 
 def main():
+
+    # 计算平均句子长度
+    get_average_sen_len(from_project_root("lstm_model/processed_data/phrase_level_data.csv"))
+    exit()
 
     # extract data
     # extract_data(from_project_root("data/train_set.csv"),[3,2],

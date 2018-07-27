@@ -31,13 +31,10 @@ def test2():
 
 def test3():
     A = np.array([[1, 2, 3], [4, 5, 6]])
-    x = tf.transpose(A, [1, 0])
-    print(A.shape)
-    B = np.array([[[1, 2, 3], [4, 5, 6]]])
-    y = tf.transpose(B, [2, 1, 0])
-
+    B = np.array([[1, 2, 3], [4, 5, 6]])
+    x = tf.concat([A,B],1)
     with tf.Session() as sess:
-        print(sess.run(x).shape)
+        print(sess.run(x))
 
 # test tqdm
 def test4():
@@ -48,4 +45,4 @@ def test4():
 
 
 if __name__ == "__main__":
-    test4()
+    test3()
