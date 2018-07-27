@@ -28,6 +28,7 @@ def sentence_to_vector(sentence_data, word_list, word_df, is_tf=False):
     value = []
     i = 0
     not_in_dic = []
+    is_none = True
     for sentence in tqdm(sentence_data):
         sentence_split = sentence.split(" ")
         sentence_count = Counter(sentence_split)
@@ -40,8 +41,11 @@ def sentence_to_vector(sentence_data, word_list, word_df, is_tf=False):
                 col.append(col_value)
                 value.append(weight_value)
                 row.append(i)
+                is_none = False
             except KeyError:
                 not_in_dic.append(word)
+        if is_none:
+            print(i)
         i = i + 1
     print(len(Counter(not_in_dic)))
     sentence_vector = csr_matrix((value, (row, col)), shape=(len(sentence_data), len(word_list)))
@@ -158,7 +162,7 @@ def tf_idf(train_data, test_data, weight_type, sentence_type):
     :param sentence_type:
     :return:
     """
-    tfidf_vectorizer = TfidfVectorizer(min_df=3, max_df=0.9,  use_idf=1, smooth_idf=1, sublinear_tf=1)
+    tfidf_vectorizer = TfidfVectorizer(ngram_range=(1,2),max_df=0.9, min_df=3, use_idf=1, smooth_idf=1, sublinear_tf=1)
     # tfidf_vectorizer = TfidfVectorizer(use_idf=1, smooth_idf=1, sublinear_tf=1)
     train_vector = tfidf_vectorizer.fit_transform(train_data)
     test_vector = tfidf_vectorizer.transform(test_data)
@@ -364,10 +368,8 @@ if __name__ == "__main__":
     # validation_train_data = du.read_data_df(validation_train_data_filename, data_type="train")
     print("start")
     start_time = datetime.datetime.now()
-    cal_tf(from_project_root("lstm_model/processed_data/phrase_level_data.csv"),
-           from_project_root("lstm_model/processed_data/phrase_tf.pk"))
-    # idf("./word_distribution/label_word_count.csv", "./data/small_train.csv",
-    #     "./processed_data/phrase_level_tf.pk", sentence_type="phrase", smooth_idf=0)
+    idf("./word_distribution/label_word_count.csv", "./data/small_train.csv",
+        "./processed_data/phrase_level_tf.pk", sentence_type="phrase", smooth_idf=0)
     # one_hot(validation_train_data, type="word")
     # dc_bdc(type="word", is_bdc=False)
     end_time = datetime.datetime.now()

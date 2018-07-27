@@ -63,6 +63,15 @@ def read_data_df(filename, data_type):
     return data_df
 
 
+def ngram_data(param_df, sentence_type):
+    """
+
+    :param param_df:
+    :param sentence_type:
+    :return:
+    """
+
+
 def extract_data(filename, sentence_type, output_filename):
     '''
     根据源文件中的sentence_type提取label，shentence_type两列
@@ -72,7 +81,7 @@ def extract_data(filename, sentence_type, output_filename):
     :return: None
     '''
     raw_data_df = read_data_df(filename, data_type="train")
-    sentence_data_df = raw_data_df[[ "classify",sentence_type]].copy()
+    sentence_data_df = raw_data_df[[sentence_type, "class"]].copy()
     sentence_data_df.to_csv(output_filename, index=False)
 
 
@@ -120,7 +129,7 @@ def write_weight_pickle(word_list, word_weight, weight_type, sentence_type):
     :param sentence_type: str，句子级别
     :return: None
     """
-    pickle_filename = "processed_data/pickle_weight/" + sentence_type + "_level_" + weight_type + ".pk"
+    pickle_filename = "processed_data/saved_weight/" + sentence_type + "_level_" + weight_type + ".pk"
     pickle_filename = from_project_root(pickle_filename)
     word_weight_dict = dict(zip(word_list, word_weight))
     pk.dump(word_weight_dict, open(pickle_filename, "wb"))
@@ -140,7 +149,7 @@ def write_weight_csv(word_list, word_weight, word_count, weight_type, sentence_t
     weight_df["word"] = word_list
     weight_df["weight"] = word_weight
     weight_df["count"] = word_count
-    csv_filename = "processed_data/csv_weight/" + sentence_type + "_level_" + weight_type + ".csv"
+    csv_filename = "processed_data/saved_weight/" + sentence_type + "_level_" + weight_type + ".csv"
     csv_filename = from_project_root(csv_filename)
     weight_df.to_csv(csv_filename, index=False)
 
@@ -151,7 +160,7 @@ def read_weight_csv(weight_type, sentence_type):
     :param sentence_type: str，句子级别
     :return: DataFrame
     """
-    csv_filename = "processed_data/csv_weight/" + sentence_type + "_level_" + weight_type + ".csv"
+    csv_filename = "processed_data/saved_weight/" + sentence_type + "_level_" + weight_type + ".csv"
     csv_filename = from_project_root(csv_filename)
     word_weight_df = pd.read_csv(csv_filename, dtype={"word": str}, engine="c")
     word_weight_df.set_index("word", inplace=True)
@@ -311,7 +320,7 @@ def cal_compare_label(filename, predict_y, original_y):
     write_data_df(filename, label_df)
 
 # 将训练集划分为 7 ：3 ， 7份训练 ， 3份测试
-def split_data(filename,train_percent,train_filename,test_filename):
+def split_data2(filename,train_percent,train_filename,test_filename):
 
     df = pd.read_csv(filename,sep=',')
     data_list = np.array(df)
@@ -392,12 +401,11 @@ def cal_document_frequency(train_file,df_pickle):
     pk.dump(df_dict,open(df_pickle,'wb'))
 
 if __name__ == "__main__":
-    train_data_filename = from_project_root("data/train_set.csv")
-    extract_data(train_data_filename, sentence_type="word_seg",
-                 output_filename="../lstm_model/processed_data/word_seg.csv")
-    # train_data_df = read_data_df(train_data_filename, data_type="train")
+    train_data_filename = "./data/small_train.csv"
+    # extract_data(train_data_filename, sentence_type="word_seg", output_filename="./data/word_seg.csv")
+    train_data_df = read_data_df(train_data_filename, data_type="train")
 
     #load_word_dict("./data/word_seg.csv", "word_seg", "./processed_data/phrase_level_word_dict.pk")
-    # word_in_label(train_data_df, sentence_type="phrase", is_bdc=False)
+    word_in_label(train_data_df, sentence_type="phrase", is_bdc=False)
     #分割数据集
     #split_data(train_data_df)

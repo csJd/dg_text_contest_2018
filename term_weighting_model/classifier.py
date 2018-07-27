@@ -37,7 +37,7 @@ def eval_F_value(predict_y, d_test):
 
 from sklearn.neighbors import KNeighborsClassifier
 def knn(x_train, y_train, x_test, y_test):
-    clf = KNeighborsClassifier(n_neighbors=10)
+    clf = KNeighborsClassifier(n_neighbors=30)
     train_model(clf, x_train, y_train, x_test, y_test)
     print("knn")
 
@@ -51,7 +51,7 @@ def ovr(x_train, y_train, x_test, y_test):
     print("ovr")
 
 def ls(x_train, y_train, x_test, y_test):
-    clf = LinearSVC(dual=False, tol=1e-3, penalty="l2")
+    clf = LinearSVC(dual=False, tol=1e-6, penalty="l2")
     train_model(clf, x_train, y_train, x_test, y_test)
     print("ls")
 
@@ -72,7 +72,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 def rf(x_train, y_train, x_test, y_test):
     #clf = RandomForestClassifier(min_samples_leaf=5, n_estimators=200)
-    clf = OneVsRestClassifier(RandomForestClassifier(min_samples_leaf=5, n_estimators=200))
+    clf = OneVsRestClassifier(RandomForestClassifier())
     train_model(clf, x_train, y_train, x_test, y_test)
     print("rf")
 
@@ -95,12 +95,12 @@ def sgdc(x_train, y_train, x_test, y_test):
 
 
 def rd(x_train, y_train, x_test, y_test):
-    clf = RidgeClassifier(tol=1e-2, solver="lsqr")
+    clf = RidgeClassifier(tol=1e-6, solver="sag")
     train_model(clf, x_train, y_train, x_test, y_test)
     print("rd")
 
 def pas(x_train, y_train, x_test, y_test):
-    clf = PassiveAggressiveClassifier(max_iter=500)
+    clf = PassiveAggressiveClassifier(max_iter=1000, tol=1e-6)
     train_model(clf, x_train, y_train, x_test, y_test)
     print("pas")
 

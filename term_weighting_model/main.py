@@ -22,11 +22,14 @@ def creat_processed_data():
 
     # tr.one_hot(raw_train_data, sentence_type)
     # 生成词的idf值
-    word_filename = "processed_data/word_distribution/" + sentence_type + "_label_count.csv"
-    tr.idf(word_filename, raw_data_filename, sentence_type, smooth_idf=1)
+    # word_filename = "processed_data/word_distribution/" + sentence_type + "_label_count.csv"
+    # tr.idf(word_filename, raw_data_filename, sentence_type, smooth_idf=1)
 
     # 生成词的bdc_idf
-    tr.concat("bdc", "idf", sentence_type)
+    # tr.concat("bdc", "idf", sentence_type)
+
+    # 生成词的dc_idf
+    tr.concat("dc", "idf", sentence_type)
 
     # # 生成词的dc值
     # tr.dc_bdc(sentence_type, is_bdc=False)
@@ -45,18 +48,19 @@ def classifier_model(train_vector, train_label, test_vector, test_label):
     """
     print("train model")
     cf.pas(train_vector, train_label, test_vector, test_label)
-    cf.pp(train_vector, train_label, test_vector, test_label)
-    cf.m_nb(train_vector, train_label, test_vector, test_label)
-    cf.b_nb(train_vector, train_label, test_vector, test_label)
-    # cf.rd(train_vector, train_label, test_vector, test_label)
-    cf.sgdc(train_vector, train_label, test_vector, test_label)
-    cf.lr(train_vector, train_label, test_vector, test_label)
+    # cf.pp(train_vector, train_label, test_vector, test_label)
+    # cf.m_nb(train_vector, train_label, test_vector, test_label)
+    # cf.b_nb(train_vector, train_label, test_vector, test_label)
+    cf.rd(train_vector, train_label, test_vector, test_label)
+    # cf.sgdc(train_vector, train_label, test_vector, test_label)
+    # cf.lr(train_vector, train_label, test_vector, test_label)
     cf.knn(train_vector, train_label, test_vector, test_label)
-    cf.rf(train_vector, train_label, test_vector, test_label)
-    cf.svm_svc(train_vector, train_label, test_vector, test_label)
-    cf.ovr(train_vector, train_label, test_vector, test_label)
-    #cf.xgb(train_vector, train_label, test_vector, test_label)
+    # cf.rf(train_vector, train_label, test_vector, test_label)
+    # cf.svm_svc(train_vector, train_label, test_vector, test_label)
+    # cf.ovr(train_vector, train_label, test_vector, test_label)
+    # cf.xgb(train_vector, train_label, test_vector, test_label)
     cf.ls(train_vector, train_label, test_vector, test_label)
+    cf.gbc(train_vector, train_label, test_vector, test_label)
 
 
 def term_model(weight_type, sentence_type, min_weight, min_df, max_df):
@@ -75,11 +79,11 @@ def term_model(weight_type, sentence_type, min_weight, min_df, max_df):
     validation_test_data = du.read_data_df(validation_test_data_filename, data_type="train")
     train_data, train_label = du.get_data_label(validation_train_data, sentence_type=sentence_type, data_type="train")
     test_data, test_label = du.get_data_label(validation_test_data, sentence_type=sentence_type, data_type="train")
-    # train_vector, test_vector = tr.tf_idf(train_data, test_data, "tf_idf", "phrase")
+    train_vector, test_vector = tr.tf_idf(train_data, test_data, "tf_idf", sentence_type)
     # du.save_array("processed_data/label/train_label.npy", train_label)
     # du.save_array("processed_data/label/test_label.npy", test_label)
-    train_vector, test_vector = tr.weight_vector(train_data, test_data, sentence_type=sentence_type, is_tf=True,
-                                                 weight_type=weight_type, min_weight=min_weight, min_df=min_df, max_df=max_df)
+    # train_vector, test_vector = tr.weight_vector(train_data, test_data, sentence_type=sentence_type, is_tf=True,
+    #                                             weight_type=weight_type, min_weight=min_weight, min_df=min_df, max_df=max_df)
     classifier_model(train_vector, train_label, test_vector, test_label)
 
 
@@ -98,12 +102,13 @@ if __name__ == "__main__":
 
     # creat_processed_data()
 
-    weight_type = "bdc"
+    weight_type = "dc"
     sentence_type = "phrase"
-    weight_tes = 0.1
+    weight_tes = 0.05
     min_df = 3
-    max_df = 1
+    max_df = 0.8
     term_model(weight_type, sentence_type, weight_tes, min_df, max_df)
+    print(weight_type)
 
     # run(weight_type, sentence_type)
 
