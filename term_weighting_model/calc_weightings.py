@@ -24,7 +24,7 @@ def calc_dc(data_url=DATA_URL, update=False):
 
     """
     level = 'phrase' if 'phrase' in data_url else 'word'
-    dc_url = from_project_root("processed_data/saved_weight/phrase_{}_dc.json".format(level))
+    dc_url = from_project_root("processed_data/saved_weight/{}_level_dc.json".format(level))
     if not update and exists(dc_url):
         return ju.load(dc_url)
     calc_bdc(DATA_URL, update=True)
@@ -43,17 +43,15 @@ def calc_bdc(data_url=DATA_URL, update=False):
 
     """
     level = 'phrase' if 'phrase' in data_url else 'word'
-    bdc_url = from_project_root("processed_data/saved_weight/phrase_{}_dc.json".format(level))
-    dc_url = from_project_root("processed_data/saved_weight/phrase_{}_dc.json".format(level))
+    bdc_url = from_project_root("processed_data/saved_weight/{}_level_bdc.json".format(level))
+    dc_url = from_project_root("processed_data/saved_weight/{}_level_dc.json".format(level))
     if not update and exists(bdc_url):
         return ju.load(bdc_url)
 
     labels, sentences = load_raw_data(data_url)
     word_label_dict = collections.defaultdict(dict)  # store f(t, c_i)
     label_words_num = collections.defaultdict(int)  # to store all f(c_i)
-    label_set = set()
-    for label, sentence in zip(labels, sentences):
-        label_set.add(label)
+    for label, sentence in tqdm(zip(labels, sentences), total=len(labels)):
         label_words_num[label] += len(sentence)
         for word in sentence:
             try:
@@ -86,6 +84,7 @@ def calc_bdc(data_url=DATA_URL, update=False):
 
 
 def main():
+    calc_bdc(update=True)
     pass
 
 
