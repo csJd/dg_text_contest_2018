@@ -44,8 +44,8 @@ def process_data(data_url=DATA_URL, save_url=None):
             label, sentence = line.split(',')
             filtered_sentence = list()
             for word in sentence.split():
-                # only keep word whose bdc value higher than 0.5
-                if filtered_by_dict(word, dic=BDC_DICT, lower=0.5):
+                # only keep word whose bdc value higher than 0.33
+                if filtered_by_dict(word, dic=BDC_DICT, lower=0.33):
                     continue
 
                 # only keep word whose tf value in (5, 1e5)
@@ -53,10 +53,12 @@ def process_data(data_url=DATA_URL, save_url=None):
                     continue
                 filtered_sentence.append(word)
 
-                # truncate sentence if it longer than 1500 words
-                if len(filtered_sentence) > 1500:
+                # truncate sentence if it longer than 2000 words
+                if len(filtered_sentence) > 2000:
                     break
 
+            if len(filtered_sentence) == 0:
+                filtered_sentence = ['233']  # if a sentence become empty , git it a value
             filtered_sentence = ' '.join(filtered_sentence)
             save_file.write("{},{}\n".format(label, filtered_sentence))
     print("finish processing")
