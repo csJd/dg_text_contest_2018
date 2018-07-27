@@ -12,6 +12,31 @@ import collections
 DATA_URL = from_project_root("processed_data/phrase_level_data.csv")
 
 
+def calc_tf(data_url=DATA_URL, update=False):
+    """ calc the tf value of all tokens
+
+    Args:
+        data_url: url to data file
+        update: update dict even it exists
+
+    Returns:
+        dict: tf dict {word: tf_value}
+
+    """
+    level = 'phrase' if 'phrase' in data_url else 'word'
+    tf_url = from_project_root("processed_data/saved_weight/{}_level_tf.json".format(level))
+    if not update and exists(tf_url):
+        return ju.load(tf_url)
+
+    tf_dict = collections.defaultdict(int)
+    _, sentences = load_raw_data(data_url)
+    for sentence in tqdm(sentences):
+        for word in sentence:
+            tf_dict[word] += 1
+
+    ju.dump(ju.sort_dict_by_value(tf_dict, reverse=True), tf_url)
+
+
 def calc_dc(data_url=DATA_URL, update=False):
     """ calc the dc value of all tokens
 
@@ -84,7 +109,7 @@ def calc_bdc(data_url=DATA_URL, update=False):
 
 
 def main():
-    calc_bdc(update=True)
+    calc_tf()
     pass
 
 
