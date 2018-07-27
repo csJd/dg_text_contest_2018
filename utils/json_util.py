@@ -32,6 +32,19 @@ def dump(obj, json_url):
         json.dump(obj, json_file, separators=[',\n', ': '])
 
 
+def sort_dict_by_value(dic):
+    """ sort a dict by value
+
+    Args:
+        dic: the dict to be sorted
+
+    Returns:
+        sorted dict
+
+    """
+    return dict(sorted(dic.items(), key=lambda x: x[1]))
+
+
 def main():
     pass
 

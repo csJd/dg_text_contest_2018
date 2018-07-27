@@ -12,18 +12,40 @@ import collections
 DATA_URL = from_project_root("processed_data/phrase_level_data.csv")
 
 
-def calc_bdc(data_url=DATA_URL):
+def calc_dc(data_url=DATA_URL, update=False):
+    """ calc the dc value of all tokens
+
+    Args:
+        data_url: url to data file
+        update: update dict even it exists
+
+    Returns:
+        dict: dc dict {word: dc_value}
+
+    """
+    level = 'phrase' if 'phrase' in data_url else 'word'
+    dc_url = from_project_root("processed_data/saved_weight/phrase_{}_dc.json".format(level))
+    if not update and exists(dc_url):
+        return ju.load(dc_url)
+    calc_bdc(DATA_URL, update=True)
+    return ju.load(dc_url)
+
+
+def calc_bdc(data_url=DATA_URL, update=False):
     """ calc the bdc value of all tokens
 
     Args:
         data_url: url to data file
+        update: update dict even it exists
 
     Returns:
         dict: bdc dict {word: bdc_value}
 
     """
-    bdc_url = from_project_root("processed_data/saved_weight/phrase_level_bdc.json")
-    if exists(bdc_url):
+    level = 'phrase' if 'phrase' in data_url else 'word'
+    bdc_url = from_project_root("processed_data/saved_weight/phrase_{}_dc.json".format(level))
+    dc_url = from_project_root("processed_data/saved_weight/phrase_{}_dc.json".format(level))
+    if not update and exists(bdc_url):
         return ju.load(bdc_url)
 
     labels, sentences = load_raw_data(data_url)
@@ -40,16 +62,26 @@ def calc_bdc(data_url=DATA_URL):
                 word_label_dict[word][label] = 1
 
     bdc_dict = collections.defaultdict(float)
+    dc_dict = collections.defaultdict(float)
     for word in tqdm(word_label_dict):
+
+        # for calc dc
+        arr = np.array(list(word_label_dict[word].values()))  # f(t, c_i) for all labels
+        arr = arr / arr.sum()  # f(t, c_i) / f(t)
+        arr = np.log(arr) * arr
+        dc_dict[word] = 1 + arr.sum() / np.log(len(label_words_num))  # norm
+
+        # for calc bdc
         for label in word_label_dict[word]:
             word_label_dict[word][label] /= label_words_num[label]  # p(t, c_i) = f(t, c_i) / f(c_i)
-        values_array = np.array(list(word_label_dict[word].values()))  # p(t, c_i) for all labels
-        values_array = values_array / values_array.sum()  # p(t, c_i) / sum(p(t, c_i))
-        values_array = np.log(values_array) * values_array
-        bdc_dict[word] = 1 + values_array.sum() / np.log(len(label_words_num))  # norm
+        arr = np.array(list(word_label_dict[word].values()))  # p(t, c_i) for all labels
+        arr = arr / arr.sum()  # p(t, c_i) / sum(p(t, c_i))
+        arr = np.log(arr) * arr
+        bdc_dict[word] = 1 + arr.sum() / np.log(len(label_words_num))  # norm
 
-    # to save calculated result
-    ju.dump(bdc_dict, bdc_url)
+    # to sort save calculated result
+    ju.dump(ju.sort_dict_by_value(bdc_dict), bdc_url)
+    ju.dump(ju.sort_dict_by_value(dc_dict), dc_url)
     return bdc_dict
 
 
