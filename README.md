@@ -75,6 +75,10 @@
 		* "phrase"级别上词的one_hot值
 		* 调用文件../term_weighting_model/text_represent.py中方法one_hot(..)
 		
+	* phrase_level_dc.json
+	    * "phrase" 级别上的dc值
+	    * 调用文件../term_weighting_model/calc_weightings.py中的方法calc_dc(..)
+		
 	* phrase_level_bdc.json
 	    * "phrase" 级别上的bdc值
 	    * 调用文件../term_weighting_model/calc_weightings.py中的方法calc_bdc(..)

@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 from utils.path_util import from_project_root
 import pre_process.data_util as pdu
 
+
 WORD_LEVEL_DATA_URL = from_project_root("")
 PHRASE_LEVEL_DATA_URL = from_project_root("")
 WEIGHTINGS = ['tf', 'idf', 'lf', 'df', 'bdc']
@@ -23,10 +24,12 @@ def load_raw_data(data_url):
     with open(data_url, "r", encoding="utf-8") as data_file:
         labels = list()
         sentences = list()
+        print("loading data from \n ", data_url)
         for line in data_file:
             line = line.split(',')
             labels.append(int(line[0]))
             sentences.append(line[1].split())
+        print("finished loading\n")
     return labels, sentences
 
 

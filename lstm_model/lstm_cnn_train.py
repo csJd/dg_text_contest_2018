@@ -16,7 +16,7 @@ tf.flags.DEFINE_integer("hidden_size",64,"Dimensionality of GRU hidden layer(def
 tf.flags.DEFINE_float("dev_sample_percentage",0.001,"dev_sample_percentage")
 tf.flags.DEFINE_integer("batch_size",100,"Batch Size of training data(default 50)")
 tf.flags.DEFINE_integer("checkpoint_every",100,"Save model after this many steps (default 100)")
-tf.flags.DEFINE_integer("num_checkpoints",5,"Number of checkpoints to store (default 5)")
+tf.flags.DEFINE_integer("num_checkpoints",10,"Number of checkpoints to store (default 5)")
 tf.flags.DEFINE_integer("evaluate_every",50,"evaluate every this many batches")
 tf.flags.DEFINE_float("learning_rate",0.01,"learning rate")  #====================
 tf.flags.DEFINE_integer("grad_clip",5,"grad clip to prevent gradient explode")
@@ -25,7 +25,7 @@ tf.flags.DEFINE_integer("max_word_in_sent",700,"max_word_in_sent")
 tf.flags.DEFINE_float("regularization_rate",0.001,"regularization rate random") #=======================
 
 # cnn
-tf.flags.DEFINE_string("filter_sizes","3,5","the size of the filter")
+tf.flags.DEFINE_string("filter_sizes","3","the size of the filter")
 tf.flags.DEFINE_integer("num_filters",64,"the num of channels in per filter")
 
 tf.flags.DEFINE_float("rnn_input_keep_prob",0.9,"rnn_input_keep_prob")
