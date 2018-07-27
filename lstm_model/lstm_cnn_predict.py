@@ -7,7 +7,7 @@ from tensorflow.contrib import learn
 import numpy as np
 from sklearn.metrics import f1_score
 from sklearn.metrics import accuracy_score
-
+from tqdm import tqdm
 
 
 # ===================================================================================
@@ -19,11 +19,11 @@ tf.flags.DEFINE_boolean("log_device_placement", False, "Log placement of ops on 
 tf.flags.DEFINE_string("predict_filename","lstm_model/processed_data/filtered_phrase_data_dev.csv","predict_filename path")
 
 # vocabulary path
-tf.flags.DEFINE_string("vocabulary_path","./runs/1532608255/vocab","vocabulary_path")
+tf.flags.DEFINE_string("vocabulary_path","./runs/1532651840/vocab","vocabulary_path")
 
 # model checkpoint path
-tf.flags.DEFINE_string("meta_path","./runs/1532608255/checkpoints/model-5600.meta","meta_path")
-tf.flags.DEFINE_string("model_path","./runs/1532608255/checkpoints/model-5600","model_path")
+tf.flags.DEFINE_string("meta_path","./runs/1532651840/checkpoints/model-1200.meta","meta_path")
+tf.flags.DEFINE_string("model_path","./runs/1532651840/checkpoints/model-1200","model_path")
 
 # result output filename
 tf.flags.DEFINE_string("result_path","./result/result_predict.txt","result path")
@@ -67,13 +67,13 @@ with graph.as_default():
         predictions = graph.get_operation_by_name("fully_connection_layer/prediction").outputs[0]
 
         #
-        per_predict_limit = 400
+        per_predict_limit = 500
         sum_predict = len(x_text)
         batch_size = int(sum_predict / per_predict_limit)
 
         batch_prediction_all = []
         # 一个一个进行预测
-        for index in range(batch_size):
+        for index in tqdm(range(batch_size)):
             start_index = index * per_predict_limit
 
             if index == batch_size - 1 :

@@ -13,7 +13,7 @@ from tensorflow.contrib import learn
 tf.flags.DEFINE_integer("num_classes",19,"number of classes")
 tf.flags.DEFINE_integer("embedding_size",64,"Dimensionality of word embedding")
 tf.flags.DEFINE_integer("hidden_size",64,"Dimensionality of GRU hidden layer(default 50)") #===============
-tf.flags.DEFINE_float("dev_sample_percentage",0.001,"dev_sample_percentage")
+tf.flags.DEFINE_float("dev_sample_percentage",0.002,"dev_sample_percentage")
 tf.flags.DEFINE_integer("batch_size",100,"Batch Size of training data(default 50)")
 tf.flags.DEFINE_integer("checkpoint_every",100,"Save model after this many steps (default 100)")
 tf.flags.DEFINE_integer("num_checkpoints",10,"Number of checkpoints to store (default 5)")
