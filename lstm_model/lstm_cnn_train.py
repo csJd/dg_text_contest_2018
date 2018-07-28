@@ -21,11 +21,11 @@ tf.flags.DEFINE_integer("evaluate_every",50,"evaluate every this many batches")
 tf.flags.DEFINE_float("learning_rate",0.01,"learning rate")  #====================
 tf.flags.DEFINE_integer("grad_clip",5,"grad clip to prevent gradient explode")
 tf.flags.DEFINE_integer("epoch",5,"number of epoch")
-tf.flags.DEFINE_integer("max_word_in_sent",700,"max_word_in_sent")
+tf.flags.DEFINE_integer("max_word_in_sent",800,"max_word_in_sent")
 tf.flags.DEFINE_float("regularization_rate",0.001,"regularization rate random") #=======================
 
 # cnn
-tf.flags.DEFINE_string("filter_sizes","3","the size of the filter")
+tf.flags.DEFINE_string("filter_sizes","3,5,7","the size of the filter")
 tf.flags.DEFINE_integer("num_filters",64,"the num of channels in per filter")
 
 tf.flags.DEFINE_float("rnn_input_keep_prob",0.9,"rnn_input_keep_prob")
@@ -53,7 +53,7 @@ print("max_document_length : {}".format(max_document_length))
 vocab_processor = learn.preprocessing.VocabularyProcessor(FLAGS.max_word_in_sent) # 创建一个字典处理器,并设置句子固定长度
 x = np.array( list( vocab_processor.fit_transform(x_text)))   # x就转化为字典的下表表示的数组
 
-#格式化输出
+# 格式化输出
 print("Vocabulary size :{:d}".format(len(vocab_processor.vocabulary_)))
 
 # =====================build vocab =====================================================================================

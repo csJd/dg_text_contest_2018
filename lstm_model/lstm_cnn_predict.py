@@ -19,11 +19,11 @@ tf.flags.DEFINE_boolean("log_device_placement", False, "Log placement of ops on 
 tf.flags.DEFINE_string("predict_filename","lstm_model/processed_data/filtered_phrase_data_dev.csv","predict_filename path")
 
 # vocabulary path
-tf.flags.DEFINE_string("vocabulary_path","./runs/1532651840/vocab","vocabulary_path")
+tf.flags.DEFINE_string("vocabulary_path","./runs/1532681008/vocab","vocabulary_path")
 
 # model checkpoint path
-tf.flags.DEFINE_string("meta_path","./runs/1532651840/checkpoints/model-1200.meta","meta_path")
-tf.flags.DEFINE_string("model_path","./runs/1532651840/checkpoints/model-1200","model_path")
+tf.flags.DEFINE_string("meta_path","./runs/1532681008/checkpoints/model-1300.meta","meta_path")
+tf.flags.DEFINE_string("model_path","./runs/1532681008/checkpoints/model-1300","model_path")
 
 # result output filename
 tf.flags.DEFINE_string("result_path","./result/result_predict.txt","result path")
@@ -67,7 +67,7 @@ with graph.as_default():
         predictions = graph.get_operation_by_name("fully_connection_layer/prediction").outputs[0]
 
         #
-        per_predict_limit = 500
+        per_predict_limit = 200
         sum_predict = len(x_text)
         batch_size = int(sum_predict / per_predict_limit)
 

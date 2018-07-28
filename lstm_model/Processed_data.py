@@ -90,33 +90,33 @@ def get_average_sen_len(filename):
 
     sum_len = 0
     sen_count = 0
-    limit_up_1000_count = 0
+    limit_count = 0
     with open(filename,'r',encoding='utf-8') as f:
         for line in f.readlines():
             sen_count += 1
             line_list = line.strip().split(',')
             sen_len = len(line_list[1].strip().split())
-            if sen_len > 1500:
-                limit_up_1000_count += 1
+            if sen_len < 600:
+                limit_count += 1
             sum_len += sen_len
     average_len = sum_len / sen_count
     print("句子平均长度：{}".format(average_len))
-    print("句子长度大于1500: {}".format(limit_up_1000_count))
+    print("句子长度大于250: {}".format(limit_count))
     return average_len
 
 def main():
 
     # 计算平均句子长度
-    get_average_sen_len(from_project_root("lstm_model/processed_data/phrase_level_data.csv"))
+    get_average_sen_len(from_project_root("lstm_model/processed_data/filtered_phrase_data_train.csv"))
     exit()
 
     # extract data
     # extract_data(from_project_root("data/train_set.csv"),[3,2],
-    #              from_project_root("lstm_model/processed_data/phrase_level_data.csv"))
+    #              from_project_root("cnn_model/processed_data/phrase_level_data.csv"))
     # exit()
 
     # 划分数据集
-    train_dev_split(from_project_root("lstm_model/processed_data/filtered_phrase_data.csv"))
+    train_dev_split(from_project_root("cnn_model/processed_data/filtered_phrase_data.csv"))
     exit()
 
     tf_pickle = from_project_root("lstm_model/processed_data/phrase_tf.pk")

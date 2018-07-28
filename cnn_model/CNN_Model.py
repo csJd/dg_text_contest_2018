@@ -48,20 +48,20 @@ class CNN_Model(object):
 
                 # 由于需要考虑更长的词语
                 # transpose trans_conv1.shape = [batch,sen_len-filter_size+1,num_filters,1]
-                trans_conv1 = tf.transpose(conv1,[0,1,3,2])
-                filter_shape2 = [2,num_filters,1,num_filters]
-                W2 = tf.Variable(tf.truncated_normal(filter_shape2,stddev=0.1),name="W2")
-                b2 = tf.Variable(tf.constant(0.1,shape=[num_filters],name="b2"))
-                # conv2.shape = [batch, sen_len-filter_size+1-2+1,1,num_filters]
-                conv2 = tf.nn.conv2d(trans_conv1,W2,strides=[1,1,1,1],padding='VALID',name="conv2")
-                h2 = tf.nn.relu(tf.nn.bias_add(conv2,b2),name='relu2')
-                # max_pooling pooled shape
-                pooled2 = tf.nn.max_pool(h2,ksize=[1,sequence_length-filter_size,1,1],strides=[1,1,1,1],padding='VALID',name="pool2")
-                #
-                pooled_outputs.append(pooled2)
+                # trans_conv1 = tf.transpose(conv1,[0,1,3,2])
+                # filter_shape2 = [2,num_filters,1,num_filters]
+                # W2 = tf.Variable(tf.truncated_normal(filter_shape2,stddev=0.1),name="W2")
+                # b2 = tf.Variable(tf.constant(0.1,shape=[num_filters],name="b2"))
+                # # conv2.shape = [batch, sen_len-filter_size+1-2+1,1,num_filters]
+                # conv2 = tf.nn.conv2d(trans_conv1,W2,strides=[1,1,1,1],padding='VALID',name="conv2")
+                # h2 = tf.nn.relu(tf.nn.bias_add(conv2,b2),name='relu2')
+                # # max_pooling pooled shape
+                # pooled2 = tf.nn.max_pool(h2,ksize=[1,sequence_length-filter_size,1,1],strides=[1,1,1,1],padding='VALID',name="pool2")
+                # #
+                # pooled_outputs.append(pooled2)
 
         #汇总所有的池化后的特征
-        num_filters_total = (num_filters * 2) * len( filter_sizes)
+        num_filters_total = num_filters  * len( filter_sizes)
         self.h_pool = tf.concat(pooled_outputs,3)
         # h_pool_flat.shape = [batch, num_filters_total]
         self.h_pool_flat = tf.reshape(self.h_pool,[-1,num_filters_total])
