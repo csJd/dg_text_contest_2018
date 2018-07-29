@@ -53,24 +53,24 @@ class HierarchicalAttention:
         # 预测结果
         self.predictions = tf.argmax(self.logits, 1, name="predictions")  # shape:[None,]
 
-        # if not self.multi_label_flag: # 如果不是多标签
-        #     correct_prediction = tf.equal(tf.cast(self.predictions, tf.int32),
-        #                                   self.input_y)  # tf.argmax(self.logits, 1)-->[batch_size]
-        #     self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32), name="Accuracy")  # shape=()
-        # else:
-        #     self.accuracy = tf.constant(
-        #         0.5)  # fuke accuracy. (you can calcuate accuracy outside of graph using method calculate_accuracy(...) in train.py)
-        #
-        # if not is_training:
-        #     return
-        # if multi_label_flag:
-        #     print("going to use multi label loss.")
-        #     self.loss_val = self.loss_multilabel()
-        # else:
-        #     print("going to use single label loss.")
-        #     self.loss_val = self.loss()
-        #
-        # self.train_op = self.train()
+        if not self.multi_label_flag: # 如果不是多标签
+            correct_prediction = tf.equal(tf.cast(self.predictions, tf.int32),
+                                          self.input_y)  # tf.argmax(self.logits, 1)-->[batch_size]
+            self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32), name="Accuracy")  # shape=()
+        else:
+            self.accuracy = tf.constant(
+                0.5)  # fuke accuracy. (you can calcuate accuracy outside of graph using method calculate_accuracy(...) in train.py)
+
+        if not is_training:
+            return
+        if multi_label_flag:
+            print("going to use multi label loss.")
+            self.loss_val = self.loss_multilabel()
+        else:
+            print("going to use single label loss.")
+            self.loss_val = self.loss()
+
+        self.train_op = self.train()
 
     def attention_word_level(self, hidden_state):
         """
@@ -411,14 +411,16 @@ class HierarchicalAttention:
 
 # test started
 def test():
-    # below is a function test; if you use this for text classifiction, you need to tranform sentence to indices of vocabulary first. then feed data to the graph.
+    # below is a function test;
+    #  if you use this for text classifiction, you need to tranform sentence to indices of vocabulary first.
+    # then feed data to the graph.
     num_classes = 3
     learning_rate = 0.01
     batch_size = 8
     decay_steps = 1000
     decay_rate = 0.9
     sequence_length = 30
-    num_sentences = 6  # number of sentences
+    num_sentences = 6  # number of sentences，那么每个句子就相当于有5个单词
     vocab_size = 10000
     embed_size = 100 #100
     hidden_size = 100
@@ -442,4 +444,4 @@ def test():
                            textRNN.dropout_keep_prob: dropout_keep_prob})
             print("loss:", loss, "acc:", acc, "label:", input_y, "prediction:", predict)
             # print("W_projection_value_:",W_projection_value)
-#test()
+test()
