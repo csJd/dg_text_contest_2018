@@ -9,6 +9,7 @@ class HierarchicalAttention:
                  vocab_size, embed_size,
                  hidden_size, is_training, need_sentence_level_attention_encoder_flag=True, multi_label_flag=False,
                  initializer=tf.random_normal_initializer(stddev=0.1),clip_gradients=5.0):#0.01
+
         """init all hyperparameter here"""
         # set hyperparamter
         self.num_classes = num_classes
@@ -51,24 +52,24 @@ class HierarchicalAttention:
         # 预测结果
         self.predictions = tf.argmax(self.logits, 1, name="predictions")  # shape:[None,]
 
-        if not self.multi_label_flag: # 如果不是多标签
-            correct_prediction = tf.equal(tf.cast(self.predictions, tf.int32),
-                                          self.input_y)  # tf.argmax(self.logits, 1)-->[batch_size]
-            self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32), name="Accuracy")  # shape=()
-        else:
-            self.accuracy = tf.constant(
-                0.5)  # fuke accuracy. (you can calcuate accuracy outside of graph using method calculate_accuracy(...) in train.py)
-
-        if not is_training:
-            return
-        if multi_label_flag:
-            print("going to use multi label loss.")
-            self.loss_val = self.loss_multilabel()
-        else:
-            print("going to use single label loss.")
-            self.loss_val = self.loss()
-
-        self.train_op = self.train()
+        # if not self.multi_label_flag: # 如果不是多标签
+        #     correct_prediction = tf.equal(tf.cast(self.predictions, tf.int32),
+        #                                   self.input_y)  # tf.argmax(self.logits, 1)-->[batch_size]
+        #     self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32), name="Accuracy")  # shape=()
+        # else:
+        #     self.accuracy = tf.constant(
+        #         0.5)  # fuke accuracy. (you can calcuate accuracy outside of graph using method calculate_accuracy(...) in train.py)
+        #
+        # if not is_training:
+        #     return
+        # if multi_label_flag:
+        #     print("going to use multi label loss.")
+        #     self.loss_val = self.loss_multilabel()
+        # else:
+        #     print("going to use single label loss.")
+        #     self.loss_val = self.loss()
+        #
+        # self.train_op = self.train()
 
     def attention_word_level(self, hidden_state):
         """

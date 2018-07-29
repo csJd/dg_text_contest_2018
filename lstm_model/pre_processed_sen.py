@@ -77,8 +77,8 @@ def pre_processed_sen(bdc_pickle,tf_pickle,train_file,processed_data_file,limit_
 def main():
     bdc_pickle= from_project_root("lstm_model/processed_data/phrase_bdc.pk")
     tf_pickle = from_project_root("lstm_model/processed_data/phrase_tf.pk")
-    train_file = from_project_root("lstm_model/processed_data/phrase_level_test_data.csv")
-    processed_data_file = from_project_root("lstm_model/processed_data/filter_phrase_level_test_data.csv")
+    train_file = from_project_root("lstm_model/processed_data/phrase_level_data.csv")
+    processed_data_file = from_project_root("lstm_model/processed_data/filter_phrase_level_data.csv")
     pre_processed_sen(bdc_pickle, tf_pickle, train_file, processed_data_file, limit_word=400)
     pass
 
