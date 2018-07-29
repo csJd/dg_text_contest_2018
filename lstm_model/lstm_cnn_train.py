@@ -21,17 +21,17 @@ tf.flags.DEFINE_integer("evaluate_every",50,"evaluate every this many batches")
 tf.flags.DEFINE_float("learning_rate",0.01,"learning rate")  #====================
 tf.flags.DEFINE_integer("grad_clip",5,"grad clip to prevent gradient explode")
 tf.flags.DEFINE_integer("epoch",5,"number of epoch")
-tf.flags.DEFINE_integer("max_word_in_sent",800,"max_word_in_sent")
+tf.flags.DEFINE_integer("max_word_in_sent",500,"max_word_in_sent")
 tf.flags.DEFINE_float("regularization_rate",0.001,"regularization rate random") #=======================
 
 # cnn
-tf.flags.DEFINE_string("filter_sizes","3,5,7","the size of the filter")
+tf.flags.DEFINE_string("filter_sizes","2,3,4","the size of the filter")
 tf.flags.DEFINE_integer("num_filters",64,"the num of channels in per filter")
 
 tf.flags.DEFINE_float("rnn_input_keep_prob",0.9,"rnn_input_keep_prob")
 tf.flags.DEFINE_float("rnn_output_keep_prob",0.9,"rnn_output_keep_prob")
 
-tf.flags.DEFINE_string("train_file","lstm_model/processed_data/filtered_phrase_data_train.csv","train file url")
+tf.flags.DEFINE_string("train_file","lstm_model/processed_data/filter_phrase_level_data_train.csv","train file url")
 
 FLAGS = tf.flags.FLAGS
 

@@ -107,10 +107,10 @@ def get_average_sen_len(filename):
 def main():
 
     # 将pk转化为csv文件
-    pickle_file = from_project_root("lstm_model/processed_data/phrase_bdc.pk")
-    save_csv_file = from_project_root("lstm_model/processed_data/phrase_bdc.csv")
-    transfer_pk_to_csv(pickle_file, save_csv_file)
-    exit()
+    # pickle_file = from_project_root("lstm_model/processed_data/phrase_bdc.pk")
+    # save_csv_file = from_project_root("lstm_model/processed_data/phrase_bdc.csv")
+    # transfer_pk_to_csv(pickle_file, save_csv_file)
+    # exit()
 
     # 计算平均句子长度
     # get_average_sen_len(from_project_root("lstm_model/processed_data/filtered_phrase_data_train.csv"))
@@ -122,7 +122,7 @@ def main():
     # exit()
 
     # 划分数据集
-    train_dev_split(from_project_root("cnn_model/processed_data/filtered_phrase_data.csv"))
+    train_dev_split(from_project_root("lstm_model/processed_data/filter_phrase_level_data.csv"))
     exit()
 
     tf_pickle = from_project_root("lstm_model/processed_data/phrase_tf.pk")
