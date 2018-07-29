@@ -11,11 +11,12 @@ PHRASE_LEVEL_DATA_URL = from_project_root("")
 WEIGHTINGS = ['tf', 'idf', 'lf', 'df', 'bdc']
 
 
-def load_raw_data(data_url):
+def load_raw_data(data_url, sentence_to_list=False):
     """ load data to get labels list and sentences list
 
     Args:
         data_url: url to data file
+        sentence_to_list: whether transform sentence to word list
 
     Returns:
         (list, list): labels and sentences
@@ -28,7 +29,10 @@ def load_raw_data(data_url):
         for line in data_file:
             line = line.split(',')
             labels.append(int(line[0]))
-            sentences.append(line[1].split())
+            if sentence_to_list:
+                sentences.append(line[1].split())
+            else:
+                sentences.append(line[1])
         print("finished loading\n")
     return labels, sentences
 
