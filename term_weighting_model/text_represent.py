@@ -364,6 +364,21 @@ def cal_idf(train_file,idf_dict_pickle):
     f.close()
 
 if __name__ == "__main__":
+
+    # 计算tf
+    # train_file = from_project_root("lstm_model/processed_data/phrase_level_data.csv")
+    # tf_dict_pickle =from_project_root("lstm_model/processed_data/phrase_tf.pk")
+    # cal_tf(train_file,tf_dict_pickle)
+    # exit()
+
+    # 计算bdc值
+    train_file = from_project_root("lstm_model/processed_data/phrase_level_data.csv")
+    word_dict_url = from_project_root("lstm_model/processed_data/phrase_tf.pk")
+    bdc_pickle = from_project_root("lstm_model/processed_data/phrase_bdc.pk")
+    cal_bdc_value(train_file,word_dict_url,bdc_pickle)
+    exit()
+
+
     # validation_train_data_filename = "./data/small_train.csv"
     # validation_train_data = du.read_data_df(validation_train_data_filename, data_type="train")
     print("start")
