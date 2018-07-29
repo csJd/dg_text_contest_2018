@@ -27,24 +27,22 @@ def load_data_and_labels(train_file):
 '''
     获取分好词的文件
 '''
-def get_predict_data(filename):
-    '''
-    :param filename: 分好词，需要预测的文件
-        default:./dev_processed_data/shuffle_test_data.csv
-    :return: 一个字符串数组
-    '''
+def get_predict_data(predict_file):
+     # train_file = "../processed_data/splited_train_data.csv"
 
     x_text = []
     y = []
 
-    pd_data = pd.read_csv(filename, sep=",")
-    for index, row in pd_data.iterrows():
-        x_text.append(row[1])
+    with open(predict_file,'r',encoding='utf-8') as f:
+        for line in f.readlines():
+            row = line.strip().split(',')
+            x_text.append(row[1])
 
-        # 垃圾邮件 [1,0]  正常邮件 [0,1]
-        train_label = row[0]
-        y.append(train_label)
-    return y,x_text
+            #垃圾邮件 [1,0]  正常邮件 [0,1]
+            real_label = int(row[0])
+            y.append(real_label)
+
+    return x_text,y
 
 
 def batch_iter(data, batch_size, num_epochs, shuffle=True):

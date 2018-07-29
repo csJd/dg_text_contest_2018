@@ -16,14 +16,14 @@ from tqdm import tqdm
 tf.flags.DEFINE_boolean("allow_soft_placement", True, "Allow device soft device placement")
 tf.flags.DEFINE_boolean("log_device_placement", False, "Log placement of ops on devices")
 # 预测文件路径
-tf.flags.DEFINE_string("predict_filename","lstm_model/processed_data/filtered_phrase_data_dev.csv","predict_filename path")
+tf.flags.DEFINE_string("predict_filename","lstm_model/processed_data/filter_phrase_level_data_dev.csv","predict_filename path")
 
 # vocabulary path
-tf.flags.DEFINE_string("vocabulary_path","./runs/1532681008/vocab","vocabulary_path")
+tf.flags.DEFINE_string("vocabulary_path","./runs/1532826765/vocab","vocabulary_path")
 
 # model checkpoint path
-tf.flags.DEFINE_string("meta_path","./runs/1532681008/checkpoints/model-1300.meta","meta_path")
-tf.flags.DEFINE_string("model_path","./runs/1532681008/checkpoints/model-1300","model_path")
+tf.flags.DEFINE_string("meta_path","./runs/1532826765/checkpoints/model-600.meta","meta_path")
+tf.flags.DEFINE_string("model_path","./runs/1532826765/checkpoints/model-600","model_path")
 
 # result output filename
 tf.flags.DEFINE_string("result_path","./result/result_predict.txt","result path")
@@ -33,7 +33,7 @@ FLAGS = tf.flags.FLAGS
 
 # ===================================================================================
 # 获取预测文本
-predict_labels,predict_context = Data_helper.get_predict_data(from_project_root(FLAGS.predict_filename))
+predict_context,predict_labels = Data_helper.get_predict_data(from_project_root(FLAGS.predict_filename))
 
 # 加载词典
 vocab_processor = learn.preprocessing.VocabularyProcessor.restore(FLAGS.vocabulary_path)
@@ -67,7 +67,7 @@ with graph.as_default():
         predictions = graph.get_operation_by_name("fully_connection_layer/prediction").outputs[0]
 
         #
-        per_predict_limit = 200
+        per_predict_limit = 100
         sum_predict = len(x_text)
         batch_size = int(sum_predict / per_predict_limit)
 
