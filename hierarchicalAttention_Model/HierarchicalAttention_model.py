@@ -26,25 +26,32 @@ class HierarchicalAttention:
         self.need_sentence_level_attention_encoder_flag = need_sentence_level_attention_encoder_flag
         self.clip_gradients=clip_gradients
 
-        # add placeholder (X,label)
-        # self.input_x = tf.placeholder(tf.int32, [None, self.num_sentences,self.sequence_length], name="input_x")  # X
-        self.input_x = tf.placeholder(tf.int32, [None, self.sequence_length], name="input_x")
+        # palceholder
+        with tf.name_scope("placeholder") :
+            self.input_x = tf.placeholder(tf.int32, [None, self.sequence_length], name="input_x")
 
-        self.sequence_length = int(self.sequence_length / self.num_sentences) # TODO
-        self.input_y = tf.placeholder(tf.int32, [None, ], name="input_y")  # y:[None,num_classes]
-        self.input_y_multilabel = tf.placeholder(tf.float32, [None, self.num_classes],name="input_y_multilabel")  # y:[None,num_classes]. this is for multi-label classification only.
-        self.dropout_keep_prob = tf.placeholder(tf.float32, name="dropout_keep_prob")
+            self.sequence_length = int(self.sequence_length / self.num_sentences) # TODO
+            self.input_y = tf.placeholder(tf.int32, [None, ], name="input_y")  # y:[None,num_classes]
+            # y:[None,num_classes]. this is for multi-label classification only.
+            self.input_y_multilabel = tf.placeholder(tf.float32, [None, self.num_classes],name="input_y_multilabel")
+            self.dropout_keep_prob = tf.placeholder(tf.float32, name="dropout_keep_prob")
 
+        # 不参与训练的变量，用来控制训练时使用的变量
         self.global_step = tf.Variable(0, trainable=False, name="Global_Step")
         self.epoch_step = tf.Variable(0, trainable=False, name="Epoch_Step")
         self.epoch_increment = tf.assign(self.epoch_step, tf.add(self.epoch_step, tf.constant(1)))
         self.decay_steps, self.decay_rate = decay_steps, decay_rate
 
+        # 初始化网络结构使用到的所有变量参数
         self.instantiate_weights()
+
+        # 整体的网络结构 self.logits 即是输出的结果
         self.logits = self.inference()  # [None, self.label_size]. main computation graph is here.
 
+        # 预测结果
         self.predictions = tf.argmax(self.logits, 1, name="predictions")  # shape:[None,]
-        if not self.multi_label_flag:
+
+        if not self.multi_label_flag: # 如果不是多标签
             correct_prediction = tf.equal(tf.cast(self.predictions, tf.int32),
                                           self.input_y)  # tf.argmax(self.logits, 1)-->[batch_size]
             self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32), name="Accuracy")  # shape=()
@@ -60,6 +67,7 @@ class HierarchicalAttention:
         else:
             print("going to use single label loss.")
             self.loss_val = self.loss()
+
         self.train_op = self.train()
 
     def attention_word_level(self, hidden_state):
@@ -131,11 +139,20 @@ class HierarchicalAttention:
         return sentence_representation  # shape:[None,hidden_size*2]
 
     def inference(self):
-        """main computation graph here: 1.Word Encoder. 2.Word Attention. 3.Sentence Encoder 4.Sentence Attention 5.linear classifier"""
+        """main computation graph here:
+            1.Word Encoder.
+            2.Word Attention.
+            3.Sentence Encoder
+            4.Sentence Attention
+            5.linear classifier
+        """
         # 1.Word Encoder
         # 1.1 embedding of words
-        input_x = tf.split(self.input_x, self.num_sentences,axis=1)  # a list. length:num_sentences.each element is:[None,self.sequence_length/num_sentences]
-        input_x = tf.stack(input_x, axis=1)  # shape:[None,self.num_sentences,self.sequence_length/num_sentences]
+        # a list. length:num_sentences.each element is:[None,self.sequence_length/num_sentences]
+        #
+        input_x = tf.split(self.input_x, self.num_sentences,axis=1)
+        # shape:[None,self.num_sentences,self.sequence_length/num_sentences]
+        input_x = tf.stack(input_x, axis=1)
         self.embedded_words = tf.nn.embedding_lookup(self.Embedding,input_x)  # [None,num_sentences,sentence_length,embed_size]
         embedded_words_reshaped = tf.reshape(self.embedded_words, shape=[-1, self.sequence_length,self.embed_size])  # [batch_size*num_sentences,sentence_length,embed_size]
         # 1.2 forward gru
@@ -150,7 +167,7 @@ class HierarchicalAttention:
         # for each sentence.
         sentence_representation = self.attention_word_level(self.hidden_state)  # output:[batch_size*num_sentences,hidden_size*2]
         sentence_representation = tf.reshape(sentence_representation, shape=[-1, self.num_sentences, self.hidden_size * 2])  # shape:[batch_size,num_sentences,hidden_size*2]
-        #with tf.name_scope("dropout"):#TODO
+        # with tf.name_scope("dropout"):#TODO
         #    sentence_representation = tf.nn.dropout(sentence_representation,keep_prob=self.dropout_keep_prob)  # shape:[None,hidden_size*4]
 
         # 3.Sentence Encoder

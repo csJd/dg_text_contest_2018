@@ -117,8 +117,8 @@ def main():
     # exit()
 
     # extract data
-    # extract_data(from_project_root("data/train_set.csv"),[3,2],
-    #              from_project_root("lstm_model/processed_data/phras1e_level_data.csv"))
+    # extract_data(from_project_root("data/test_set.csv"),[0,2],
+    #              from_project_root("lstm_model/processed_data/phrase_level_test_data.csv"))
     # exit()
 
     # 划分数据集

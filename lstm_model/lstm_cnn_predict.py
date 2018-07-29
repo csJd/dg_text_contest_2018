@@ -16,17 +16,17 @@ from tqdm import tqdm
 tf.flags.DEFINE_boolean("allow_soft_placement", True, "Allow device soft device placement")
 tf.flags.DEFINE_boolean("log_device_placement", False, "Log placement of ops on devices")
 # 预测文件路径
-tf.flags.DEFINE_string("predict_filename","lstm_model/processed_data/filter_phrase_level_data_dev.csv","predict_filename path")
+tf.flags.DEFINE_string("predict_filename","lstm_model/processed_data/filter_phrase_level_test_data.csv","predict_filename path")
 
 # vocabulary path
 tf.flags.DEFINE_string("vocabulary_path","./runs/1532826765/vocab","vocabulary_path")
 
 # model checkpoint path
-tf.flags.DEFINE_string("meta_path","./runs/1532826765/checkpoints/model-600.meta","meta_path")
-tf.flags.DEFINE_string("model_path","./runs/1532826765/checkpoints/model-600","model_path")
+tf.flags.DEFINE_string("meta_path","./runs/1532826765/checkpoints/model-1600.meta","meta_path")
+tf.flags.DEFINE_string("model_path","./runs/1532826765/checkpoints/model-1600","model_path")
 
 # result output filename
-tf.flags.DEFINE_string("result_path","./result/result_predict.txt","result path")
+tf.flags.DEFINE_string("result_path","./result/result_predict.csv","result path")
 
 FLAGS = tf.flags.FLAGS
 # FLAGS._parse_flags()
@@ -91,11 +91,19 @@ with graph.as_default():
         for predit in batch_prediction_all:
             reset_prediction_all.append(int(predit)+1)
 
-        real_label = np.array(predict_labels).astype(int)
-        predict_labels  = reset_prediction_all
+        # real_label = np.array(predict_labels).astype(int)
+        # predict_labels  = reset_prediction_all
+        #
+        # macro_f1 = f1_score(real_label,reset_prediction_all,average='macro')
+        # accuracy_score1 = accuracy_score(real_label,reset_prediction_all,normalize=True)
+        #
+        # print("macro_f1:{}".format(macro_f1))
+        # print("accuracy:{}".format(accuracy_score1))
 
-        macro_f1 = f1_score(real_label,reset_prediction_all,average='macro')
-        accuracy_score1 = accuracy_score(real_label,reset_prediction_all,normalize=True)
-
-        print("macro_f1:{}".format(macro_f1))
-        print("accuracy:{}".format(accuracy_score1))
+        ids = np.array(predict_labels).astype(int)
+        predict_labels = reset_prediction_all
+        # 写入文件
+        with open(FLAGS.result_path,'w',encoding='utf-8') as f:
+            f.write("id,class\n")
+            for i in range(len(ids)):
+                f.write("{},{}\n".format(ids[i],predict_labels[i]))

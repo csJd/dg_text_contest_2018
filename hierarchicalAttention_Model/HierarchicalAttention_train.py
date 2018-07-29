@@ -1,25 +1,14 @@
 # -*- coding: utf-8 -*-
-#training the model.
-#process--->1.load data(X:list of lint,y:int). 2.create session. 3.feed data. 4.training (5.validation) ,(6.prediction)
-import sys
-reload(sys)
-sys.setdefaultencoding('utf8')
 import tensorflow as tf
 import numpy as np
-from p1_HierarchicalAttention_model import HierarchicalAttention
-from p1_HierarchicalAttention_model_transformer import HierarchicalAttention
-
-from data_util_zhihu import load_data_multilabel_new,create_voabulary,create_voabulary_label
-from tflearn.data_utils import to_categorical, pad_sequences
-import os
-import word2vec
+from hierarchicalAttention_Model.HierarchicalAttention_model import HierarchicalAttention
 import pickle
 
 #configuration
 FLAGS=tf.app.flags.FLAGS
-tf.app.flags.DEFINE_integer("num_classes",1999,"number of label")
+tf.app.flags.DEFINE_integer("num_classes",19,"number of label")
 tf.app.flags.DEFINE_float("learning_rate",0.01,"learning rate") #TODO 0.01
-tf.app.flags.DEFINE_integer("batch_size", 512, "Batch size for training/evaluating.") #批处理的大小 32-->128 #TODO
+tf.app.flags.DEFINE_integer("batch_size", 100, "Batch size for training/evaluating.") #批处理的大小 32-->128 #TODO
 tf.app.flags.DEFINE_integer("decay_steps", 6000, "how many steps before decay learning rate.") #6000批处理的大小 32-->128
 tf.app.flags.DEFINE_float("decay_rate", 1.0, "Rate of decay for learning rate.") #0.87一次衰减多少
 tf.app.flags.DEFINE_string("ckpt_dir","checkpoint_hier_atten_title/text_hier_atten_title_desc_checkpoint_MHA/","checkpoint location for the model")
