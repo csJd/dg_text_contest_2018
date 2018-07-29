@@ -53,7 +53,7 @@ class LSTM_CNN_Model():
             name="word_context_weight")
         b_word = tf.Variable(tf.truncated_normal(shape=[self.hidden_size*2], dtype=tf.float32),
                                  name="word_context_bias")
-        # # word attention
+        # # word attention [batch , max_doc_length]
         weight_x = self.AttentionLayer(self.word_encoded_x,word_context,W_word,b_word,name="attention_1")
 
         # # 根据新的embedding,和 weights ，计算两个句子的距离。 # feature one #############
@@ -64,6 +64,13 @@ class LSTM_CNN_Model():
         # word_encode_x.shape = [-1,max_doc_lenght,hiddent_size * 2 ]
         # cnn_output.shape = [batch, num_filters * 2 * len(filter_sizes)]
         with tf.name_scope("cnn_layer") :
+            # 先将rnn计算到的权重先相乘
+            # word_encoded_x.shape = [batch,sequence_length,hidden_size*2]
+            # weight_x.shape=[batch,max_doc_length]
+            expand_weight_x = tf.expand_dims(weight_x, -1)
+            # atten_sens.shape = [batch,hidden_size * 2]
+            self.word_encoded_x = tf.multiply(self.word_encoded_x, expand_weight_x)
+
             cnn_output = self.cnn_layer(self.word_encoded_x)
 
         # 再接入一个全连接层

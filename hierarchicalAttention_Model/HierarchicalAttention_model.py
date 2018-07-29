@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# github address https://github.com/brightmart/text_classification
 # HierarchicalAttention: 1.Word Encoder. 2.Word Attention. 3.Sentence Encoder 4.Sentence Attention 5.linear classifier. 2017-06-13
 import tensorflow as tf
 import numpy as np
@@ -9,6 +10,7 @@ class HierarchicalAttention:
                  vocab_size, embed_size,
                  hidden_size, is_training, need_sentence_level_attention_encoder_flag=True, multi_label_flag=False,
                  initializer=tf.random_normal_initializer(stddev=0.1),clip_gradients=5.0):#0.01
+
         """init all hyperparameter here"""
         # set hyperparamter
         self.num_classes = num_classes
@@ -409,14 +411,16 @@ class HierarchicalAttention:
 
 # test started
 def test():
-    # below is a function test; if you use this for text classifiction, you need to tranform sentence to indices of vocabulary first. then feed data to the graph.
+    # below is a function test;
+    #  if you use this for text classifiction, you need to tranform sentence to indices of vocabulary first.
+    # then feed data to the graph.
     num_classes = 3
     learning_rate = 0.01
     batch_size = 8
     decay_steps = 1000
     decay_rate = 0.9
     sequence_length = 30
-    num_sentences = 6  # number of sentences
+    num_sentences = 6  # number of sentences，那么每个句子就相当于有5个单词
     vocab_size = 10000
     embed_size = 100 #100
     hidden_size = 100
@@ -440,4 +444,4 @@ def test():
                            textRNN.dropout_keep_prob: dropout_keep_prob})
             print("loss:", loss, "acc:", acc, "label:", input_y, "prediction:", predict)
             # print("W_projection_value_:",W_projection_value)
-#test()
+test()
