@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# github address https://github.com/brightmart/text_classification
 # HierarchicalAttention: 1.Word Encoder. 2.Word Attention. 3.Sentence Encoder 4.Sentence Attention 5.linear classifier. 2017-06-13
 import tensorflow as tf
 import numpy as np

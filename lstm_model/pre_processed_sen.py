@@ -42,7 +42,7 @@ def pre_processed_sen(bdc_pickle,tf_pickle,train_file,processed_data_file,limit_
             # 过滤超高词频的词语==========================
             filted_word_list = []
             for word in word_list:
-                if tf_dict[word] < 6000:
+                if tf_dict[word] < 6000 and tf_dict[word] >= 2 :
                     filted_word_list.append(word)
 
             sen_len = len(filted_word_list) # 作归一化使用,以免句子的长度影响最后句子级别上的权重
@@ -79,7 +79,7 @@ def main():
     tf_pickle = from_project_root("lstm_model/processed_data/phrase_tf.pk")
     train_file = from_project_root("lstm_model/processed_data/phrase_level_data.csv")
     processed_data_file = from_project_root("lstm_model/processed_data/filter_phrase_level_data.csv")
-    pre_processed_sen(bdc_pickle, tf_pickle, train_file, processed_data_file, limit_word=400)
+    pre_processed_sen(bdc_pickle, tf_pickle, train_file, processed_data_file, limit_word=500)
     pass
 
 if __name__ == '__main__':
