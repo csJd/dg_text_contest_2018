@@ -3,42 +3,7 @@
 import pickle as pk
 from utils.path_util import from_project_root
 from utils.data_util import train_dev_split
-
-# 根据各种权重，过滤语料中的词语
-def filter_words(tf_pickle):
-
-    # 加载权重文件
-    tf_dict = pk.load(open(tf_pickle,'rb'))
-
-    # 过滤条件 = 查询
-    del_count = 0
-    for (word,tf_value) in tf_dict.items():
-
-        if tf_dict[word] <= 1 or tf_dict[word] >= 6000:
-            del_count += 1
-
-    print(del_count)
-
-def pre_processed_data(data_file,tf_pickle,filted_data_file):
-
-    # 加载权重文件
-    tf_dict = pk.load(open(tf_pickle, 'rb'))
-
-    empty_list_count = 0
-    with open(data_file,'r',encoding='utf-8') as f,open(filted_data_file,'w',encoding='utf-8') as wf:
-        for line in f.readlines():
-            line_list = line.strip().split(',')
-            label = line_list[0]
-            word_list = line_list[1].strip().split()
-
-            filtered_word_list = process_sen(tf_dict,word_list)
-
-            if len(filtered_word_list) == 0 :
-                empty_list_count += 1
-                filtered_word_list = word_list
-                print("empty_list:{}".format(empty_list_count))
-            wf.write("{},{}\n".format(label," ".join(filtered_word_list)))
-    pass
+import collections
 
 def process_sen(tf_dict,word_list):
 
@@ -50,7 +15,6 @@ def process_sen(tf_dict,word_list):
         filtered_word_list.append(word)
 
     return filtered_word_list
-
 
 # 将pk文件转化为csv文件 【排序】
 def  transfer_pk_to_csv(pickle_file,save_csv_file):
@@ -104,11 +68,31 @@ def get_average_sen_len(filename):
     print("句子长度大于250: {}".format(limit_count))
     return average_len
 
+# 从phrase_level_dc.csv中提取df——词语的文档数
+def get_dc_pickle(dc_csv_file,df_pickle):
+    """
+    从文件lstm_model/processed_data/phrase_level_dc.csv中提取df值
+    Args:
+        dc_csv_file: lstm_model/processed_data/phrase_level_dc.csv
+        df_pickle:lstm_model/processed_data/phrase_df.pk
+    Returns:
+    """
+    df_dict = collections.defaultdict(float)
+    with open(dc_csv_file,'r',encoding='utf-8') as f:
+        for line in f.readlines()[1:]:
+            line_list = line.strip().split(',')
+            word = line_list[0]
+            df_value = line_list[2]
+            df_dict[word] = df_value
+
+    pk.dump(df_dict,open(df_pickle,'wb'))
+    pass
+
 def main():
 
     # 将pk转化为csv文件
-    # pickle_file = from_project_root("lstm_model/processed_data/phrase_bdc.pk")
-    # save_csv_file = from_project_root("lstm_model/processed_data/phrase_bdc.csv")
+    # pickle_file = from_project_root("lstm_model/processed_data/df_pickle.pk")
+    # save_csv_file = from_project_root("lstm_model/processed_data/df_pickle.csv")
     # transfer_pk_to_csv(pickle_file, save_csv_file)
     # exit()
 
@@ -131,11 +115,11 @@ def main():
     # filter_words(tf_pickle)
     # exit()
 
-    data_file = from_project_root("lstm_model/processed_data/phrase_level_data.csv")
-    filtered_data_file = from_project_root("lstm_model/processed_data/filtered_phrase_data.csv")
-    pre_processed_data(data_file,tf_pickle,filtered_data_file)
+    # 从phrase_level_dc.csv中提取df——词语的文档数
+    # dc_csv_file = from_project_root("lstm_model/processed_data/phrase_level_dc.csv")
+    # df_pickle = from_project_root("lstm_model/processed_data/df_pickle.pk")
+    # get_dc_pickle(dc_csv_file, df_pickle)
 
-    # filter_words(tf_pickle, bdc_pickle, tf_bdc_picle, df_pickle, lf_pickle, vocab_pickle)
 
 if __name__ == '__main__':
     main()

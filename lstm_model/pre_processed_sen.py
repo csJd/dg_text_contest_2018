@@ -11,7 +11,7 @@ import collections
 import pickle as pk
 import tqdm
 
-def pre_processed_sen(bdc_pickle,tf_pickle,train_file,processed_data_file,limit_word=400):
+def pre_processed_sen(bdc_pickle,tf_pickle,dc_pickle,df_pickle,train_file,processed_data_file,limit_word=400):
 
     """
     :param bdc_pickle: 根据全局计算出来的bdc权重
@@ -24,6 +24,10 @@ def pre_processed_sen(bdc_pickle,tf_pickle,train_file,processed_data_file,limit_
     bdc_dict = pk.load(open(bdc_pickle,'rb'))
     # 加载tf_value
     tf_dict = pk.load(open(tf_pickle,'rb'))
+    # 加载dc_value
+    dc_dict = pk.load(open(dc_pickle,'rb'))
+    # 加载df_value
+    df_dict = pk.load(open(df_pickle,'rb'))
     line_count = 0
     # 读取训练文档
     with open(train_file,'r',encoding='utf-8') as f,open(processed_data_file,'w',encoding='utf-8') as wf:
@@ -42,8 +46,11 @@ def pre_processed_sen(bdc_pickle,tf_pickle,train_file,processed_data_file,limit_
             # 过滤超高词频的词语==========================
             filted_word_list = []
             for word in word_list:
-                if tf_dict[word] < 6000 and tf_dict[word] >= 2 :
-                    filted_word_list.append(word)
+                if dc_dict[word] < 3 :
+                    continue
+                if tf_dict[word] <= 2:
+                    continue
+                filted_word_list.append(word)
 
             sen_len = len(filted_word_list) # 作归一化使用,以免句子的长度影响最后句子级别上的权重
             # 计算句子级别上tf ==============================
@@ -53,7 +60,7 @@ def pre_processed_sen(bdc_pickle,tf_pickle,train_file,processed_data_file,limit_
                 word_dict[word] += 1.0
             # 归一化,计算tf-bdc value =========================
             for (word,tf_value) in word_dict.items():
-                word_dict[word] = word_dict[word] / sen_len * bdc_dict[word]
+                word_dict[word] = word_dict[word] / sen_len * dc_dict[word]
 
             # 对word_dict权重进行排序: 从大到小排序 =============================
             sorted_word_tuple = sorted(word_dict.items(), key=lambda item: item[1], reverse=True)
@@ -77,9 +84,12 @@ def pre_processed_sen(bdc_pickle,tf_pickle,train_file,processed_data_file,limit_
 def main():
     bdc_pickle= from_project_root("lstm_model/processed_data/phrase_bdc.pk")
     tf_pickle = from_project_root("lstm_model/processed_data/phrase_tf.pk")
+    dc_pickle = from_project_root("lstm_model/processed_data/phrase_level_dc.pk")
+    df_pickle = from_project_root("lstm_model/processed_data/df_pickle.pk")
+
     train_file = from_project_root("lstm_model/processed_data/phrase_level_data.csv")
     processed_data_file = from_project_root("lstm_model/processed_data/filter_phrase_level_data.csv")
-    pre_processed_sen(bdc_pickle, tf_pickle, train_file, processed_data_file, limit_word=500)
+    pre_processed_sen(bdc_pickle, tf_pickle,dc_pickle,df_pickle,train_file, processed_data_file, limit_word=400)
     pass
 
 if __name__ == '__main__':

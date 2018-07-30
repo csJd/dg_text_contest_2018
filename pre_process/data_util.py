@@ -401,7 +401,7 @@ def cal_document_frequency(train_file,df_pickle):
     pk.dump(df_dict,open(df_pickle,'wb'))
 
 if __name__ == "__main__":
-    train_data_filename = "./data/small_train.csv"
+    train_data_filename = from_project_root("data/train_set.csv")
     # extract_data(train_data_filename, sentence_type="word_seg", output_filename="./data/word_seg.csv")
     train_data_df = read_data_df(train_data_filename, data_type="train")
 

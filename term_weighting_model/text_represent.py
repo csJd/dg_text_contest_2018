@@ -379,6 +379,7 @@ if __name__ == "__main__":
     # exit()
 
     # 计算dc
+    
     sentence_type = "phrase"
     is_bdc = False
     dc_bdc(sentence_type, is_bdc)
@@ -391,7 +392,7 @@ if __name__ == "__main__":
     idf("./word_distribution/label_word_count.csv", "./data/small_train.csv",
         "./processed_data/phrase_level_tf.pk", sentence_type="phrase", smooth_idf=0)
     # one_hot(validation_train_data, type="word")
-    # dc_bdc(type="word", is_bdc=False)
+    dc_bdc(type="word", is_bdc=False)
     end_time = datetime.datetime.now()
     print((end_time-start_time).seconds)
 

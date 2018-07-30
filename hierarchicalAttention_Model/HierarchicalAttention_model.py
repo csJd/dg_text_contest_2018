@@ -407,8 +407,6 @@ class HierarchicalAttention:
                                                         initializer=self.initializer)  # TODO o.k to use batch_size in first demension?
             self.context_vecotor_sentence = tf.get_variable("what_is_the_informative_sentence",
                                                             shape=[self.hidden_size * 2], initializer=self.initializer)
-
-
 # test started
 def test():
     # below is a function test;
