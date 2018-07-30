@@ -20,8 +20,8 @@ tf.flags.DEFINE_integer("num_checkpoints",10,"Number of checkpoints to store (de
 tf.flags.DEFINE_integer("evaluate_every",50,"evaluate every this many batches")
 tf.flags.DEFINE_float("learning_rate",0.01,"learning rate")  #====================
 tf.flags.DEFINE_integer("grad_clip",5,"grad clip to prevent gradient explode")
-tf.flags.DEFINE_integer("epoch",5,"number of epoch")
-tf.flags.DEFINE_integer("max_word_in_sent",500,"max_word_in_sent")
+tf.flags.DEFINE_integer("epoch",3,"number of epoch")
+tf.flags.DEFINE_integer("max_word_in_sent",1000,"max_word_in_sent")
 tf.flags.DEFINE_float("regularization_rate",0.001,"regularization rate random") #=======================
 
 # cnn

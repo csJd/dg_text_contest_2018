@@ -82,7 +82,7 @@ def get_dc_pickle(dc_csv_file,df_pickle):
         for line in f.readlines()[1:]:
             line_list = line.strip().split(',')
             word = line_list[0]
-            df_value = line_list[2]
+            df_value = float(line_list[2])
             df_dict[word] = df_value
 
     pk.dump(df_dict,open(df_pickle,'wb'))
@@ -116,9 +116,9 @@ def main():
     # exit()
 
     # 从phrase_level_dc.csv中提取df——词语的文档数
-    # dc_csv_file = from_project_root("lstm_model/processed_data/phrase_level_dc.csv")
-    # df_pickle = from_project_root("lstm_model/processed_data/df_pickle.pk")
-    # get_dc_pickle(dc_csv_file, df_pickle)
+    dc_csv_file = from_project_root("lstm_model/processed_data/phrase_level_dc.csv")
+    df_pickle = from_project_root("lstm_model/processed_data/df_pickle.pk")
+    get_dc_pickle(dc_csv_file, df_pickle)
 
 
 if __name__ == '__main__':

@@ -46,13 +46,14 @@ def pre_processed_sen(bdc_pickle,tf_pickle,dc_pickle,df_pickle,train_file,proces
             # 过滤超高词频的词语==========================
             filted_word_list = []
             for word in word_list:
-                if dc_dict[word] < 3 :
+                if int(df_dict[word]) <= 3 :
                     continue
                 if tf_dict[word] <= 2:
                     continue
                 filted_word_list.append(word)
 
             sen_len = len(filted_word_list) # 作归一化使用,以免句子的长度影响最后句子级别上的权重
+
             # 计算句子级别上tf ==============================
             word_dict = collections.defaultdict(float)
 
@@ -78,7 +79,6 @@ def pre_processed_sen(bdc_pickle,tf_pickle,dc_pickle,df_pickle,train_file,proces
             for word in filted_word_list:
                 if word in keep_words:
                     processed_word_list.append(word)
-
             wf.write("{},{}\n".format(label,' '.join(processed_word_list)))
 
 def main():
@@ -89,7 +89,7 @@ def main():
 
     train_file = from_project_root("lstm_model/processed_data/phrase_level_data.csv")
     processed_data_file = from_project_root("lstm_model/processed_data/filter_phrase_level_data.csv")
-    pre_processed_sen(bdc_pickle, tf_pickle,dc_pickle,df_pickle,train_file, processed_data_file, limit_word=400)
+    pre_processed_sen(bdc_pickle, tf_pickle,dc_pickle,df_pickle,train_file, processed_data_file, limit_word=200)
     pass
 
 if __name__ == '__main__':
