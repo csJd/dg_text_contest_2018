@@ -11,7 +11,7 @@ PHRASE_LEVEL_DATA_URL = from_project_root("")
 WEIGHTINGS = ['tf', 'idf', 'lf', 'df', 'bdc']
 
 
-def load_raw_data(data_url, sentence_to_list=False):
+def load_raw_data(data_url, sentence_to_list=True):
     """ load data to get labels list and sentences list
 
     Args:

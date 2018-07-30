@@ -50,16 +50,16 @@ def init_param_grid(clf=None, clf_type=None):
         param_grid for clf
 
     """
-    if clf is SVC or clf_type == 'svc':
+    if isinstance(clf, SVC) or clf_type == 'svc':
         param_grid = [
             {'C': [1, 10, 100, 1000], 'kernel': ['linear']},
             {'C': [1, 10, 100, 1000], 'gamma': [0.01, 0.001], 'kernel': ['rbf']},
         ]
-    elif clf is LGBMClassifier or clf_type == 'lgbm':
+    elif isinstance(clf, LGBMClassifier) or clf_type == 'lgbm':
         param_grid = [
             {'boosting_type': ['gbdt', 'dart', 'rf'], 'learning_rate': [0.1, 0.01]},
         ]
-    elif clf is XGBClassifier or clf_type == 'xgb':
+    elif isinstance(clf, XGBClassifier) or clf_type == 'xgb':
         param_grid = [
             {'learning_rate': [0.3, 0.1, 0.01]}
         ]
