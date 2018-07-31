@@ -22,8 +22,8 @@ tf.flags.DEFINE_string("predict_filename","lstm_model/processed_data/filter_phra
 tf.flags.DEFINE_string("vocabulary_path","./runs/1532964507/vocab","vocabulary_path")
 
 # model checkpoint path
-tf.flags.DEFINE_string("meta_path","./runs/1532964507/checkpoints/model-1700.meta","meta_path")
-tf.flags.DEFINE_string("model_path","./runs/1532964507/checkpoints/model-1700","model_path")
+tf.flags.DEFINE_string("meta_path","./runs/1532964507/checkpoints/model-2400.meta","meta_path")
+tf.flags.DEFINE_string("model_path","./runs/1532964507/checkpoints/model-2400","model_path")
 
 # result output filename
 tf.flags.DEFINE_string("result_path","./result/result_predict.csv","result path")
@@ -67,7 +67,7 @@ with graph.as_default():
         predictions = graph.get_operation_by_name("fully_connection_layer/prediction").outputs[0]
 
         #
-        per_predict_limit = 200
+        per_predict_limit = 50
         sum_predict = len(x_text)
         batch_size = int(sum_predict / per_predict_limit)
 

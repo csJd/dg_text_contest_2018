@@ -37,7 +37,7 @@ tf.flags.DEFINE_boolean("allow_soft_placement", True, "Allow device soft device 
 tf.flags.DEFINE_boolean("log_device_placement", False, "Log placement of ops on devices")
 
 #Training file path # 训练数据，已经分好词
-tf.flags.DEFINE_string("train_file","cnn_model/processed_data/filtered_phrase_data_train.csv","Training file")
+tf.flags.DEFINE_string("train_file","lstm_model/processed_data/filter_phrase_level_data_train.csv","Training file")
 
 FLAGS = tf.flags.FLAGS
 # FLAGS._parse_flags()
