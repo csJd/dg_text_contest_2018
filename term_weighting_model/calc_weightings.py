@@ -25,7 +25,7 @@ def calc_tf(data_url=DATA_URL, update=False, ngram=1):
 
     """
     level = 'phrase' if 'phrase' in data_url else 'word'
-    tf_url = from_project_root("processed_data/saved_weight/{}_level{}gram_tf.json".format(level, ngram))
+    tf_url = from_project_root("processed_data/saved_weight/{}_level_{}gram_tf.json".format(level, ngram))
     if not update and exists(tf_url):
         return ju.load(tf_url)
 

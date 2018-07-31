@@ -14,6 +14,7 @@ from tqdm import tqdm
 MAX_FEATURES = 200000
 MIN_DF = 3
 MAX_DF = 0.8
+MAX_N = 2
 DATA_URL = from_project_root("processed_data/phrase_level_data.csv")
 
 
@@ -29,7 +30,7 @@ def tfidf_to_vector(data_url):
     """
     labels, sentences = load_raw_data(data_url, ngram=None)
     vectorizer = TfidfVectorizer(min_df=MIN_DF, max_df=MAX_DF, max_features=MAX_FEATURES,
-                                 ngram_range=(1, 1), sublinear_tf=True)
+                                 ngram_range=(1, MAX_N), sublinear_tf=True)
     X = vectorizer.fit_transform(sentences)
     y = np.array(labels)
     return X, y
@@ -50,7 +51,7 @@ def to_vector(data_url, tw_dict, normalize=True, sublinear_tf=True):
     """
     labels, sentences = load_raw_data(data_url, ngram=None)
     print("transforming...")
-    vectorizer = CountVectorizer(min_df=MIN_DF, max_df=MAX_DF, max_features=MAX_FEATURES)
+    vectorizer = CountVectorizer(min_df=MIN_DF, max_df=MAX_DF, ngram_range=(1, MAX_N), max_features=MAX_FEATURES)
     X = vectorizer.fit_transform(sentences)
     y = np.array(labels)
 
@@ -74,9 +75,9 @@ def to_vector(data_url, tw_dict, normalize=True, sublinear_tf=True):
 
 
 def main():
-    bdc_dict = ju.load(from_project_root("processed_data/saved_weight/phrase_level_bdc.json"))
+    bdc_dict = ju.load(from_project_root("processed_data/saved_weight/phrase_level_{}gram_bdc.json".format(MAX_N)))
     X, y = to_vector(DATA_URL, bdc_dict)
-    joblib.dump((X, y), from_project_root("processed_data/vector/bdc_{}_Xy.pk".format(MAX_FEATURES)))
+    joblib.dump((X, y), from_project_root("processed_data/vector/bdc_{}gram_{}_Xy.pk".format(MAX_N, MAX_FEATURES)))
     pass
 
 
