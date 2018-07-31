@@ -88,13 +88,34 @@ def get_dc_pickle(dc_csv_file,df_pickle):
     pk.dump(df_dict,open(df_pickle,'wb'))
     pass
 
+# 从数据文件中建立共有的字典
+def create_vocab_dict(train_file,vocab_pickle):
+    vocab_dict = collections.defaultdict(int)
+    word_count = 1
+    with open(train_file,'r',encoding='utf-8') as f:
+        for line in f.readlines():
+            line_list = line.strip().split(',')
+            word_list = line_list[1].strip().split()
+            for word in word_list:
+                if word not in vocab_dict.keys():
+                    vocab_dict[word] = word_count
+                    word_count += 1
+    pk.dump(vocab_dict,open(vocab_pickle,'wb'))
+    return vocab_dict
+
 def main():
 
-    # 将pk转化为csv文件
-    # pickle_file = from_project_root("lstm_model/processed_data/df_pickle.pk")
-    # save_csv_file = from_project_root("lstm_model/processed_data/df_pickle.csv")
-    # transfer_pk_to_csv(pickle_file, save_csv_file)
+    # 根据train_file建立字典
+    # train_file = from_project_root("lstm_model/processed_data/phrase_level_data.csv")
+    # vocab_pickle = from_project_root("lstm_model/processed_data/phrase_level_vocab.pk")
+    # create_vocab_dict(train_file,vocab_pickle)
     # exit()
+
+    # 将pk转化为csv文件
+    pickle_file = from_project_root("lstm_model/processed_data/phrase_level_vocab.pk")
+    save_csv_file = from_project_root("lstm_model/processed_data/phrase_level_vocab.csv")
+    transfer_pk_to_csv(pickle_file, save_csv_file)
+    exit()
 
     # 计算平均句子长度
     # get_average_sen_len(from_project_root("lstm_model/processed_data/filtered_phrase_data_train.csv"))

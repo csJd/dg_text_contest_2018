@@ -8,6 +8,8 @@ import numpy as np
 from sklearn.metrics import f1_score
 from sklearn.metrics import accuracy_score
 from tqdm import tqdm
+import pickle as pk
+import collections
 
 
 # ===================================================================================
@@ -19,14 +21,17 @@ tf.flags.DEFINE_boolean("log_device_placement", False, "Log placement of ops on 
 tf.flags.DEFINE_string("predict_filename","lstm_model/processed_data/filter_phrase_level_data_dev.csv","predict_filename path")
 
 # vocabulary path
-tf.flags.DEFINE_string("vocabulary_path","./runs/1532964507/vocab","vocabulary_path")
+tf.flags.DEFINE_string("vocabulary_path","./runs/1533037840/vocab","vocabulary_path")
 
 # model checkpoint path
-tf.flags.DEFINE_string("meta_path","./runs/1532964507/checkpoints/model-1700.meta","meta_path")
-tf.flags.DEFINE_string("model_path","./runs/1532964507/checkpoints/model-1700","model_path")
+tf.flags.DEFINE_string("meta_path","./runs/1533037840/checkpoints/model-100.meta","meta_path")
+tf.flags.DEFINE_string("model_path","./runs/1533037840/checkpoints/model-100","model_path")
 
 # result output filename
 tf.flags.DEFINE_string("result_path","./result/result_predict.csv","result path")
+tf.flags.DEFINE_string("vocab_file","lstm_model/processed_data/phrase_level_vocab.pk","vocab file url")
+tf.flags.DEFINE_string("dc_file","lstm_model/processed_data/phrase_level_dc.pk","dc file url")
+tf.flags.DEFINE_integer("max_word_in_sent",1000,"max_word_in_sent")
 
 FLAGS = tf.flags.FLAGS
 # FLAGS._parse_flags()
@@ -36,9 +41,32 @@ FLAGS = tf.flags.FLAGS
 predict_context,predict_labels = Data_helper.get_predict_data(from_project_root(FLAGS.predict_filename))
 
 # 加载词典
-vocab_processor = learn.preprocessing.VocabularyProcessor.restore(FLAGS.vocabulary_path)
-x_text = np.array(list(vocab_processor.transform(predict_context)))
+vocab_dict = pk.load(open(from_project_root(FLAGS.vocab_file),'rb'))
+x_vecs = []
+for x in predict_context:
+    x_word_list = x.strip().split()
+    x_vec = [0] * FLAGS.max_word_in_sent
+    for i in range(min(FLAGS.max_word_in_sent,len(x_word_list))):
+        x_vec[i] = vocab_dict[x_word_list[i]]
+    x_vecs.append(x_vec)
 
+# 加载term_weight
+dc_dict = pk.load(open(from_project_root(FLAGS.dc_file), 'rb'))
+term_weights = []
+for x in predict_context:
+    x_word_list = x.strip().split()
+    # 计算文档级别的tf
+    tf_dict = collections.defaultdict(int)
+    for word in x_word_list:
+        tf_dict[word] += 1
+    term_weight = [0] * FLAGS.max_word_in_sent
+    for i in range(min(FLAGS.max_word_in_sent,len(x_word_list))):
+        term_weight[i] = tf_dict[x_word_list[i]] * dc_dict[x_word_list[i]]
+
+    term_weights.append(term_weight)
+
+#
+print("加载数据完毕。。。")
 # predition
 print("prediction.......")
 # 预测
@@ -60,6 +88,7 @@ with graph.as_default():
 
         # 获取模型输入
         input_x = graph.get_operation_by_name("placeholder/input_x").outputs[0]
+        term_weight = graph.get_operation_by_name("placeholder/term_weight")
         rnn_input_keep_prob = graph.get_operation_by_name("placeholder/rnn_input_keep_prob").outputs[0]
         rnn_output_keep_prob = graph.get_operation_by_name("placeholder/rnn_output_keep_prob").outputs[0]
 
@@ -68,7 +97,7 @@ with graph.as_default():
 
         #
         per_predict_limit = 200
-        sum_predict = len(x_text)
+        sum_predict = len(x_vecs)
         batch_size = int(sum_predict / per_predict_limit)
 
         batch_prediction_all = []
@@ -80,8 +109,10 @@ with graph.as_default():
                 end_index = sum_predict
             else:
                 end_index = start_index + per_predict_limit
-            predict_text = x_text[start_index:end_index]
+            predict_text = x_vecs[start_index:end_index]
+            current_term_weight = term_weights[start_index:end_index]
             predict_result = sess.run(predictions,{input_x:predict_text,rnn_input_keep_prob:1.0,
+                                                   term_weight:current_term_weight,
                                                    rnn_output_keep_prob:1.0})
             batch_prediction_all.extend(predict_result)
 
