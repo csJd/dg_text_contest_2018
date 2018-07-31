@@ -3,6 +3,7 @@
 
 from sklearn.model_selection import train_test_split
 from utils.path_util import from_project_root
+from time import time
 import pre_process.data_util as pdu
 
 
@@ -26,6 +27,7 @@ def load_raw_data(data_url, sentence_to_list=True):
         labels = list()
         sentences = list()
         print("loading data from \n ", data_url)
+        s_time = time()
         for line in data_file:
             line = line.split(',')
             labels.append(int(line[0]))
@@ -33,7 +35,8 @@ def load_raw_data(data_url, sentence_to_list=True):
                 sentences.append(line[1].split())
             else:
                 sentences.append(line[1])
-        print("finished loading\n")
+        e_time = time()
+        print("finished loading in %.3f seconds\n" % (e_time - s_time))
     return labels, sentences
 
 
