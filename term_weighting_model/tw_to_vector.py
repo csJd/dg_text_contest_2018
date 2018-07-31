@@ -11,7 +11,7 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.externals import joblib
 from tqdm import tqdm
 
-MAX_FEATURES = 20000
+MAX_FEATURES = 200000
 MIN_DF = 3
 MAX_DF = 0.8
 DATA_URL = from_project_root("processed_data/phrase_level_data.csv")
@@ -28,19 +28,20 @@ def tfidf_to_vector(data_url):
 
     """
     labels, sentences = load_raw_data(data_url, sentence_to_list=False)
-    vectorizer = TfidfVectorizer(min_df=MIN_DF, max_df=MAX_DF, max_features=MAX_FEATURES)
+    vectorizer = TfidfVectorizer(min_df=MIN_DF, max_df=MAX_DF, max_features=MAX_FEATURES, sublinear_tf=True)
     X = vectorizer.fit_transform(sentences)
     y = np.array(labels)
     return X, y
 
 
-def to_vector(data_url, tw_dict, normalize=True):
+def to_vector(data_url, tw_dict, normalize=True, sublinear_tf=True):
     """
 
     Args:
         data_url: url to the data to transfer into vector
         tw_dict: term weighting dict to use
         normalize: normalize the vector or not
+        sublinear_tf: use 1 + log(tf) instead of tf
 
     Returns:
         X, y
@@ -54,6 +55,10 @@ def to_vector(data_url, tw_dict, normalize=True):
 
     # get words of all columns represent to
     words = vectorizer.get_feature_names()
+
+    # sublinear_tf like tf-idf
+    if sublinear_tf:
+        X.data = np.log(X.data) + 1
 
     # get weights of words
     weights = np.array([tw_dict[word] for word in words])
@@ -70,7 +75,7 @@ def to_vector(data_url, tw_dict, normalize=True):
 def main():
     bdc_dict = ju.load(from_project_root("processed_data/saved_weight/phrase_level_bdc.json"))
     X, y = to_vector(DATA_URL, bdc_dict)
-    joblib.dump((X, y), from_project_root("processed_data/vector/bdc_Xy.pk"))
+    joblib.dump((X, y), from_project_root("processed_data/vector/bdc_{}_Xy.pk".format(MAX_FEATURES)))
     pass
 
 

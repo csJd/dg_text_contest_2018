@@ -3,9 +3,11 @@
 
 from xgboost.sklearn import XGBClassifier
 from lightgbm.sklearn import LGBMClassifier
-from sklearn.svm import SVC
-from sklearn.model_selection import train_test_split
-from sklearn.model_selection import GridSearchCV
+from sklearn.svm import SVC, LinearSVC
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.linear_model import SGDClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.externals import joblib
 from sklearn.metrics import f1_score, accuracy_score
 from time import time
 
@@ -68,10 +70,31 @@ def init_param_grid(clf=None, clf_type=None):
     return param_grid
 
 
+def init_linear_clfs():
+    """ init linear classifiers for training
+
+    Returns:
+        dict, clfs
+
+    """
+    clfs = dict()
+
+    # add linearSVC model
+    clfs['lsvc'] = LinearSVC()
+
+    # add SGD model
+    clfs['sgd'] = SGDClassifier()
+
+    # add KNN model
+    clfs['knn'] = KNeighborsClassifier()
+
+
+
 def init_clfs():
     """ init classifiers to train
     
     Returns:
+        dict, clfs
 
     """
     clfs = dict()
@@ -112,12 +135,12 @@ def train_clfs(clfs, X, y, test_size=0.2, tuning=False):
             s_time = time()
             clf.fit(X_train, y_train)
             e_time = time()
-            print("training finished in %.3f seconds" % (e_time - s_time))
+            print(" training finished in %.3f seconds" % (e_time - s_time))
 
         y_pred = clf.predict(X_test)
         acc = accuracy_score(y_test, y_pred)
         macro_f1 = f1_score(y_test, y_pred, average='macro')
-        print(" accuracy = %f\n f1_score = %f" % (acc, macro_f1))
+        print(" accuracy = %f\n f1_score = %f\n" % (acc, macro_f1))
 
 
 def main():
