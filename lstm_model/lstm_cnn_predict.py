@@ -100,10 +100,10 @@ with graph.as_default():
         print("macro_f1:{}".format(macro_f1))
         print("accuracy:{}".format(accuracy_score1))
 
-        # ids = np.array(predict_labels).astype(int)
-        # predict_labels = reset_prediction_all
-        # # 写入文件
-        # with open(FLAGS.result_path,'w',encoding='utf-8') as f:
-        #     f.write("id,class\n")
-        #     for i in range(len(ids)):
-        #         f.write("{},{}\n".format(ids[i],predict_labels[i]))
+        ids = np.array(predict_labels).astype(int)
+        predict_labels = reset_prediction_all
+        # 写入文件
+        with open(FLAGS.result_path,'w',encoding='utf-8') as f:
+            f.write("id,class\n")
+            for i in range(len(ids)):
+                f.write("{},{}\n".format(ids[i],predict_labels[i]))

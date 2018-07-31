@@ -55,13 +55,14 @@ dc_dict = pk.load(open(from_project_root(FLAGS.dc_file), 'rb'))
 term_weights = []
 for x in predict_context:
     x_word_list = x.strip().split()
+    sen_len = len(x_word_list)
     # 计算文档级别的tf
     tf_dict = collections.defaultdict(int)
     for word in x_word_list:
         tf_dict[word] += 1
     term_weight = [0] * FLAGS.max_word_in_sent
     for i in range(min(FLAGS.max_word_in_sent,len(x_word_list))):
-        term_weight[i] = tf_dict[x_word_list[i]] * dc_dict[x_word_list[i]]
+        term_weight[i] = tf_dict[x_word_list[i]] / sen_len * dc_dict[x_word_list[i]]
 
     term_weights.append(term_weight)
 
