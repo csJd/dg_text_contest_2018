@@ -29,8 +29,9 @@ def tfidf_to_vector(data_url):
 
     """
     labels, sentences = load_raw_data(data_url, ngram=None)
+    # set token_pattern(default: (?u)\b\w\w+\b' to keep single char tokens
     vectorizer = TfidfVectorizer(min_df=MIN_DF, max_df=MAX_DF, max_features=MAX_FEATURES,
-                                 ngram_range=(1, MAX_N), sublinear_tf=True)
+                                 ngram_range=(1, MAX_N), sublinear_tf=True, token_pattern='(?u)\w+')
     X = vectorizer.fit_transform(sentences)
     y = np.array(labels)
     return X, y
@@ -51,7 +52,8 @@ def to_vector(data_url, tw_dict, normalize=True, sublinear_tf=True):
     """
     labels, sentences = load_raw_data(data_url, ngram=None)
     print("transforming...")
-    vectorizer = CountVectorizer(min_df=MIN_DF, max_df=MAX_DF, ngram_range=(1, MAX_N), max_features=MAX_FEATURES)
+    vectorizer = CountVectorizer(min_df=MIN_DF, max_df=MAX_DF, ngram_range=(1, MAX_N),
+                                 token_pattern='(?u)\w+', max_features=MAX_FEATURES)
     X = vectorizer.fit_transform(sentences)
     y = np.array(labels)
 
