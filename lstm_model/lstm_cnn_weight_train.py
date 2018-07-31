@@ -10,6 +10,8 @@ from utils.path_util import from_project_root
 from tensorflow.contrib import learn
 import pickle as pk
 import collections
+from sklearn.metrics import f1_score
+
 
 #Data loading params
 tf.flags.DEFINE_integer("num_classes",19,"number of classes")
@@ -205,7 +207,10 @@ with tf.Session() as sess:
             new_model.rnn_output_keep_prob: 1.0
         }
 
-        step, summaries, cost, accuracy = sess.run([global_step, dev_summary_op, loss, acc], feed_dict)
+        step, summaries, cost, accuracy,input_y,predict_y = sess.run([global_step, dev_summary_op,
+                                                                      loss, acc,new_model.input_y,new_model.predict], feed_dict)
+        print(input_y)
+        print(predict_y)
 
         time_str = str(int(time.time()))
         print("++++++++++++++++++dev++++++++++++++{}: step {}, loss {:g}, acc {:g}".format(time_str, step, cost,

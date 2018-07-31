@@ -24,8 +24,8 @@ tf.flags.DEFINE_string("predict_filename","lstm_model/processed_data/filter_phra
 tf.flags.DEFINE_string("vocabulary_path","./runs/1533037840/vocab","vocabulary_path")
 
 # model checkpoint path
-tf.flags.DEFINE_string("meta_path","./runs/1533037840/checkpoints/model-100.meta","meta_path")
-tf.flags.DEFINE_string("model_path","./runs/1533037840/checkpoints/model-100","model_path")
+tf.flags.DEFINE_string("meta_path","./runs/1533037840/checkpoints/model-1500.meta","meta_path")
+tf.flags.DEFINE_string("model_path","./runs/1533037840/checkpoints/model-1500","model_path")
 
 # result output filename
 tf.flags.DEFINE_string("result_path","./result/result_predict.csv","result path")
@@ -55,15 +55,14 @@ dc_dict = pk.load(open(from_project_root(FLAGS.dc_file), 'rb'))
 term_weights = []
 for x in predict_context:
     x_word_list = x.strip().split()
-    sen_len = len(x_word_list)
+    # sen_len = len(x_word_list)
     # 计算文档级别的tf
     tf_dict = collections.defaultdict(int)
     for word in x_word_list:
         tf_dict[word] += 1
     term_weight = [0] * FLAGS.max_word_in_sent
     for i in range(min(FLAGS.max_word_in_sent,len(x_word_list))):
-        term_weight[i] = tf_dict[x_word_list[i]] / sen_len * dc_dict[x_word_list[i]]
-
+        term_weight[i] = tf_dict[x_word_list[i]] * dc_dict[x_word_list[i]]
     term_weights.append(term_weight)
 
 #
@@ -89,13 +88,12 @@ with graph.as_default():
 
         # 获取模型输入
         input_x = graph.get_operation_by_name("placeholder/input_x").outputs[0]
-        term_weight = graph.get_operation_by_name("placeholder/term_weight")
+        term_weight = graph.get_operation_by_name("placeholder/term_weight").outputs[0]
         rnn_input_keep_prob = graph.get_operation_by_name("placeholder/rnn_input_keep_prob").outputs[0]
         rnn_output_keep_prob = graph.get_operation_by_name("placeholder/rnn_output_keep_prob").outputs[0]
 
         #
         predictions = graph.get_operation_by_name("fully_connection_layer/prediction").outputs[0]
-
         #
         per_predict_limit = 200
         sum_predict = len(x_vecs)
@@ -112,9 +110,8 @@ with graph.as_default():
                 end_index = start_index + per_predict_limit
             predict_text = x_vecs[start_index:end_index]
             current_term_weight = term_weights[start_index:end_index]
-            predict_result = sess.run(predictions,{input_x:predict_text,rnn_input_keep_prob:1.0,
-                                                   term_weight:current_term_weight,
-                                                   rnn_output_keep_prob:1.0})
+            predict_result = sess.run(predictions,{input_x:predict_text,term_weight:current_term_weight,
+                                                   rnn_input_keep_prob:1.0,rnn_output_keep_prob:1.0})
             batch_prediction_all.extend(predict_result)
 
         # 预测结果输出
@@ -132,10 +129,10 @@ with graph.as_default():
         print("macro_f1:{}".format(macro_f1))
         print("accuracy:{}".format(accuracy_score1))
 
-        # ids = np.array(predict_labels).astype(int)
-        # predict_labels = reset_prediction_all
-        # # 写入文件
-        # with open(FLAGS.result_path,'w',encoding='utf-8') as f:
-        #     f.write("id,class\n")
-        #     for i in range(len(ids)):
-        #         f.write("{},{}\n".format(ids[i],predict_labels[i]))
+        ids = np.array(real_label).astype(int)
+        predict_labels = reset_prediction_all
+        # 写入文件
+        with open(FLAGS.result_path,'w',encoding='utf-8') as f:
+            f.write("id,class\n")
+            for i in range(len(ids)):
+                f.write("{},{}\n".format(ids[i],predict_labels[i]))
