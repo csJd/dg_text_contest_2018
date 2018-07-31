@@ -27,8 +27,9 @@ def tfidf_to_vector(data_url):
         X, y
 
     """
-    labels, sentences = load_raw_data(data_url, sentence_to_list=False)
-    vectorizer = TfidfVectorizer(min_df=MIN_DF, max_df=MAX_DF, max_features=MAX_FEATURES, sublinear_tf=True)
+    labels, sentences = load_raw_data(data_url, ngram=None)
+    vectorizer = TfidfVectorizer(min_df=MIN_DF, max_df=MAX_DF, max_features=MAX_FEATURES,
+                                 ngram_range=(1, 1), sublinear_tf=True)
     X = vectorizer.fit_transform(sentences)
     y = np.array(labels)
     return X, y
@@ -47,7 +48,7 @@ def to_vector(data_url, tw_dict, normalize=True, sublinear_tf=True):
         X, y
 
     """
-    labels, sentences = load_raw_data(data_url, sentence_to_list=False)
+    labels, sentences = load_raw_data(data_url, ngram=None)
     print("transforming...")
     vectorizer = CountVectorizer(min_df=MIN_DF, max_df=MAX_DF, max_features=MAX_FEATURES)
     X = vectorizer.fit_transform(sentences)

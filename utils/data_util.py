@@ -12,12 +12,32 @@ PHRASE_LEVEL_DATA_URL = from_project_root("")
 WEIGHTINGS = ['tf', 'idf', 'lf', 'df', 'bdc']
 
 
-def load_raw_data(data_url, sentence_to_list=True):
-    """ load data to get labels list and sentences list
+def sentence_to_ngram(sentence, max_n=1):
+    """ transform sentence to ngram list
+
+    Args:
+        sentence: sentence to be transformed
+        max_n: max_n for ngram
+
+    Returns:
+        list: ngram list
+
+    """
+    words = sentence.split()
+    ngrams = list()
+    for n in range(1, max_n + 1):  # add ngram
+        for i in range(0, len(words) - n + 1):
+            ngrams.append(' '.join(words[i:i + n]))
+    return ngrams
+
+
+def load_raw_data(data_url, ngram=1):
+    """ load data to get labels list and sentences list, set ngram=None if you
+        want every sentence to be a space separated string instead of ngram list
 
     Args:
         data_url: url to data file
-        sentence_to_list: whether transform sentence to word list
+        ngram: generate ngram in sentence
 
     Returns:
         (list, list): labels and sentences
@@ -31,8 +51,8 @@ def load_raw_data(data_url, sentence_to_list=True):
         for line in data_file:
             line = line.split(',')
             labels.append(int(line[0]))
-            if sentence_to_list:
-                sentences.append(line[1].split())
+            if ngram is not None:
+                sentences.append(sentence_to_ngram(line[1], ngram))
             else:
                 sentences.append(line[1])
         e_time = time()
