@@ -55,8 +55,7 @@ def main():
     column = "word_seg"
     test_df = pd.read_csv(from_project_root('data/test_set.csv'))
     sentences = test_df[column]
-    sentences = [sentence.split() for sentence in sentences]
-    tw_dict = from_project_root("processed_data/saved_weight/phrase_level_3gram_bdc.json")
+    tw_dict = joblib.load(from_project_root("processed_data/saved_weight/phrase_level_3gram_bdc.json"))
     X_test = tw2v.to_vector(sentences, tw_dict)
 
     X, y = joblib.load(from_project_root("processed_data/vector/bdc_3gram_4000000_Xy.pk"))
