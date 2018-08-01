@@ -4,7 +4,6 @@
 import numpy as np
 import scipy as sp
 
-import utils.json_util as ju
 import term_weighting_model.calc_weightings as cw
 from utils.data_util import load_raw_data
 from utils.path_util import from_project_root
@@ -12,7 +11,7 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.externals import joblib
 from tqdm import tqdm
 
-MAX_FEATURES = 5000000
+MAX_FEATURES = 3000000
 MIN_DF = 3
 MAX_DF = 0.8
 MAX_N = 3
@@ -104,9 +103,11 @@ def to_vector(sentences, tw_dict, max_features=MAX_FEATURES, normalize=True, sub
 
 
 def main():
+    print("data generating...")
+    xy_url = from_project_root("processed_data/vector/tf{}_{}gram_{}_Xy.pk".format(TW_TYPE, MAX_N, MAX_FEATURES))
+    print("generated X y will be saved at", xy_url)
     X, y = tw_vectorize(TRAIN_URL, tw_type=TW_TYPE)
-    joblib.dump((X, y), from_project_root("processed_data/vector/tf{}_{}gram_{}_Xy.pk"
-                                          .format(TW_TYPE, MAX_N, MAX_FEATURES)))
+    joblib.dump((X, y), xy_url)
     pass
 
 

@@ -15,7 +15,7 @@ import pandas as pd
 from utils.path_util import from_project_root
 
 N_JOBS = 4
-CV = 3
+CV = 5
 
 
 def tune_clf(clf, X, y, param_grid):
@@ -34,14 +34,13 @@ def tune_clf(clf, X, y, param_grid):
     if param_grid is None:
         print("None as param_grid is invalid, the original clf will be returned")
         return clf
-    print("grid_search_cv is running")
     s_time = time()
-    clf = GridSearchCV(clf, param_grid, scoring='f1_macro', n_jobs=N_JOBS, cv=CV, error_score=0)
+    clf = GridSearchCV(clf, param_grid, scoring='f1_macro', n_jobs=N_JOBS, cv=CV, error_score=0, verbose=True)
     clf.fit(X, y)
     e_time = time()
     # print cv results
     print("grid_search_cv is done in %.3f seconds", e_time - s_time)
-    print(clf.cv_results_)
+    print("mean_test_macro_f1 = %f\n" % clf.cv_results_['mean_test_score'])
     return clf
 
 
@@ -67,6 +66,10 @@ def init_param_grid(clf=None, clf_type=None):
     elif isinstance(clf, XGBClassifier) or clf_type == 'xgb':
         param_grid = [
             {'learning_rate': [0.3, 0.1, 0.01]}
+        ]
+    elif isinstance(clf, LinearSVC) or clf_type == 'lsvc':
+        param_grid = [
+            {'C': [1]}
         ]
     else:
         param_grid = None
@@ -129,19 +132,22 @@ def train_clfs(clfs, X, y, test_size=0.2, tuning=False):
 
     # split data into train and test
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
-    print("train", X_train.shape, y_train.shape)
-    print("dev  ", X_test.shape, y_test.shape)
+    print("train data shape", X_train.shape, y_train.shape)
+    print("dev data shape  ", X_test.shape, y_test.shape)
     for clf_name in clfs:
         clf = clfs[clf_name]
         if tuning:
+            print("grid search cv on %s is running" % clf_name)
             param_grid = init_param_grid(clf)
             clf = tune_clf(clf, X, y, param_grid)
-        else:
-            print("%s model is training" % clf_name)
-            s_time = time()
-            clf.fit(X_train, y_train)
-            e_time = time()
-            print(" training finished in %.3f seconds" % (e_time - s_time))
+            print('cv_results\n', clf.cv_results_)
+            return
+
+        print("%s model is training" % clf_name)
+        s_time = time()
+        clf.fit(X_train, y_train)
+        e_time = time()
+        print(" training finished in %.3f seconds" % (e_time - s_time))
 
         y_pred = clf.predict(X_test)
         acc = accuracy_score(y_test, y_pred)
