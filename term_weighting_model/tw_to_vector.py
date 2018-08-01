@@ -80,7 +80,7 @@ def to_vector(sentences, tw_dict, max_features=MAX_FEATURES, normalize=True, sub
     print("transforming...")
     _, train_sentences = load_raw_data(TRAIN_URL, ngram=None)
     vectorizer = CountVectorizer(min_df=MIN_DF, max_df=MAX_DF, ngram_range=(1, MAX_N),
-                                 token_pattern='(?u)\w+', max_features=MAX_FEATURES)
+                                 token_pattern='(?u)\w+', max_features=max_features)
     vectorizer.fit(train_sentences)  # use train data to get vocab
     X = vectorizer.transform(sentences)
 
