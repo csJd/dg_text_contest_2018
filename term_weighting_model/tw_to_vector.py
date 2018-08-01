@@ -12,10 +12,11 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.externals import joblib
 from tqdm import tqdm
 
-MAX_FEATURES = 200000
+MAX_FEATURES = 5000000
 MIN_DF = 3
 MAX_DF = 0.8
-MAX_N = 2
+MAX_N = 3
+TW_TYPE = 'bdc'
 TRAIN_URL = from_project_root("processed_data/phrase_level_data.csv")
 
 
@@ -62,7 +63,7 @@ def tfidf_to_vector(sentences):
     return X
 
 
-def to_vector(sentences, tw_dict, normalize=True, sublinear_tf=True):
+def to_vector(sentences, tw_dict, max_features=MAX_FEATURES, normalize=True, sublinear_tf=True):
     """
 
     Args:
@@ -70,6 +71,7 @@ def to_vector(sentences, tw_dict, normalize=True, sublinear_tf=True):
         tw_dict: term weighting dict to use
         normalize: normalize the vector or not
         sublinear_tf: use 1 + log(tf) instead of tf
+        max_features: max_features for CountVectorizer
 
     Returns:
         X, vectorized data
@@ -102,10 +104,9 @@ def to_vector(sentences, tw_dict, normalize=True, sublinear_tf=True):
 
 
 def main():
-    tw_type = 'bdc'
-    X, y = tw_vectorize(TRAIN_URL, tw_type=tw_type)
+    X, y = tw_vectorize(TRAIN_URL, tw_type=TW_TYPE)
     joblib.dump((X, y), from_project_root("processed_data/vector/tf{}_{}gram_{}_Xy.pk"
-                                          .format(tw_type, MAX_N, MAX_FEATURES)))
+                                          .format(TW_TYPE, MAX_N, MAX_FEATURES)))
     pass
 
 

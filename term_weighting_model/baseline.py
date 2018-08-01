@@ -42,7 +42,9 @@ def train_and_predict_test(clf, X_train, y_train, X_test):
 
     """
 
+    print("classifier is training")
     clf.fit(X_train, y_train)
+    print("training finished, predicting")
     y_pred = clf.predict(X_test)
 
     result_file = open(from_project_root('processed_data/com_result/bdc4000000.csv'), 'w')
@@ -57,7 +59,7 @@ def main():
     test_df = pd.read_csv(from_project_root('data/test_set.csv'))
     sentences = test_df[column]
     tw_dict = ju.load(from_project_root("processed_data/saved_weight/phrase_level_3gram_bdc.json"))
-    X_test = tw2v.to_vector(sentences, tw_dict)
+    X_test = tw2v.to_vector(sentences, tw_dict, max_features=4000000)
 
     X, y = joblib.load(from_project_root("processed_data/vector/bdc_3gram_4000000_Xy.pk"))
     clf = LinearSVC()
