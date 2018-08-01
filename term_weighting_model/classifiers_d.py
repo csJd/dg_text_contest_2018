@@ -9,8 +9,10 @@ from sklearn.linear_model import SGDClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.externals import joblib
 from sklearn.metrics import f1_score, accuracy_score
-from utils.path_util import from_project_root
 from time import time
+import pandas as pd
+
+from utils.path_util import from_project_root
 
 N_JOBS = 4
 CV = 3
@@ -127,8 +129,8 @@ def train_clfs(clfs, X, y, test_size=0.2, tuning=False):
 
     # split data into train and test
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
-    print("train", X_train.shpae, y_train.shape())
-    print("dev  ", X_test.shpae, y_test.shape())
+    print("train", X_train.shape, y_train.shape)
+    print("dev  ", X_test.shape, y_test.shape)
     for clf_name in clfs:
         clf = clfs[clf_name]
         if tuning:
@@ -149,7 +151,7 @@ def train_clfs(clfs, X, y, test_size=0.2, tuning=False):
 
 def main():
     clfs = init_linear_clfs()
-    xy_url = from_project_root("processed_data/vector/bdc_200000_Xy.pk")
+    xy_url = from_project_root("processed_data/vector/dc_3gram_4000000_Xy.pk")
     print("loading data from", xy_url)
     X, y = joblib.load(xy_url)
     train_clfs(clfs, X, y)

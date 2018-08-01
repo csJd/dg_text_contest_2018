@@ -5,6 +5,7 @@ import numpy as np
 import scipy as sp
 
 import utils.json_util as ju
+import term_weighting_model.calc_weightings as cw
 from utils.data_util import load_raw_data
 from utils.path_util import from_project_root
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
@@ -15,47 +16,71 @@ MAX_FEATURES = 200000
 MIN_DF = 3
 MAX_DF = 0.8
 MAX_N = 2
-DATA_URL = from_project_root("processed_data/phrase_level_data.csv")
+TRAIN_URL = from_project_root("processed_data/phrase_level_data.csv")
 
 
-def tfidf_to_vector(data_url):
-    """ vectorize use TfidfVectorizer
+def tw_vectorize(data_url, tw_type='idf'):
+    """
 
     Args:
-        data_url: url to data to be transformed
+        data_url: str, url to data file
+        tw_type: str, term wighting type {idf, dc, bdc}
 
     Returns:
         X, y
 
     """
     labels, sentences = load_raw_data(data_url, ngram=None)
+    X = None
+    y = np.array(labels)
+    if tw_type == 'idf':
+        X = tfidf_to_vector(sentences)
+    elif tw_type == 'dc':
+        dc_dict = cw.calc_dc(data_url, ngram=MAX_N)
+        X = to_vector(sentences, dc_dict)
+    elif tw_type == 'bdc':
+        bdc_dict = cw.calc_bdc(data_url, ngram=MAX_N)
+        X = to_vector(sentences, bdc_dict)
+
+    return X, y
+
+
+def tfidf_to_vector(sentences):
+    """ vectorize use TfidfVectorizer
+
+    Args:
+        sentences: list of sentence to be vectorized
+
+    Returns:
+        X, vectorized data
+
+    """
     # set token_pattern(default: (?u)\b\w\w+\b' to keep single char tokens
     vectorizer = TfidfVectorizer(min_df=MIN_DF, max_df=MAX_DF, max_features=MAX_FEATURES,
                                  ngram_range=(1, MAX_N), sublinear_tf=True, token_pattern='(?u)\w+')
     X = vectorizer.fit_transform(sentences)
-    y = np.array(labels)
-    return X, y
+    return X
 
 
-def to_vector(data_url, tw_dict, normalize=True, sublinear_tf=True):
+def to_vector(sentences, tw_dict, normalize=True, sublinear_tf=True):
     """
 
     Args:
-        data_url: url to the data to transfer into vector
+        sentences: list of sentence to be vectorized
         tw_dict: term weighting dict to use
         normalize: normalize the vector or not
         sublinear_tf: use 1 + log(tf) instead of tf
 
     Returns:
-        X, y
+        X, vectorized data
 
     """
-    labels, sentences = load_raw_data(data_url, ngram=None)
     print("transforming...")
+    _, train_sentences = load_raw_data(TRAIN_URL, ngram=None)
     vectorizer = CountVectorizer(min_df=MIN_DF, max_df=MAX_DF, ngram_range=(1, MAX_N),
                                  token_pattern='(?u)\w+', max_features=MAX_FEATURES)
-    X = vectorizer.fit_transform(sentences)
-    y = np.array(labels)
+    vectorizer.fit(train_sentences)  # use train data to get vocab
+    X = vectorizer.transform(sentences)
 
     # get words of all columns represent to
     words = vectorizer.get_feature_names()
@@ -73,13 +98,14 @@ def to_vector(data_url, tw_dict, normalize=True, sublinear_tf=True):
         for i, row in enumerate(tqdm(X.row)):
             X.data[i] /= norm[row]
 
-    return X, y
+    return X
 
 
 def main():
-    bdc_dict = ju.load(from_project_root("processed_data/saved_weight/phrase_level_{}gram_bdc.json".format(MAX_N)))
-    X, y = to_vector(DATA_URL, bdc_dict)
-    joblib.dump((X, y), from_project_root("processed_data/vector/bdc_{}gram_{}_Xy.pk".format(MAX_N, MAX_FEATURES)))
+    tw_type = 'bdc'
+    X, y = tw_vectorize(TRAIN_URL, tw_type=tw_type)
+    joblib.dump((X, y), from_project_root("processed_data/vector/tf{}_{}gram_{}_Xy.pk"
+                                          .format(tw_type, MAX_N, MAX_FEATURES)))
     pass
 
 
