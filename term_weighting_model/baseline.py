@@ -23,7 +23,7 @@ def tfidf_baseline():
     lin_clf.fit(trn_term_doc, y)
     preds = lin_clf.predict(test_term_doc)
 
-    result_file = open('processed_data/com_result/baseline_tfidf_3gram_2000000.csv', 'w')
+    result_file = open(from_project_root('processed_data/com_result/baseline_tfidf_3gram_2000000.csv'), 'w')
     result_file.write("id,class" + "\n")
     for i, label in enumerate(preds):
         result_file.write(str(i) + "," + str(label) + "\n")
@@ -44,7 +44,7 @@ def train_and_predict_test(clf, X_train, y_train, X_test):
     clf.fit(X_train, y_train)
     y_pred = clf.predict(X_test)
 
-    result_file = open('processed_data/com_result/result.csv', 'w')
+    result_file = open(from_project_root('processed_data/com_result/bdc4000000.csv'), 'w')
     result_file.write("id,class" + "\n")
     for i, label in enumerate(y_pred):
         result_file.write(str(i) + "," + str(label) + "\n")
