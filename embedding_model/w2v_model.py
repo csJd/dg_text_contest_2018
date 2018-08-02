@@ -117,8 +117,8 @@ def infer_avg_wvs(wv_url, sentences):
 
 def main():
     args = {
-        'dim': 300,
-        'min_count': 5,
+        'dim': 64,
+        'min_count': 2,
         'window': 5,
         'epochs': 1
     }

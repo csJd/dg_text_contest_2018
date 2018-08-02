@@ -91,7 +91,6 @@ class LSTM_CNN_Model():
 
         return word_embedding
 
-
     def BidirectionalGRUEncoder(self,word_encoded,name):
 
         with tf.name_scope(name):

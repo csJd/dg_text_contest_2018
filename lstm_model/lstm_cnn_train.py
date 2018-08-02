@@ -8,30 +8,35 @@ import numpy as np
 import Data_helper
 from utils.path_util import from_project_root
 from tensorflow.contrib import learn
+import pickle as pk
+import gensim
 
 #Data loading params
 tf.flags.DEFINE_integer("num_classes",19,"number of classes")
-tf.flags.DEFINE_integer("embedding_size",64,"Dimensionality of word embedding")
+tf.flags.DEFINE_integer("embedding_size",300,"Dimensionality of word embedding")
 tf.flags.DEFINE_integer("hidden_size",64,"Dimensionality of GRU hidden layer(default 50)") #===============
 tf.flags.DEFINE_float("dev_sample_percentage",0.002,"dev_sample_percentage")
-tf.flags.DEFINE_integer("batch_size",100,"Batch Size of training data(default 50)")
+tf.flags.DEFINE_integer("batch_size",200,"Batch Size of training data(default 50)")
 tf.flags.DEFINE_integer("checkpoint_every",100,"Save model after this many steps (default 100)")
 tf.flags.DEFINE_integer("num_checkpoints",10,"Number of checkpoints to store (default 5)")
 tf.flags.DEFINE_integer("evaluate_every",50,"evaluate every this many batches")
 tf.flags.DEFINE_float("learning_rate",0.01,"learning rate")  #====================
 tf.flags.DEFINE_integer("grad_clip",5,"grad clip to prevent gradient explode")
 tf.flags.DEFINE_integer("epoch",3,"number of epoch")
-tf.flags.DEFINE_integer("max_word_in_sent",1000,"max_word_in_sent")
+tf.flags.DEFINE_integer("max_word_in_sent",800,"max_word_in_sent")
 tf.flags.DEFINE_float("regularization_rate",0.001,"regularization rate random") #=======================
 
 # cnn
-tf.flags.DEFINE_string("filter_sizes","2,3,4","the size of the filter")
+tf.flags.DEFINE_string("filter_sizes","2,3,4,5,6,7","the size of the filter")
 tf.flags.DEFINE_integer("num_filters",64,"the num of channels in per filter")
 
 tf.flags.DEFINE_float("rnn_input_keep_prob",0.9,"rnn_input_keep_prob")
 tf.flags.DEFINE_float("rnn_output_keep_prob",0.9,"rnn_output_keep_prob")
 
 tf.flags.DEFINE_string("train_file","lstm_model/processed_data/filter_phrase_level_data_train.csv","train file url")
+tf.flags.DEFINE_string("vocab_file","lstm_model/processed_data/filter_phrase_level_vocab.pk","vocab file url")
+tf.flags.DEFINE_string("vocab_file_csv","lstm_model/processed_data/filter_phrase_level_vocab.csv","vocab csv file url")
+tf.flags.DEFINE_string("word2vec_file","embedding_model/models/w2v_phrase_300_2_5_1.bin","vocab csv file url")
 
 FLAGS = tf.flags.FLAGS
 
@@ -42,20 +47,21 @@ FLAGS = tf.flags.FLAGS
 # y : label example: [[0,1],[1,0],...]
 
 print("Loading Data...")
+vocab_dict = pk.load(open(from_project_root(FLAGS.vocab_file),'rb'))
+
 x_text,y = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file))
 # =====================end load data =======================================================================================
 
 # =====================build vocab =====================================================================================
 
 # Build Vacabulary  由于卷积神经网络需要固定句子的长度
-max_document_length = max(len(x.split(" ")) for x in x_text)
-print("max_document_length : {}".format(max_document_length))
-vocab_processor = learn.preprocessing.VocabularyProcessor(FLAGS.max_word_in_sent) # 创建一个字典处理器,并设置句子固定长度
-x = np.array( list( vocab_processor.fit_transform(x_text)))   # x就转化为字典的下表表示的数组
-
-# 格式化输出
-print("Vocabulary size :{:d}".format(len(vocab_processor.vocabulary_)))
-
+x_vecs = []
+for x in x_text:
+    word_list = x.strip().split()
+    x_vec = [0] * FLAGS.max_word_in_sent
+    for i in range(min(FLAGS.max_word_in_sent,len(word_list))):
+        x_vec[i] = vocab_dict[word_list[i]]
+    x_vecs.append(x_vec)
 # =====================build vocab =====================================================================================
 
 # =====================split dev and text ==============================================================================
@@ -64,7 +70,7 @@ print("Vocabulary size :{:d}".format(len(vocab_processor.vocabulary_)))
 
 dev_sample_index = -1 * int( FLAGS.dev_sample_percentage * len(y))
 
-x_train,x_dev = x[:dev_sample_index],x[dev_sample_index:]
+x_train,x_dev =x_vecs[:dev_sample_index],x_vecs[dev_sample_index:]
 y_train,y_dev = y[:dev_sample_index],y[dev_sample_index:]
 
 # 清除内存
@@ -75,9 +81,20 @@ print("Train / Dev split: {:d} / {:d}".format(len(y_train),len(y_dev)))
 
 # =====================split dev and text ==============================================================================
 
-
 # load embedding mat
-embedding_mat = tf.Variable(tf.truncated_normal((len(vocab_processor.vocabulary_),FLAGS.embedding_size)))
+# embedding_mat = tf.Variable(tf.truncated_normal((len(vocab_processor.vocabulary_),FLAGS.embedding_size)))
+model = gensim.models.Word2Vec.load(from_project_root(FLAGS.word2vec_file))
+init_embedding_mat = []
+init_embedding_mat.append([1.0] * FLAGS.embedding_size)
+with open(from_project_root(FLAGS.vocab_file_csv),'r',encoding='utf-8') as f:
+    for line in f.readlines():
+        line_list = line.strip().split()
+        word = line_list[0]
+        if word not in model:
+            init_embedding_mat.append([1.0] * FLAGS.embedding_size)
+        else:
+            init_embedding_mat.append(model[word])
+embedding_mat = tf.Variable(init_embedding_mat,name="embedding")
 
 print("data load finished!!!")
 
@@ -130,7 +147,6 @@ with tf.Session() as sess:
     train_op = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
 
     # Keep track of gradient values and sparsity(optional)
-    # Keep track of gradient values and sparsity (optional)
     grad_summaries = []
     for g, v in grads_and_vars:
         if g is not None:
@@ -158,7 +174,6 @@ with tf.Session() as sess:
 
     sess.run(tf.global_variables_initializer())
     # Write vocabulary
-    vocab_processor.save(os.path.join(out_dir, "vocab"))
 
     def train_step(x_batch,y_batch):
 
