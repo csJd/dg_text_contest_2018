@@ -4,6 +4,7 @@
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.preprocessing import normalize
 from sklearn.utils.validation import check_is_fitted
+from collections import defaultdict
 from sklearn.feature_extraction.text import _document_frequency
 
 import numpy as np
@@ -24,8 +25,12 @@ class TfdcTransformer(BaseEstimator, TransformerMixin):
         Norm used to normalize term vectors. None for no normalization.
     use_dc : boolean, default=True
         Enable dc reweighting.
+    smooth_dc : boolean, default=True
+        Smooth dc weights by adding one to f(t,Ci) and f(t). Prevents
+        zero divisions.
     sublinear_tf : boolean, default=False
         Apply sublinear tf scaling, i.e. replace tf with 1 + log(tf).
+    balanced: use bdc instead of dc
 
     References
     ----------
@@ -33,10 +38,13 @@ class TfdcTransformer(BaseEstimator, TransformerMixin):
                      Text Categorization in VSM`
     """
 
-    def __init__(self, norm='l2', use_dc=True, sublinear_tf=True):
+    def __init__(self, norm='l2', use_dc=True, smooth_dc=True,
+                 sublinear_tf=False, balanced=False):
         self.norm = norm
         self.use_dc = use_dc
+        self.smooth_dc = smooth_dc
         self.sublinear_tf = sublinear_tf
+        self.balanced = balanced
 
     def fit(self, X, y):
         """Learn the idf vector (global term weights)
@@ -48,28 +56,47 @@ class TfdcTransformer(BaseEstimator, TransformerMixin):
         """
         if not sp.issparse(X):
             X = sp.csc_matrix(X)
+        y = np.asarray(y)  # pd.Series don't support csr slicing
 
         if self.use_dc:
+
             n_samples, n_features = X.shape
 
             # calculate term frequencies, f(t)
             tfs = np.asarray(X.sum(axis=0)).ravel()
+            tps = np.zeros(n_features)  # sum of p(t, Ci) for bdc
 
             # initialize dc
             dc = np.ones(n_features)
 
             # all labels
             labels = set(y)
+            print(X.shape, y.shape)
             for label in labels:
-                label_rows = (y == label)
-                label_X = X[label_rows]
-                label_tfs = np.asarray(X.sum(axis=0)).ravel()  # f(t, Ci)
-                pt_label = label_tfs / tfs  # f(t, Ci) / f(t)
-                dc += pt_label * np.log(pt_label) / np.log(len(labels))
+                label_X = X[y == label]
+                label_tfs = np.asarray(label_X.sum(axis=0)).ravel()  # f(t, Ci)
+
+                # calculate sum of p(t, Ci) for bdc
+                if self.balanced:
+                    tps = tps + label_tfs / label_tfs.sum()  # p(t, Ci) for bdc
+
+                label_h = label_tfs / tfs  # f(t, Ci) / f(t)
+                dc += label_h * np.log(label_h) / np.log(len(labels))
+
+            # calculate balanced dc
+            if self.balanced:
+
+                # initialize bdc
+                dc = np.ones(n_features)
+                for label in labels:
+                    label_X = X[y == label]  # sliced data of specific label
+                    label_tfs = np.asarray(label_X.sum(axis=0)).ravel()  # f(t, Ci) for dc
+                    label_tfs = label_tfs / label_tfs.sum()  # p(t, Ci) for bdc
+                    label_h = label_tfs / tps
+                    dc = dc + label_h * np.log(label_h) / np.log(len(labels))
 
             self._dc_diag = sp.spdiags(dc, diags=0, m=n_features, n=n_features, format='csr')
 
-        return self
 
     def transform(self, X, copy=True):
         """Transform a count matrix to a tf or tf-idf representation

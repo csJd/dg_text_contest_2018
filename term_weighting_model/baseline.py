@@ -2,6 +2,7 @@
 # created by deng on 7/31/2018
 
 import pandas as pd
+import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.svm import LinearSVC
 from sklearn.externals import joblib
@@ -17,10 +18,10 @@ def tfdc_baseline():
     train_df = pd.read_csv(from_project_root('data/train_set.csv'))
     test_df = pd.read_csv(from_project_root('data/test_set.csv'))
     vec = CountVectorizer(ngram_range=(1, 3), min_df=3, max_df=0.8,
-                          max_features=3000000, token_pattern='\w+')
-    trans = TfdcTransformer(sublinear_tf=True)
+                          max_features=4000000, token_pattern='\w+')
+    trans = TfdcTransformer(sublinear_tf=True, balanced=True)
     X_train = vec.fit_transform(train_df[column])
-    y_train = (train_df["class"]).astype(int)
+    y_train = np.array((train_df["class"]).astype(int))
     X_train = trans.fit_transform(X_train, y_train)
 
     X_test = vec.transform(test_df[column])
