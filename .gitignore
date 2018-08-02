@@ -3,10 +3,12 @@ models/
 
 # pycharm IDE files
 .idea/
+result/
 
 # Data files
 data/
 processed_data/
+Processed_data/
 cnn_model/processed_data/
 !.gitkeep
 
