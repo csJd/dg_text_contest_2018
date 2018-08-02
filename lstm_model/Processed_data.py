@@ -106,16 +106,16 @@ def create_vocab_dict(train_file,vocab_pickle):
 def main():
 
     # 根据train_file建立字典
-    # train_file = from_project_root("lstm_model/processed_data/phrase_level_data.csv")
-    # vocab_pickle = from_project_root("lstm_model/processed_data/phrase_level_vocab.pk")
+    # train_file = from_project_root("lstm_model/processed_data/filter_phrase_level_data.csv")
+    # vocab_pickle = from_project_root("lstm_model/processed_data/filter_phrase_level_vocab.pk")
     # create_vocab_dict(train_file,vocab_pickle)
     # exit()
 
     # 将pk转化为csv文件
-    pickle_file = from_project_root("lstm_model/processed_data/phrase_level_vocab.pk")
-    save_csv_file = from_project_root("lstm_model/processed_data/phrase_level_vocab.csv")
-    transfer_pk_to_csv(pickle_file, save_csv_file)
-    exit()
+    # pickle_file = from_project_root("lstm_model/processed_data/filter_phrase_level_vocab.pk")
+    # save_csv_file = from_project_root("lstm_model/processed_data/filter_phrase_level_vocab.csv")
+    # transfer_pk_to_csv(pickle_file, save_csv_file)
+    # exit()
 
     # 计算平均句子长度
     # get_average_sen_len(from_project_root("lstm_model/processed_data/filtered_phrase_data_train.csv"))

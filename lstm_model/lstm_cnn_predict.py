@@ -8,6 +8,7 @@ import numpy as np
 from sklearn.metrics import f1_score
 from sklearn.metrics import accuracy_score
 from tqdm import tqdm
+import pickle as pk
 
 
 # ===================================================================================
@@ -19,14 +20,13 @@ tf.flags.DEFINE_boolean("log_device_placement", False, "Log placement of ops on 
 tf.flags.DEFINE_string("predict_filename","lstm_model/processed_data/filter_phrase_level_data_dev.csv","predict_filename path")
 
 # vocabulary path
-tf.flags.DEFINE_string("vocabulary_path","./runs/1532964507/vocab","vocabulary_path")
-
+tf.flags.DEFINE_string("vocabulary_path","./runs/1533137377/vocab","vocabulary_path")
+tf.flags.DEFINE_string("vocab_file","lstm_model/processed_data/filter_phrase_level_vocab.pk","vocab file url")
+tf.flags.DEFINE_integer("max_word_in_sent",800,"max_word_in_sent")
 # model checkpoint path
-tf.flags.DEFINE_string("meta_path","./runs/1532964507/checkpoints/model-2400.meta","meta_path")
-tf.flags.DEFINE_string("model_path","./runs/1532964507/checkpoints/model-2400","model_path")
-
-# result output filename
-tf.flags.DEFINE_string("result_path","./result/result_predict.csv","result path")
+tf.flags.DEFINE_string("meta_path","./runs/1533137377/checkpoints/model-2300.meta","meta_path")
+tf.flags.DEFINE_string("model_path","./runs/1533137377/checkpoints/model-2300","model_path")
+tf.flags.DEFINE_string("result_path","./result/result_predict-1900.csv","result path")
 
 FLAGS = tf.flags.FLAGS
 # FLAGS._parse_flags()
@@ -36,8 +36,14 @@ FLAGS = tf.flags.FLAGS
 predict_context,predict_labels = Data_helper.get_predict_data(from_project_root(FLAGS.predict_filename))
 
 # 加载词典
-vocab_processor = learn.preprocessing.VocabularyProcessor.restore(FLAGS.vocabulary_path)
-x_text = np.array(list(vocab_processor.transform(predict_context)))
+vocab_dict = pk.load(open(from_project_root(FLAGS.vocab_file),'rb'))
+x_vecs = []
+for x in predict_context:
+    word_list = x.strip().split()
+    x_vec = [0] * FLAGS.max_word_in_sent
+    for i in range(min(FLAGS.max_word_in_sent,len(word_list))):
+        x_vec[i] = vocab_dict[word_list[i]]
+    x_vecs.append(x_vec)
 
 # predition
 print("prediction.......")
@@ -66,9 +72,8 @@ with graph.as_default():
         #
         predictions = graph.get_operation_by_name("fully_connection_layer/prediction").outputs[0]
 
-        #
         per_predict_limit = 50
-        sum_predict = len(x_text)
+        sum_predict = len(x_vecs)
         batch_size = int(sum_predict / per_predict_limit)
 
         batch_prediction_all = []
@@ -80,7 +85,7 @@ with graph.as_default():
                 end_index = sum_predict
             else:
                 end_index = start_index + per_predict_limit
-            predict_text = x_text[start_index:end_index]
+            predict_text = x_vecs[start_index:end_index]
             predict_result = sess.run(predictions,{input_x:predict_text,rnn_input_keep_prob:1.0,
                                                    rnn_output_keep_prob:1.0})
             batch_prediction_all.extend(predict_result)
@@ -100,7 +105,7 @@ with graph.as_default():
         print("macro_f1:{}".format(macro_f1))
         print("accuracy:{}".format(accuracy_score1))
 
-        ids = np.array(predict_labels).astype(int)
+        ids = np.array(real_label).astype(int)
         predict_labels = reset_prediction_all
         # 写入文件
         with open(FLAGS.result_path,'w',encoding='utf-8') as f:
