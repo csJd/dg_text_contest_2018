@@ -27,7 +27,7 @@ class TfdcTransformer(BaseEstimator, TransformerMixin):
         Enable dc reweighting.
     smooth_dc : boolean, default=True
         Smooth dc weights by adding one to f(t,Ci) and f(t). Prevents
-        zero divisions.
+        zero divisions and zero log.
     sublinear_tf : boolean, default=False
         Apply sublinear tf scaling, i.e. replace tf with 1 + log(tf).
     balanced: use bdc instead of dc
@@ -68,6 +68,7 @@ class TfdcTransformer(BaseEstimator, TransformerMixin):
 
             # initialize dc
             dc = np.ones(n_features)
+            smooth_dc = int(self.smooth_dc)
 
             # all labels
             labels = set(y)
@@ -80,23 +81,24 @@ class TfdcTransformer(BaseEstimator, TransformerMixin):
                 if self.balanced:
                     tps = tps + label_tfs / label_tfs.sum()  # p(t, Ci) for bdc
 
+                # label_tfs might have 0 values in some columns, need to smooth
                 label_h = label_tfs / tfs  # f(t, Ci) / f(t)
+                label_h[label_h == 0] = smooth_dc  # to avoid zero log
                 dc += label_h * np.log(label_h) / np.log(len(labels))
 
             # calculate balanced dc
             if self.balanced:
-
                 # initialize bdc
                 dc = np.ones(n_features)
                 for label in labels:
                     label_X = X[y == label]  # sliced data of specific label
                     label_tfs = np.asarray(label_X.sum(axis=0)).ravel()  # f(t, Ci) for dc
-                    label_tfs = label_tfs / label_tfs.sum()  # p(t, Ci) for bdc
-                    label_h = label_tfs / tps
+                    label_tps = label_tfs / label_tfs.sum()  # p(t, Ci) for bdc
+                    label_h = label_tps / tps
+                    label_h[label_h == 0] = smooth_dc  # to avoid zero log
                     dc = dc + label_h * np.log(label_h) / np.log(len(labels))
 
             self._dc_diag = sp.spdiags(dc, diags=0, m=n_features, n=n_features, format='csr')
-
 
     def transform(self, X, copy=True):
         """Transform a count matrix to a tf or tf-idf representation
@@ -141,7 +143,7 @@ class TfdcTransformer(BaseEstimator, TransformerMixin):
         return X
 
     @property
-    def idf_(self):
+    def dc_(self):
         # if _idf_diag is not set, this will raise an attribute error,
         # which means hasattr(self, "idf_") is False
         return np.ravel(self._dc_diag.sum(axis=0))

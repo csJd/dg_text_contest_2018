@@ -18,7 +18,7 @@ def tfdc_baseline():
     train_df = pd.read_csv(from_project_root('data/train_set.csv'))
     test_df = pd.read_csv(from_project_root('data/test_set.csv'))
     vec = CountVectorizer(ngram_range=(1, 3), min_df=3, max_df=0.8,
-                          max_features=4000000, token_pattern='\w+')
+                          max_features=3000000, token_pattern='\w+')
     trans = TfdcTransformer(sublinear_tf=True, balanced=True)
     X_train = vec.fit_transform(train_df[column])
     y_train = np.array((train_df["class"]).astype(int))
@@ -31,7 +31,7 @@ def tfdc_baseline():
     lin_clf.fit(X_train, y_train)
     preds = lin_clf.predict(X_test)
 
-    result_file = open(from_project_root('processed_data/com_result/baseline_tfdc_3gram_3000000.csv'), 'w')
+    result_file = open(from_project_root('processed_data/com_result/baseline_tfbdc_3gram_3000000.csv'), 'w')
     result_file.write("id,class" + "\n")
     for i, label in enumerate(preds):
         result_file.write(str(i) + "," + str(label) + "\n")
@@ -94,4 +94,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    tfdc_baseline()
