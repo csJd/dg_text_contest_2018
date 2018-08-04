@@ -13,8 +13,6 @@ def load_data_and_labels(train_file):
         for line in f.readlines():
             row = line.strip().split(',')
             x_text.append(row[1])
-
-            #垃圾邮件 [1,0]  正常邮件 [0,1]
             train_label = int(row[0])
 
             #构造label

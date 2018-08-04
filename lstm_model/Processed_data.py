@@ -155,10 +155,10 @@ def train_dev_split_for_data_word_bag(pca_tfbdc_1gram_300000_Xy,filter_phrase_le
     with open(pca_tfbdc_1gram_300000_Xy[:-4]+"_train.csv", 'w', encoding='utf-8') as f1,open(pca_tfbdc_1gram_300000_Xy[:-4]+"_dev.csv", 'w',encoding='utf-8') as f2:
 
         for word_bag_sen in word_bag_train:
-            f1.write(word_bag_sen+"\n")
+            f1.write(word_bag_sen)
 
         for word_bag_sen in word_bag_dev:
-            f2.write(word_bag_sen+"\n")
+            f2.write(word_bag_sen)
     f1.close()
     f2.close()
 
@@ -166,10 +166,10 @@ def train_dev_split_for_data_word_bag(pca_tfbdc_1gram_300000_Xy,filter_phrase_le
                     filter_phrase_level_data_file[:-4] + "_dev.csv", 'w', encoding='utf-8') as f2:
 
         for word_bag_sen in x_train:
-            f1.write(word_bag_sen + "\n")
+            f1.write(word_bag_sen)
 
         for word_bag_sen in x_dev:
-            f2.write(word_bag_sen + "\n")
+            f2.write(word_bag_sen)
     f1.close()
     f2.close()
     pass
