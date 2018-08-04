@@ -198,8 +198,8 @@ def main():
     # exit()
 
     # 划分数据集
-    train_dev_split(from_project_root("lstm_model/processed_data/filter_phrase_level_data.csv"))
-    exit()
+    # train_dev_split(from_project_root("lstm_model/processed_data/filter_phrase_level_data.csv"))
+    # exit()
 
     # 同时划分 data 和 word_bag
     pca_tfbdc_1gram_300000_Xy = from_project_root("lstm_model/processed_data/vector/pca_tfbdc_1gram_300000_Xy.csv")
