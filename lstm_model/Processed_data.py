@@ -126,13 +126,55 @@ def pca(tfbdc_word_bag_pickle,pca_tfbdc_file):
 
     print(X_transformed)
 
+# 将data 和 pca_tfbdc_1gram_300000_Xy进行统一划分
+def train_dev_split_for_data_word_bag(pca_tfbdc_1gram_300000_Xy,filter_phrase_level_data_file):
+
+    sentence_data = []
+    word_bag_vectors = []
+    # load data file
+    with open(pca_tfbdc_1gram_300000_Xy,'r',encoding='utf-8') as f1,open(filter_phrase_level_data_file,'r',encoding='utf-8') as f2:
+
+        for line in f1.readlines():
+            word_bag_vectors.append(line)
+
+        for line in f2.readlines():
+            sentence_data.append(line)
+
+        # 划分
+        word_bag_vectors = np.array(word_bag_vectors)
+        sentence_data = np.array(sentence_data)
+
+        dev_sample_index = -1 * int(0.2 * len(word_bag_vectors))
+        word_bag_train, word_bag_dev = word_bag_vectors[:dev_sample_index], word_bag_vectors[dev_sample_index:]
+        x_train,x_dev = sentence_data[:dev_sample_index],sentence_data[dev_sample_index:]
+
+        # 保存到文件中 data_url[:-4]
+        with open(pca_tfbdc_1gram_300000_Xy[:-4]+"_train.csv", 'w', encoding='utf-8') as f1,open(pca_tfbdc_1gram_300000_Xy[:-4]+"_dev.csv", 'r',encoding='utf-8') as f2:
+
+            for word_bag_sen in word_bag_train:
+                f1.write(word_bag_sen+"\n")
+
+            for word_bag_sen in word_bag_dev:
+                f2.write(word_bag_sen+"\n")
+
+        with open(filter_phrase_level_data_file[:-4] + "_train.csv", 'w', encoding='utf-8') as f1, open(
+                        filter_phrase_level_data_file[:-4] + "_dev.csv", 'r', encoding='utf-8') as f2:
+
+            for word_bag_sen in x_train:
+                f1.write(word_bag_sen + "\n")
+
+            for word_bag_sen in x_dev:
+                f2.write(word_bag_sen + "\n")
+    pass
+
+
 def main():
 
     # 将词袋模型的tf_bdc权重进行降维
-    tfbdc_word_bag_pickle = from_project_root("lstm_model/processed_data/vector/tfbdc_1gram_300000_Xy.pk")
-    pca_tfbdc_pickle = from_project_root("lstm_model/processed_data/vector/pca_tfbdc_1gram_300000_Xy.csv")
-    pca(tfbdc_word_bag_pickle,pca_tfbdc_pickle)
-    exit()
+    # tfbdc_word_bag_pickle = from_project_root("lstm_model/processed_data/vector/tfbdc_1gram_300000_Xy.pk")
+    # pca_tfbdc_pickle = from_project_root("lstm_model/processed_data/vector/pca_tfbdc_1gram_300000_Xy.csv")
+    # pca(tfbdc_word_bag_pickle,pca_tfbdc_pickle)
+    # exit()
 
     # 根据train_file建立字典
     # train_file = from_project_root("lstm_model/processed_data/filter_phrase_level_data.csv")
@@ -156,8 +198,13 @@ def main():
     # exit()
 
     # 划分数据集
-    train_dev_split(from_project_root("lstm_model/processed_data/filter_phrase_level_data.csv"))
-    exit()
+    # train_dev_split(from_project_root("lstm_model/processed_data/filter_phrase_level_data.csv"))
+    # exit()
+
+    # 同时划分 data 和 word_bag
+    pca_tfbdc_1gram_300000_Xy = from_project_root("lstm_model/processed_data/vector/pca_tfbdc_1gram_300000_Xy.csv")
+    filter_phrase_level_data_file = from_project_root("lstm_model/processed_data/filter_phrase_level_data.csv")
+    train_dev_split_for_data_word_bag(pca_tfbdc_1gram_300000_Xy,filter_phrase_level_data_file)
 
     # tf_pickle = from_project_root("lstm_model/processed_data/phrase_tf.pk")
     # transfer_tf
@@ -166,9 +213,9 @@ def main():
     # exit()
 
     # 从phrase_level_dc.csv中提取df——词语的文档数
-    dc_csv_file = from_project_root("lstm_model/processed_data/phrase_level_dc.csv")
-    df_pickle = from_project_root("lstm_model/processed_data/df_pickle.pk")
-    get_dc_pickle(dc_csv_file, df_pickle)
+    # dc_csv_file = from_project_root("lstm_model/processed_data/phrase_level_dc.csv")
+    # df_pickle = from_project_root("lstm_model/processed_data/df_pickle.pk")
+    # get_dc_pickle(dc_csv_file, df_pickle)
 
 
 if __name__ == '__main__':
