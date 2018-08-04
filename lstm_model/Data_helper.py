@@ -48,9 +48,18 @@ def get_predict_data(predict_file):
     根绝x_text样本数据，使用tf_dc_value进行向量化，
     并使用pca降维办法
 '''
-def load_word_bag_sentence_encode(x_text,word_word_sen_len):
+def load_word_bag_sentence_encode(pca_tfbdc_file):
 
     #
-
+    pca_tfbdc_vectors = np.array([])
+    with open(pca_tfbdc_file,'r',encoding='utf-8') as f:
+        for line in f.readlines():
+            line_list = line.strip().split(",")
+            pca_tfbdc_vectors.append(np.array(line_list[1].strip().split()).astype(np.float32))
+    return pca_tfbdc_vectors
     pass
+
+# test
+if __name__ == "__main__":
+    load_word_bag_sentence_encode("")
 

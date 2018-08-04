@@ -34,7 +34,7 @@ tf.flags.DEFINE_float("rnn_input_keep_prob",0.9,"rnn_input_keep_prob")
 tf.flags.DEFINE_float("rnn_output_keep_prob",0.9,"rnn_output_keep_prob")
 
 # term
-tf.flags.DEFINE_string("word_bag_sentence_pickle","..","rnn_output_keep_prob")
+tf.flags.DEFINE_string("word_bag_sentence_pickle","lstm_model/processed_data/vector/pca_tfbdc_1gram_300000_Xy_train.csv","word_bag_sentence_pickle")
 
 # file path
 tf.flags.DEFINE_string("train_file","lstm_model/processed_data/filter_phrase_level_data_train.csv","train file url")
@@ -56,7 +56,7 @@ vocab_dict = pk.load(open(from_project_root(FLAGS.vocab_file),'rb'))
 x_text,y = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file))
 
 # x_text根据tf_bdc使用词袋模型，并使用pca进行降维
-word_bag_x_text = Data_helper.load_word_bag_sentence_encode(FLAGS.word_bag_sentence_pickle,FLAGS.word_word_sen_len)
+word_bag_x_text = Data_helper.load_word_bag_sentence_encode(FLAGS.word_bag_sentence_pickle)
 # =====================end load data =======================================================================================
 
 # =====================build vocab =====================================================================================
@@ -79,6 +79,7 @@ dev_sample_index = -1 * int( FLAGS.dev_sample_percentage * len(y))
 
 x_train,x_dev =x_vecs[:dev_sample_index],x_vecs[dev_sample_index:]
 y_train,y_dev = y[:dev_sample_index],y[dev_sample_index:]
+tfbdc_train,tfbdc_dev = word_bag_x_text[:dev_sample_index],word_bag_x_text[dev_sample_index:]
 
 # 清除内存
 del x,y
@@ -182,11 +183,12 @@ with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
     # Write vocabulary
 
-    def train_step(x_batch,y_batch):
+    def train_step(x_batch,y_batch,tfbdc_batch):
 
         feed_dict={
             new_model.input_x:x_batch,
             new_model.input_y:y_batch,
+            new_model.word_bag_sen_encode:tfbdc_batch,
             new_model.rnn_input_keep_prob:FLAGS.rnn_input_keep_prob,
             new_model.rnn_output_keep_prob:FLAGS.rnn_output_keep_prob
         }
@@ -197,11 +199,12 @@ with tf.Session() as sess:
 
         return step
 
-    def dev_step(x_batch,y_batch,writer=None):
+    def dev_step(x_batch,y_batch,tfbdc_batch,writer=None):
 
         feed_dict={
             new_model.input_x:x_batch,
             new_model.input_y:y_batch,
+            new_model.word_bag_sen_encode: tfbdc_batch,
             new_model.rnn_input_keep_prob: 1.0,
             new_model.rnn_output_keep_prob: 1.0
         }
@@ -223,10 +226,11 @@ with tf.Session() as sess:
 
             x_batch = x_train[i:i+FLAGS.batch_size]
             y_batch = y_train[i:i+FLAGS.batch_size]
-            step = train_step(x_batch,y_batch)
+            tfbdc_batch = tfbdc_train[i:i+FLAGS.batch_size]
+            step = train_step(x_batch,y_batch,tfbdc_batch)
 
             if step % FLAGS.evaluate_every == 0:
-                dev_step(x_dev,y_dev,dev_summary_writer)
+                dev_step(x_dev,y_dev,tfbdc_dev,dev_summary_writer)
 
             if step % FLAGS.checkpoint_every == 0 :
                 path = saver.save(sess,checkpoint_prefix,global_step=step)

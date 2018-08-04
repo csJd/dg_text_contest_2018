@@ -162,7 +162,6 @@ def train_dev_split_for_data_word_bag(pca_tfbdc_1gram_300000_Xy,filter_phrase_le
     f1.close()
     f2.close()
 
-
     with open(filter_phrase_level_data_file[:-4] + "_train.csv", 'w', encoding='utf-8') as f1, open(
                     filter_phrase_level_data_file[:-4] + "_dev.csv", 'w', encoding='utf-8') as f2:
 
@@ -206,10 +205,11 @@ def main():
     # exit()
 
     # 划分数据集
-    # train_dev_split(from_project_root("lstm_model/processed_data/filter_phrase_level_data.csv"))
-    # exit()
+    train_dev_split(from_project_root("lstm_model/processed_data/filter_phrase_level_data.csv"))
+    exit()
 
     # 同时划分 data 和 word_bag
+    # 编写占内存太大有问题！！ 应该使用from sklearn.model_selection import train_test_split
     pca_tfbdc_1gram_300000_Xy = from_project_root("lstm_model/processed_data/vector/pca_tfbdc_1gram_300000_Xy.csv")
     filter_phrase_level_data_file = from_project_root("lstm_model/processed_data/filter_phrase_level_data.csv")
     train_dev_split_for_data_word_bag(pca_tfbdc_1gram_300000_Xy,filter_phrase_level_data_file)
