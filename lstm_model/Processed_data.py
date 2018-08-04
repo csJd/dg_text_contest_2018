@@ -116,7 +116,7 @@ def pca(tfbdc_word_bag_pickle,pca_tfbdc_pickle):
     """
     # 加载tf_bdc权重表示
     x,y = joblib.load(tfbdc_word_bag_pickle)
-    svd = TruncatedSVD(2)
+    svd = TruncatedSVD(1000)
     X_transformed = svd.fit_transform(x)
     joblib.dump((X_transformed, y), pca_tfbdc_pickle)
     print(X_transformed)
