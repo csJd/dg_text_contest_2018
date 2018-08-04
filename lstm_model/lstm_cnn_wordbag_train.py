@@ -32,6 +32,7 @@ tf.flags.DEFINE_integer("num_filters",64,"the num of channels in per filter")
 
 tf.flags.DEFINE_float("rnn_input_keep_prob",0.9,"rnn_input_keep_prob")
 tf.flags.DEFINE_float("rnn_output_keep_prob",0.9,"rnn_output_keep_prob")
+tf.flags.DEFINE_integer("word_bag_sentence_len",1000,"word_bag_sentence_len")
 
 # term
 tf.flags.DEFINE_string("word_bag_sentence_pickle","lstm_model/processed_data/vector/pca_tfbdc_1gram_300000_Xy_train.csv","word_bag_sentence_pickle")
@@ -118,7 +119,8 @@ with tf.Session() as sess:
         init_embedding_mat = embedding_mat,
         max_doc_length = FLAGS.max_word_in_sent,
         filter_sizes = list(map(int, FLAGS.filter_sizes.split(","))),
-        num_filters = FLAGS.num_filters
+        num_filters = FLAGS.num_filters,
+        word_bag_sentence_len = FLAGS.word_bag_sentence_len
     )
 
     with tf.name_scope("loss"):
