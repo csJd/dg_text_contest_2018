@@ -139,6 +139,8 @@ def train_dev_split_for_data_word_bag(pca_tfbdc_1gram_300000_Xy,filter_phrase_le
 
         for line in f2.readlines():
             sentence_data.append(line)
+        f1.close()
+        f2.close()
 
     # 划分
     word_bag_vectors = np.array(word_bag_vectors)
@@ -147,24 +149,30 @@ def train_dev_split_for_data_word_bag(pca_tfbdc_1gram_300000_Xy,filter_phrase_le
     dev_sample_index = -1 * int(0.2 * len(word_bag_vectors))
     word_bag_train, word_bag_dev = word_bag_vectors[:dev_sample_index], word_bag_vectors[dev_sample_index:]
     x_train,x_dev = sentence_data[:dev_sample_index],sentence_data[dev_sample_index:]
+    del word_bag_vectors,sentence_data
 
     # 保存到文件中 data_url[:-4]
-    with open(pca_tfbdc_1gram_300000_Xy[:-4]+"_train.csv", 'w', encoding='utf-8') as f1,open(pca_tfbdc_1gram_300000_Xy[:-4]+"_dev.csv", 'r',encoding='utf-8') as f2:
+    with open(pca_tfbdc_1gram_300000_Xy[:-4]+"_train.csv", 'w', encoding='utf-8') as f1,open(pca_tfbdc_1gram_300000_Xy[:-4]+"_dev.csv", 'w',encoding='utf-8') as f2:
 
         for word_bag_sen in word_bag_train:
             f1.write(word_bag_sen+"\n")
 
         for word_bag_sen in word_bag_dev:
             f2.write(word_bag_sen+"\n")
+    f1.close()
+    f2.close()
+
 
     with open(filter_phrase_level_data_file[:-4] + "_train.csv", 'w', encoding='utf-8') as f1, open(
-                    filter_phrase_level_data_file[:-4] + "_dev.csv", 'r', encoding='utf-8') as f2:
+                    filter_phrase_level_data_file[:-4] + "_dev.csv", 'w', encoding='utf-8') as f2:
 
         for word_bag_sen in x_train:
             f1.write(word_bag_sen + "\n")
 
         for word_bag_sen in x_dev:
             f2.write(word_bag_sen + "\n")
+    f1.close()
+    f2.close()
     pass
 
 
