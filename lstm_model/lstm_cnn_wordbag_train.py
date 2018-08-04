@@ -3,7 +3,7 @@
 import tensorflow as tf
 import time
 import os
-from lstm_cnn_model import LSTM_CNN_Model as LSTM_CNN_Model
+from lstm_cnn_wordbag_model import LSTM_CNN_Model as LSTM_CNN_Model
 import numpy as np
 import Data_helper
 from utils.path_util import from_project_root
