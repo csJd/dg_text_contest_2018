@@ -4,11 +4,15 @@
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.preprocessing import normalize
 from sklearn.utils.validation import check_is_fitted
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from collections import defaultdict
 from sklearn.feature_extraction.text import _document_frequency
 
 import numpy as np
+import pandas as pd
 import scipy.sparse as sp
+
+from utils.path_util import from_project_root
 
 
 class TfdcTransformer(BaseEstimator, TransformerMixin):
@@ -97,8 +101,8 @@ class TfdcTransformer(BaseEstimator, TransformerMixin):
                     label_h = label_tps / tps
                     label_h[label_h == 0] = smooth_dc  # to avoid zero log
                     dc = dc + label_h * np.log(label_h) / np.log(len(labels))
-
             self._dc_diag = sp.spdiags(dc, diags=0, m=n_features, n=n_features, format='csr')
+        return self
 
     def transform(self, X, copy=True):
         """Transform a count matrix to a tf or tf-idf representation
@@ -139,7 +143,6 @@ class TfdcTransformer(BaseEstimator, TransformerMixin):
 
         if self.norm:
             X = normalize(X, norm=self.norm, copy=False)
-
         return X
 
     @property
@@ -149,7 +152,56 @@ class TfdcTransformer(BaseEstimator, TransformerMixin):
         return np.ravel(self._dc_diag.sum(axis=0))
 
 
+def generate_vectors(train_url, test_url=None, column='word_seg', trans=None, max_n=3, min_df=3,
+                     max_df=0.8, max_features=3000000, sublinear_tf=True, balanced=False):
+    """ generate X, y, X_test vectors with csv(with header) url use pandas and CountVectorizer
+
+    Args:
+        train_url: url to train csv
+        test_url: url to test csv, set to None if not need X_test
+        column: column to use as feature
+        trans: predefined transformer
+        max_n: max_n for ngram_range
+        min_df: min_df for CountVectorizer
+        max_df: max_df for CountVectorizer
+        max_features: max_features for CountVectorizer
+        sublinear_tf: sublinear_tf for default TfdcTransformer
+        balanced: balanced for default TfdcTransformer
+
+    Returns:
+        X, y, X_test
+
+    """
+    train_df = pd.read_csv(train_url)
+
+    # vectorizer
+    print("vectorizing", train_url)
+    vec = CountVectorizer(ngram_range=(1, max_n), min_df=min_df, max_df=max_df,
+                          max_features=max_features, token_pattern='\w+')
+    # transformer
+    if trans is None:
+        trans = TfdcTransformer(sublinear_tf=sublinear_tf, balanced=balanced)
+
+    print("finish vectorizing, transforming")
+    X = vec.fit_transform(train_df[column])
+    y = np.array((train_df["class"]).astype(int))
+    X = trans.fit_transform(X, y)
+
+    X_test = None
+    if test_url:
+        test_df = pd.read_csv(test_url)
+        X_test = vec.transform(test_df[column])
+        X_test = trans.transform(X_test)
+
+    print("finish transforming\n")
+
+    return X, y, X_test
+
+
 def main():
+    train_url = from_project_root("data/train_set.csv")
+    test_url = from_project_root("data/test_set.csv")
+    generate_vectors(train_url, test_url, 'word_seg')
     pass
 
 

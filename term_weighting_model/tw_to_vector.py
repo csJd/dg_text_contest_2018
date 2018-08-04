@@ -63,7 +63,7 @@ def tfidf_to_vector(sentences):
 
 
 def to_vector(sentences, tw_dict, max_features=MAX_FEATURES, normalize=True, sublinear_tf=True):
-    """
+    """ tfdc to vector
 
     Args:
         sentences: list of sentence to be vectorized

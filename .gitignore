@@ -1,9 +1,10 @@
 local_test.py
 models/
+result/
+result.csv
 
 # pycharm IDE files
 .idea/
-result/
 
 # Data files
 data/

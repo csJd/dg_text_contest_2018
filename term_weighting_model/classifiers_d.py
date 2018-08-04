@@ -13,6 +13,7 @@ from time import time
 import pandas as pd
 
 from utils.path_util import from_project_root
+from term_weighting_model.transformer import generate_vectors
 
 N_JOBS = 4
 CV = 5
@@ -141,7 +142,7 @@ def train_clfs(clfs, X, y, test_size=0.2, tuning=False):
             param_grid = init_param_grid(clf)
             clf = tune_clf(clf, X, y, param_grid)
             print('cv_results\n', clf.cv_results_)
-            return
+            continue
 
         print("%s model is training" % clf_name)
         s_time = time()
@@ -154,12 +155,41 @@ def train_clfs(clfs, X, y, test_size=0.2, tuning=False):
         macro_f1 = f1_score(y_test, y_pred, average='macro')
         print(" accuracy = %f\n f1_score = %f\n" % (acc, macro_f1))
 
+    return clfs
+
+
+def train_and_gen_result(clf, X, y, X_test, save_url='result.csv'):
+    """ train and generate result with specific clf
+
+    Args:
+        clf: classifier
+        X: vectorized data
+        y: target
+        X_test: test data
+        save_url: url to save the result file
+
+    """
+    clf.fit(X, y)
+    preds = clf.predict(X_test)
+
+    result_file = open(save_url, 'w')
+    result_file.write("id,class" + "\n")
+    for i, label in enumerate(preds):
+        result_file.write(str(i) + "," + str(label) + "\n")
+    result_file.close()
+
 
 def main():
     clfs = init_linear_clfs()
-    xy_url = from_project_root("processed_data/vector/dc_3gram_4000000_Xy.pk")
-    print("loading data from", xy_url)
-    X, y = joblib.load(xy_url)
+
+    # load from pickle
+    # xy_url = from_project_root("processed_data/vector/dc_3gram_4000000_Xy.pk")
+    # print("loading data from", xy_url)
+    # X, y = joblib.load(xy_url)
+
+    # generate from original csv
+    train_url = from_project_root("data/train_set.csv")
+    X, y, _ = generate_vectors(train_url, max_n=3, min_df=3, max_df=0.8, max_features=3000000, balanced=False)
     train_clfs(clfs, X, y)
     pass
 
