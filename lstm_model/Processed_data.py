@@ -205,8 +205,8 @@ def main():
     # exit()
 
     # 划分数据集
-    train_dev_split(from_project_root("lstm_model/processed_data/filter_phrase_level_data.csv"))
-    exit()
+    # train_dev_split(from_project_root("lstm_model/processed_data/filter_phrase_level_data.csv"))
+    # exit()
 
     # 同时划分 data 和 word_bag
     # 编写占内存太大有问题！！ 应该使用from sklearn.model_selection import train_test_split
