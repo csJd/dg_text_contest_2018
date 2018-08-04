@@ -107,7 +107,7 @@ def create_vocab_dict(train_file,vocab_pickle):
     return vocab_dict
 
 # 使用pca将tf-bdc词袋模型的高维度进行降维
-def pca(tfbdc_word_bag_pickle,pca_tfbdc_pickle):
+def pca(tfbdc_word_bag_pickle,pca_tfbdc_file):
     """
     Args:
         tfbdc_pickle: 词袋模型的pickle
@@ -118,7 +118,11 @@ def pca(tfbdc_word_bag_pickle,pca_tfbdc_pickle):
     x,y = joblib.load(tfbdc_word_bag_pickle)
     svd = TruncatedSVD(1000)
     X_transformed = svd.fit_transform(x)
-    joblib.dump((X_transformed, y), pca_tfbdc_pickle)
+    # joblib.dump((X_transformed, y), pca_tfbdc_pickle)
+    with open(pca_tfbdc_file,'w',encoding='utf-8') as f:
+        for i in len(y):
+            f.write("{},{}\n".format(y[i],X_transformed[i]))
+
     print(X_transformed)
 
 def main():
