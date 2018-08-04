@@ -56,7 +56,7 @@ vocab_dict = pk.load(open(from_project_root(FLAGS.vocab_file),'rb'))
 x_text,y = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file))
 
 # x_text根据tf_bdc使用词袋模型，并使用pca进行降维
-word_bag_x_text = Data_helper.load_word_bag_sentence_encode(FLAGS.word_bag_sentence_pickle)
+word_bag_x_text = Data_helper.load_word_bag_sentence_encode(from_project_root(FLAGS.word_bag_sentence_pickle))
 # =====================end load data =======================================================================================
 
 # =====================build vocab =====================================================================================
