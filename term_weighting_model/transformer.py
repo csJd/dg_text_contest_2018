@@ -7,6 +7,7 @@ from sklearn.utils.validation import check_is_fitted
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from collections import defaultdict
 from sklearn.feature_extraction.text import _document_frequency
+from time import time
 
 import numpy as np
 import pandas as pd
@@ -175,26 +176,31 @@ def generate_vectors(train_url, test_url=None, column='word_seg', trans=None, ma
     train_df = pd.read_csv(train_url)
 
     # vectorizer
-    print("vectorizing", train_url)
     vec = CountVectorizer(ngram_range=(1, max_n), min_df=min_df, max_df=max_df,
                           max_features=max_features, token_pattern='\w+')
+    print(vec.get_params())
     # transformer
     if trans is None:
         trans = TfdcTransformer(sublinear_tf=sublinear_tf, balanced=balanced)
 
-    print("finish vectorizing, transforming")
+    s_time = time()
+    print("vectorizing", train_url)
     X = vec.fit_transform(train_df[column])
+    e_time = time()
+
+    print("finish vectorizing in %.3f seconds, transforming" % (e_time - s_time))
     y = np.array((train_df["class"]).astype(int))
     X = trans.fit_transform(X, y)
 
     X_test = None
     if test_url:
+        print("transforming the test set")
         test_df = pd.read_csv(test_url)
         X_test = vec.transform(test_df[column])
         X_test = trans.transform(X_test)
 
-    print("finish transforming\n")
-
+    s_time = time()
+    print("finish transforming in %.3f seconds\n" % (s_time - e_time))
     return X, y, X_test
 
 

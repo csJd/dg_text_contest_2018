@@ -189,7 +189,8 @@ def main():
 
     # generate from original csv
     train_url = from_project_root("data/train_set.csv")
-    X, y, _ = generate_vectors(train_url, max_n=3, min_df=3, max_df=0.8, max_features=3000000, balanced=False)
+    X, y, _ = generate_vectors(train_url, max_n=3, min_df=3, max_df=0.8,
+                               max_features=3000000, balanced=False)
     train_clfs(clfs, X, y)
     pass
 
