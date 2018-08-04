@@ -3,15 +3,13 @@
 import tensorflow as tf
 import time
 import os
-from lstm_model.lstm_cnn_weight_model import LSTM_CNN_Model as LSTM_CNN_Model
+from lstm_cnn_model import LSTM_CNN_Model as LSTM_CNN_Model
 import numpy as np
 import Data_helper
 from utils.path_util import from_project_root
 from tensorflow.contrib import learn
 import pickle as pk
-import collections
-from sklearn.metrics import f1_score
-
+import gensim
 
 #Data loading params
 tf.flags.DEFINE_integer("num_classes",19,"number of classes")
@@ -25,7 +23,7 @@ tf.flags.DEFINE_integer("evaluate_every",50,"evaluate every this many batches")
 tf.flags.DEFINE_float("learning_rate",0.01,"learning rate")  #====================
 tf.flags.DEFINE_integer("grad_clip",5,"grad clip to prevent gradient explode")
 tf.flags.DEFINE_integer("epoch",3,"number of epoch")
-tf.flags.DEFINE_integer("max_word_in_sent",1000,"max_word_in_sent")
+tf.flags.DEFINE_integer("max_word_in_sent",800,"max_word_in_sent")
 tf.flags.DEFINE_float("regularization_rate",0.001,"regularization rate random") #=======================
 
 # cnn
@@ -35,9 +33,14 @@ tf.flags.DEFINE_integer("num_filters",64,"the num of channels in per filter")
 tf.flags.DEFINE_float("rnn_input_keep_prob",0.9,"rnn_input_keep_prob")
 tf.flags.DEFINE_float("rnn_output_keep_prob",0.9,"rnn_output_keep_prob")
 
+# term
+tf.flags.DEFINE_string("word_bag_sentence_pickle","..","rnn_output_keep_prob")
+
+# file path
 tf.flags.DEFINE_string("train_file","lstm_model/processed_data/filter_phrase_level_data_train.csv","train file url")
-tf.flags.DEFINE_string("vocab_file","lstm_model/processed_data/phrase_level_vocab.pk","vocab file url")
-tf.flags.DEFINE_string("dc_file","lstm_model/processed_data/phrase_level_dc.pk","dc file url")
+tf.flags.DEFINE_string("vocab_file","lstm_model/processed_data/filter_phrase_level_vocab.pk","vocab file url")
+tf.flags.DEFINE_string("vocab_file_csv","lstm_model/processed_data/filter_phrase_level_vocab.csv","vocab csv file url")
+tf.flags.DEFINE_string("word2vec_file","embedding_model/models/w2v_phrase_64_2_5_1.bin","vocab csv file url")
 
 FLAGS = tf.flags.FLAGS
 
@@ -48,37 +51,25 @@ FLAGS = tf.flags.FLAGS
 # y : label example: [[0,1],[1,0],...]
 
 print("Loading Data...")
+vocab_dict = pk.load(open(from_project_root(FLAGS.vocab_file),'rb'))
+
 x_text,y = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file))
+
+# x_text根据tf_bdc使用词袋模型，并使用pca进行降维
+word_bag_x_text = Data_helper.load_word_bag_sentence_encode(FLAGS.word_bag_sentence_pickle,FLAGS.word_word_sen_len)
 # =====================end load data =======================================================================================
 
 # =====================build vocab =====================================================================================
-vocab_dict = pk.load(open(from_project_root(FLAGS.vocab_file),'rb'))
+
+# Build Vacabulary  由于卷积神经网络需要固定句子的长度
 x_vecs = []
 for x in x_text:
-    x_word_list = x.strip().split()
-    x_vec = [0]*FLAGS.max_word_in_sent
-    for i in range(min(FLAGS.max_word_in_sent,len(x_word_list))):
-        x_vec[i] = vocab_dict[x_word_list[i]]
+    word_list = x.strip().split()
+    x_vec = [0] * FLAGS.max_word_in_sent
+    for i in range(min(FLAGS.max_word_in_sent,len(word_list))):
+        x_vec[i] = vocab_dict[word_list[i]]
     x_vecs.append(x_vec)
 # =====================build vocab =====================================================================================
-# =====================create term weight ==============================================================================
-dc_dict = pk.load(open(from_project_root(FLAGS.dc_file), 'rb'))
-term_weights = []
-for x in x_text:
-    x_word_list = x.strip().split()
-    sen_length = len(x_word_list)
-    # 计算文档级别的tf
-    tf_dict = collections.defaultdict(int)
-    for word in x_word_list:
-        tf_dict[word] += 1
-    term_weight = [0] * FLAGS.max_word_in_sent
-    for i in range(min(FLAGS.max_word_in_sent,len(x_word_list))):
-        term_weight[i] = tf_dict[x_word_list[i]] / sen_length * dc_dict[x_word_list[i]]
-
-    term_weights.append(term_weight)
-
-print("加载数据完成.....")
-# =====================create term weight ==============================================================================
 
 # =====================split dev and text ==============================================================================
 
@@ -86,9 +77,8 @@ print("加载数据完成.....")
 
 dev_sample_index = -1 * int( FLAGS.dev_sample_percentage * len(y))
 
-x_train,x_dev = x_vecs[:dev_sample_index],x_vecs[dev_sample_index:]
+x_train,x_dev =x_vecs[:dev_sample_index],x_vecs[dev_sample_index:]
 y_train,y_dev = y[:dev_sample_index],y[dev_sample_index:]
-term_weight_trian,term_weight_dev = term_weights[:dev_sample_index],term_weights[dev_sample_index:]
 
 # 清除内存
 del x,y
@@ -98,9 +88,20 @@ print("Train / Dev split: {:d} / {:d}".format(len(y_train),len(y_dev)))
 
 # =====================split dev and text ==============================================================================
 
-
 # load embedding mat
-embedding_mat = tf.Variable(tf.truncated_normal((len(vocab_dict)+1,FLAGS.embedding_size)))
+# embedding_mat = tf.Variable(tf.truncated_normal((len(vocab_processor.vocabulary_),FLAGS.embedding_size)))
+model = gensim.models.Word2Vec.load(from_project_root(FLAGS.word2vec_file))
+init_embedding_mat = []
+init_embedding_mat.append([1.0] * FLAGS.embedding_size)
+with open(from_project_root(FLAGS.vocab_file_csv),'r',encoding='utf-8') as f:
+    for line in f.readlines():
+        line_list = line.strip().split()
+        word = line_list[0]
+        if word not in model:
+            init_embedding_mat.append([1.0] * FLAGS.embedding_size)
+        else:
+            init_embedding_mat.append(model[word])
+embedding_mat = tf.Variable(init_embedding_mat,name="embedding")
 
 print("data load finished!!!")
 
@@ -153,7 +154,6 @@ with tf.Session() as sess:
     train_op = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
 
     # Keep track of gradient values and sparsity(optional)
-    # Keep track of gradient values and sparsity (optional)
     grad_summaries = []
     for g, v in grads_and_vars:
         if g is not None:
@@ -180,13 +180,13 @@ with tf.Session() as sess:
     saver = tf.train.Saver(tf.global_variables(),max_to_keep=FLAGS.num_checkpoints)
 
     sess.run(tf.global_variables_initializer())
+    # Write vocabulary
 
-    def train_step(x_batch,y_batch,term_weight_bath):
+    def train_step(x_batch,y_batch):
 
         feed_dict={
             new_model.input_x:x_batch,
             new_model.input_y:y_batch,
-            new_model.term_weight:term_weight_bath,
             new_model.rnn_input_keep_prob:FLAGS.rnn_input_keep_prob,
             new_model.rnn_output_keep_prob:FLAGS.rnn_output_keep_prob
         }
@@ -197,20 +197,16 @@ with tf.Session() as sess:
 
         return step
 
-    def dev_step(x_batch,y_batch,term_weight_batch,writer=None):
+    def dev_step(x_batch,y_batch,writer=None):
 
         feed_dict={
             new_model.input_x:x_batch,
             new_model.input_y:y_batch,
-            new_model.term_weight:term_weight_batch,
             new_model.rnn_input_keep_prob: 1.0,
             new_model.rnn_output_keep_prob: 1.0
         }
 
-        step, summaries, cost, accuracy,input_y,predict_y = sess.run([global_step, dev_summary_op,
-                                                                      loss, acc,new_model.input_y,new_model.predict], feed_dict)
-        print(input_y)
-        print(predict_y)
+        step, summaries, cost, accuracy = sess.run([global_step, dev_summary_op, loss, acc], feed_dict)
 
         time_str = str(int(time.time()))
         print("++++++++++++++++++dev++++++++++++++{}: step {}, loss {:g}, acc {:g}".format(time_str, step, cost,
@@ -219,6 +215,7 @@ with tf.Session() as sess:
         if writer:
             writer.add_summary(summaries, step)
 
+
     for epoch in range(FLAGS.epoch):
         print('current epoch %s' % (epoch + 1))
 
@@ -226,11 +223,10 @@ with tf.Session() as sess:
 
             x_batch = x_train[i:i+FLAGS.batch_size]
             y_batch = y_train[i:i+FLAGS.batch_size]
-            term_weight_batch = term_weight_trian[i:i+FLAGS.batch_size]
-            step = train_step(x_batch,y_batch,term_weight_batch)
+            step = train_step(x_batch,y_batch)
 
             if step % FLAGS.evaluate_every == 0:
-                dev_step(x_dev,y_dev,term_weight_dev,dev_summary_writer)
+                dev_step(x_dev,y_dev,dev_summary_writer)
 
             if step % FLAGS.checkpoint_every == 0 :
                 path = saver.save(sess,checkpoint_prefix,global_step=step)

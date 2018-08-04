@@ -4,6 +4,9 @@ import pickle as pk
 from utils.path_util import from_project_root
 from utils.data_util import train_dev_split
 import collections
+from sklearn.externals import joblib
+import scipy.sparse as sp
+from sklearn.decomposition import TruncatedSVD
 
 def process_sen(tf_dict,word_list):
 
@@ -103,7 +106,28 @@ def create_vocab_dict(train_file,vocab_pickle):
     pk.dump(vocab_dict,open(vocab_pickle,'wb'))
     return vocab_dict
 
+# 使用pca将tf-bdc词袋模型的高维度进行降维
+def pca(tfbdc_word_bag_pickle,pca_tfbdc_pickle):
+    """
+    Args:
+        tfbdc_pickle: 词袋模型的pickle
+        pca_tfbdc_pickle: pca降维之后的picklex
+    Returns:x
+    """
+    # 加载tf_bdc权重表示
+    x,y = joblib.load(tfbdc_word_bag_pickle)
+    svd = TruncatedSVD(2)
+    X_transformed = svd.fit_transform(x)
+    joblib.dump((X_transformed, y), pca_tfbdc_pickle)
+    print(X_transformed)
+
 def main():
+
+    # 将词袋模型的tf_bdc权重进行降维
+    tfbdc_word_bag_pickle = from_project_root("lstm_model/processed_data/vector/tfbdc_1gram_300000_Xy.pk")
+    pca_tfbdc_pickle = from_project_root("lstm_model/processed_data/vector/pca_tfbdc_1gram_300000_Xy.pk")
+    pca(tfbdc_word_bag_pickle,pca_tfbdc_pickle)
+    exit()
 
     # 根据train_file建立字典
     # train_file = from_project_root("lstm_model/processed_data/filter_phrase_level_data.csv")
@@ -130,7 +154,7 @@ def main():
     train_dev_split(from_project_root("lstm_model/processed_data/filter_phrase_level_data.csv"))
     exit()
 
-    tf_pickle = from_project_root("lstm_model/processed_data/phrase_tf.pk")
+    # tf_pickle = from_project_root("lstm_model/processed_data/phrase_tf.pk")
     # transfer_tf
     # transfer_pk_to_csv(tf_pickle,from_project_root("lstm_model/processed_data/phrase_tf.csv"))
     # filter_words(tf_pickle)

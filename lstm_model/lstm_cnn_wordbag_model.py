@@ -15,7 +15,8 @@ def length(sequence):
 
 class LSTM_CNN_Model():
 
-    def __init__(self,num_classes,init_embedding_mat,max_doc_length,filter_sizes,num_filters,embedding_size=300,hidden_size=50):
+    def __init__(self,num_classes,init_embedding_mat,max_doc_length,filter_sizes,num_filters,
+                 word_bag_sentence_len,embedding_size=300,hidden_size=50):
 
         self.num_classes = num_classes
         self.embedding_size = embedding_size
@@ -24,19 +25,19 @@ class LSTM_CNN_Model():
         self.max_doc_length = max_doc_length
         self.filter_sizes = filter_sizes
         self.num_filters = num_filters
+        self.word_bag_sentence_len = word_bag_sentence_len
 
         with tf.name_scope("placeholder"):
 
             # x.shape为 [batch_size,文档单词个数]
             self.input_x = tf.placeholder(tf.int32,[None,None],name="input_x")
-            self.input_y = tf.placeholder(tf.float32,[None,num_classes],name="input_y")
-            self.term_weight = tf.placeholder(tf.float32,[None,self.max_doc_length],name="term_weight")
+            self.input_y = tf.placeholder(tf.float32,[None,self.num_classes],name="input_y")
+            # 并不参与训练
+            self.word_bag_sen_encode = tf.placeholder(tf.float32,[None,self.word_bag_sentence_len],
+                                                      name="word_bag_sentence_encode")
 
             self.rnn_input_keep_prob = tf.placeholder(tf.float32,name="rnn_input_keep_prob")
             self.rnn_output_keep_prob = tf.placeholder(tf.float32,name="rnn_output_keep_prob")
-
-            # 句子级别上最大的单词数
-            # self.batch_size = tf.placeholder(tf.int32, name="batch_size")
 
         # create model
         # share embedding_mat
@@ -67,17 +68,17 @@ class LSTM_CNN_Model():
         with tf.name_scope("cnn_layer") :
             # 先将rnn计算到的权重先相乘
             # word_encoded_x.shape = [batch,sequence_length,hidden_size*2]
-            # term_weight.shape=[batch,max_doc_length]
-            expand_term_weight = tf.expand_dims(self.term_weight, -1)
+            # weight_x.shape=[batch,max_doc_length]
+            expand_weight_x = tf.expand_dims(weight_x, -1)
             # atten_sens.shape = [batch,hidden_size * 2]
-            self.word_encoded_x = tf.multiply(self.word_encoded_x, expand_term_weight)
+            self.word_encoded_x = tf.multiply(self.word_encoded_x, expand_weight_x)
 
             cnn_output = self.cnn_layer(self.word_encoded_x)
 
         # 再接入一个全连接层
         with tf.name_scope("fully_connection_layer") :
             # self.out = self.fully_connection_layer(cnn_output,self.rnn_atten_encode)
-            self.out = self.fully_connection_layer(cnn_output,self.rnn_atten_encode)
+            self.out = self.fully_connection_layer(cnn_output,self.rnn_atten_encode,self.word_bag_sen_encode)
 
     # embedding_layer
     def word2vec(self,input,scope_name):
@@ -90,6 +91,7 @@ class LSTM_CNN_Model():
             word_embedding = tf.nn.embedding_lookup(self.init_embedding_mat,input,name="word_embedding")
 
         return word_embedding
+
 
     def BidirectionalGRUEncoder(self,word_encoded,name):
 
@@ -197,14 +199,16 @@ class LSTM_CNN_Model():
         return h_drop
 
     # 全连接层
-    def fully_connection_layer(self,cnn_output,rnn_atten_encode):
+    def fully_connection_layer(self,cnn_output,rnn_atten_encode,word_bag_sen_encode):
         """
         :param cnn_output: cnn传入的feature . shape = [batch,num_filters * 2 * len(filter_sizes)]
         :param rnn_atten_encode: shape=[batch,hidden_size * 2]
+        :param word_bag_sen_encode: shape=[batch,self.word_bag_sentence_len]
         :return: fc_output
         """
         # 拼接
         sum_input = tf.concat([cnn_output,rnn_atten_encode],1)
+        sum_input = tf.concat([sum_input,word_bag_sen_encode],1)
         # sum_input = cnn_output
 
         # 增加多一层全连接层
@@ -213,6 +217,6 @@ class LSTM_CNN_Model():
 
         # fc_output.shape = [batch ,num_classes]
         fc_output = tf.contrib.layers.fully_connected(inputs=fc_output1, num_outputs=self.num_classes, activation_fn=None)
-        self.predict = tf.argmax(fc_output, axis=1, name="prediction") # 预测结果
+        predict = tf.argmax(fc_output, axis=1, name="prediction") # 预测结果
 
         return fc_output
