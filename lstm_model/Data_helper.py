@@ -49,12 +49,12 @@ def get_predict_data(predict_file):
 def load_word_bag_sentence_encode(pca_tfbdc_file):
 
     #
-    pca_tfbdc_vectors = np.array([])
+    pca_tfbdc_vectors = []
     with open(pca_tfbdc_file,'r',encoding='utf-8') as f:
         for line in f.readlines():
             line_list = line.strip().split(",")
             pca_tfbdc_vectors.append(np.array(line_list[1].strip().split()).astype(np.float32))
-    return pca_tfbdc_vectors
+    return np.array(pca_tfbdc_vectors)
     pass
 
 # test
