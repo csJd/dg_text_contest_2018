@@ -129,7 +129,7 @@ def main():
 
     # 将词袋模型的tf_bdc权重进行降维
     tfbdc_word_bag_pickle = from_project_root("lstm_model/processed_data/vector/tfbdc_1gram_300000_Xy.pk")
-    pca_tfbdc_pickle = from_project_root("lstm_model/processed_data/vector/pca_tfbdc_1gram_300000_Xy.pk")
+    pca_tfbdc_pickle = from_project_root("lstm_model/processed_data/vector/pca_tfbdc_1gram_300000_Xy.csv")
     pca(tfbdc_word_bag_pickle,pca_tfbdc_pickle)
     exit()
 
