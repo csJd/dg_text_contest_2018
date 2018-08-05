@@ -182,31 +182,29 @@ def generate_vectors(train_url, test_url=None, column='word_seg', trans=None, ma
         X, y, X_test
 
     """
-    print("loading data from %s with pandas" % train_url)
+    print("loading '%s' level data from %s with pandas" % (column, train_url))
     train_df = pd.read_csv(train_url)
 
     # vectorizer
     vec = CountVectorizer(ngram_range=(1, max_n), min_df=min_df, max_df=max_df,
                           max_features=max_features, token_pattern='\w+')
-    print(vec.get_params())
+    s_time = time()
+    print("finish loading, vectorizing")
+    print("vectorizer params:", vec.get_params())
+    X = vec.fit_transform(train_df[column])
+    e_time = time()
+    print("finish vectorizing in %.3f seconds, transforming" % (e_time - s_time))
+
     # transformer
     if trans is None:
         trans = TfdcTransformer(sublinear_tf=sublinear_tf, balanced=balanced, re_weight=re_weight)
-
-    s_time = time()
-    print("finish loading, vectorizing")
-    X = vec.fit_transform(train_df[column])
-    print("vectorizer params:", vec.get_params())
-    e_time = time()
-
-    print("finish vectorizing in %.3f seconds, transforming" % (e_time - s_time))
     print("transformer params:", trans.get_params())
     y = np.array((train_df["class"]).astype(int))
     X = trans.fit_transform(X, y)
 
     X_test = None
     if test_url:
-        print("transforming the test set")
+        print("transforming test set")
         test_df = pd.read_csv(test_url)
         X_test = vec.transform(test_df[column])
         X_test = trans.transform(X_test)
