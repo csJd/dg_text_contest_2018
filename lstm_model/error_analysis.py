@@ -39,8 +39,8 @@ def get_the_error_label_distribution(predict_result_file,distribution_file):
     pass
 
 def main():
-    predict_result_file = from_project_root("lstm_model/result/result_predict-1700.csv")
-    distribution_file = from_project_root("lstm_model/result/erro_distribution-1700.csv")
+    predict_result_file = from_project_root("lstm_model/result/result_predict-900.csv")
+    distribution_file = from_project_root("lstm_model/result/erro_distribution-800.csv")
     get_the_error_label_distribution(predict_result_file, distribution_file)
     pass
 

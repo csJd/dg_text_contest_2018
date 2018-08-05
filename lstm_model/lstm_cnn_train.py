@@ -23,7 +23,7 @@ tf.flags.DEFINE_integer("evaluate_every",50,"evaluate every this many batches")
 tf.flags.DEFINE_float("learning_rate",0.01,"learning rate")  #====================
 tf.flags.DEFINE_integer("grad_clip",5,"grad clip to prevent gradient explode")
 tf.flags.DEFINE_integer("epoch",5,"number of epoch")
-tf.flags.DEFINE_integer("max_word_in_sent",800,"max_word_in_sent")
+tf.flags.DEFINE_integer("max_word_in_sent",1000,"max_word_in_sent")
 tf.flags.DEFINE_float("regularization_rate",0.001,"regularization rate random") #=======================
 
 # cnn
@@ -33,7 +33,7 @@ tf.flags.DEFINE_integer("num_filters",64,"the num of channels in per filter")
 tf.flags.DEFINE_float("rnn_input_keep_prob",0.9,"rnn_input_keep_prob")
 tf.flags.DEFINE_float("rnn_output_keep_prob",0.9,"rnn_output_keep_prob")
 
-tf.flags.DEFINE_string("train_file","lstm_model/processed_data/filter_phrase_level_data_300_train.csv","train file url")
+tf.flags.DEFINE_string("train_file","lstm_model/processed_data/two_gram/filter_2-gram_phrase_level_data_train.csv","train file url")
 tf.flags.DEFINE_string("vocab_file","lstm_model/processed_data/filter_phrase_level_vocab.pk","vocab file url")
 tf.flags.DEFINE_string("vocab_file_csv","lstm_model/processed_data/filter_phrase_level_vocab.csv","vocab csv file url")
 tf.flags.DEFINE_string("word2vec_file","embedding_model/models/w2v_phrase_64_2_5_1.bin","vocab csv file url")
@@ -47,7 +47,7 @@ FLAGS = tf.flags.FLAGS
 # y : label example: [[0,1],[1,0],...]
 
 print("Loading Data...")
-vocab_dict = pk.load(open(from_project_root(FLAGS.vocab_file),'rb'))
+# vocab_dict = pk.load(open(from_project_root(FLAGS.vocab_file),'rb'))
 
 x_text,y = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file))
 # =====================end load data =======================================================================================
@@ -70,6 +70,7 @@ max_document_length = max(len(x.split(" ")) for x in x_text)
 vocab_processor = learn.preprocessing.VocabularyProcessor(FLAGS.max_word_in_sent) #创建一个字典处理器,并设置句子固定长度
 x = np.array( list( vocab_processor.fit_transform(x_text)))   #x就转化为字典的下表表示的数组
 
+del x_text
 #格式化输出
 print("Vocabulary size :{:d}".format(len(vocab_processor.vocabulary_)))
 
