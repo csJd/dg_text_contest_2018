@@ -11,14 +11,6 @@ import collections
 import pickle as pk
 import tqdm
 
-# 建立n-gram
-def create_n_gram_sentence(phrase_train_file):
-    #
-    with open(phrase_train_file,'r',encoding='utf-8') as f:
-
-        pass
-    pass
-
 # 根据权重方案进行过滤
 def pre_processed_sen(bdc_pickle,tf_pickle,dc_pickle,df_pickle,train_file,processed_data_file,limit_word=400):
 
@@ -90,7 +82,44 @@ def pre_processed_sen(bdc_pickle,tf_pickle,dc_pickle,df_pickle,train_file,proces
                     processed_word_list.append(word)
             wf.write("{},{}\n".format(label,' '.join(processed_word_list)))
 
+'''
+    此方法对训练数据的每篇文档转化为n-gram的形式
+    输入：最原始的数据文件phrase_level_data.csv
+    输出：转化后的n-gram的文档 {}-gram_phrase_level_data.csv
+'''
+def create_n_gram_sentence(n_gram,phrase_train_file,n_gram_phrase_train_file):
+    #
+    with open(phrase_train_file,'r',encoding='utf-8') as f,\
+            open(n_gram_phrase_train_file,'w',encoding='utf-8') as wf:
+        for line in f.readlines():
+            line_list = line.strip().split(",")
+            label = line_list[0]
+            word_list = line_list[1].strip().split()
+
+            # 构造n_gram文本 #为两个词语的分隔符
+            n_gram_list = ["#".join(word_list[i:i+n_gram]) for i in range(len(word_list)-(n_gram-1))]
+
+            # 保持句子词语的顺序
+            n_gram_arr = []
+            for i in range(len(word_list)):
+                n_gram_arr.append(word_list[i])
+                if i < len(n_gram_list):
+                    n_gram_arr.append(n_gram_list[i])
+
+            # 写入文件
+            wf.write("{},{}\n".format(label," ".join(n_gram_arr)))
+
+
 def main():
+
+    # 将one-gram转变成n-gram
+    n_gram = 2
+    phrase_train_file = from_project_root("lstm_model/processed_data/phrase_level_data.csv")
+    n_gram_phrase_train_file = from_project_root("lstm_model/processed_data/two_gram/{}-gram_phrase_level_data.csv".format(n_gram))
+    create_n_gram_sentence(n_gram,phrase_train_file,n_gram_phrase_train_file)
+    exit()
+
+    # 对于每个句子进行过滤
     bdc_pickle= from_project_root("lstm_model/processed_data/phrase_bdc.pk")
     tf_pickle = from_project_root("lstm_model/processed_data/phrase_tf.pk")
     dc_pickle = from_project_root("lstm_model/processed_data/phrase_level_dc.pk")

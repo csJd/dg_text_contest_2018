@@ -113,9 +113,8 @@ def calc_bdc(data_url=DATA_URL, update=False, ngram=1):
 
 def main():
     calc_tf(ngram=2)
-    # calc_bdc(ngram=1)
+    calc_bdc(ngram=2)
     pass
-
 
 if __name__ == '__main__':
     main()
