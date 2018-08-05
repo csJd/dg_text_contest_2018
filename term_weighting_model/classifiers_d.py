@@ -195,7 +195,7 @@ def main():
     # test_url = from_project_root("data/test_set.csv")
     test_url = None
     X, y, X_test = generate_vectors(train_url, test_url, max_n=3, min_df=3, max_df=0.8,
-                                    max_features=4000000, balanced=False)
+                                    max_features=4000000, balanced=False, re_weight=9)
     train_clfs(clfs, X, y, tuning=True)
     # save_url = from_project_root("processed_data/com_result/result.csv")
     # clf = LinearSVC(C=1)
