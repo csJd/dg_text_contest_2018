@@ -30,14 +30,14 @@ tf.flags.DEFINE_integer("num_epochs", 200, "Number of training epochs (default: 
 tf.flags.DEFINE_integer("evaluate_every", 50, "Evaluate model on dev set after this many steps (default: 100)")
 tf.flags.DEFINE_integer("checkpoint_every", 100, "Save model after this many steps (default: 100)")
 tf.flags.DEFINE_integer("num_checkpoints", 5, "Number of checkpoints to store (default: 5)")
-tf.flags.DEFINE_float("learning_rate",0.2,"Learning rate for the optimizer")
+tf.flags.DEFINE_float("learning_rate",0.01,"Learning rate for the optimizer")
 
 # Misc Parameters
 tf.flags.DEFINE_boolean("allow_soft_placement", True, "Allow device soft device placement")
 tf.flags.DEFINE_boolean("log_device_placement", False, "Log placement of ops on devices")
 
 #Training file path # 训练数据，已经分好词
-tf.flags.DEFINE_string("train_file","lstm_model/processed_data/filter_phrase_level_data_train.csv","Training file")
+tf.flags.DEFINE_string("train_file","lstm_model/processed_data/filter_phrase_level_data_50_train.csv","Training file")
 
 FLAGS = tf.flags.FLAGS
 # FLAGS._parse_flags()

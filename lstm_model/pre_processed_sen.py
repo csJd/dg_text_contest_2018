@@ -11,6 +11,15 @@ import collections
 import pickle as pk
 import tqdm
 
+# 建立n-gram
+def create_n_gram_sentence(phrase_train_file):
+    #
+    with open(phrase_train_file,'r',encoding='utf-8') as f:
+
+        pass
+    pass
+
+# 根据权重方案进行过滤
 def pre_processed_sen(bdc_pickle,tf_pickle,dc_pickle,df_pickle,train_file,processed_data_file,limit_word=400):
 
     """
@@ -46,9 +55,9 @@ def pre_processed_sen(bdc_pickle,tf_pickle,dc_pickle,df_pickle,train_file,proces
             # 过滤超高词频的词语==========================
             filted_word_list = []
             for word in word_list:
-                if int(df_dict[word]) <= 1 :
+                if int(df_dict[word]) <= 3 :
                     continue
-                if tf_dict[word] <= 2:
+                if tf_dict[word] <= 5:
                     continue
                 filted_word_list.append(word)
 
@@ -88,7 +97,7 @@ def main():
     df_pickle = from_project_root("lstm_model/processed_data/df_pickle.pk")
 
     train_file = from_project_root("lstm_model/processed_data/phrase_level_data.csv")
-    processed_data_file = from_project_root("lstm_model/processed_data/filter_phrase_level_data.csv")
+    processed_data_file = from_project_root("lstm_model/processed_data/filter_phrase_level_data_200.csv")
     pre_processed_sen(bdc_pickle, tf_pickle,dc_pickle,df_pickle,train_file, processed_data_file, limit_word=200)
     pass
 
