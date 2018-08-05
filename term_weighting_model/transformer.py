@@ -35,7 +35,10 @@ class TfdcTransformer(BaseEstimator, TransformerMixin):
         zero divisions and zero log.
     sublinear_tf : boolean, default=False
         Apply sublinear tf scaling, i.e. replace tf with 1 + log(tf).
-    balanced: use bdc instead of dc
+    balanced: boolean, default=False
+        use bdc instead of dc
+    re_weight: int or float, default=0
+        if not zero, use 1 + re_weight*dc instead of dc
 
     References
     ----------
@@ -43,13 +46,14 @@ class TfdcTransformer(BaseEstimator, TransformerMixin):
                      Text Categorization in VSM`
     """
 
-    def __init__(self, norm='l2', use_dc=True, smooth_dc=True,
-                 sublinear_tf=False, balanced=False):
+    def __init__(self, norm='l2', use_dc=True, smooth_dc=True, sublinear_tf=False,
+                 balanced=False, re_weight=0):
         self.norm = norm
         self.use_dc = use_dc
         self.smooth_dc = smooth_dc
         self.sublinear_tf = sublinear_tf
         self.balanced = balanced
+        self.re_weight = re_weight
 
     def fit(self, X, y):
         """Learn the idf vector (global term weights)
@@ -102,6 +106,10 @@ class TfdcTransformer(BaseEstimator, TransformerMixin):
                     label_h = label_tps / tps
                     label_h[label_h == 0] = smooth_dc  # to avoid zero log
                     dc = dc + label_h * np.log(label_h) / np.log(len(labels))
+
+            if self.re_weight > 0:
+                dc = 1 + dc * self.re_weight
+
             self._dc_diag = sp.spdiags(dc, diags=0, m=n_features, n=n_features, format='csr')
         return self
 
@@ -153,8 +161,8 @@ class TfdcTransformer(BaseEstimator, TransformerMixin):
         return np.ravel(self._dc_diag.sum(axis=0))
 
 
-def generate_vectors(train_url, test_url=None, column='word_seg', trans=None, max_n=3, min_df=3,
-                     max_df=0.8, max_features=3000000, sublinear_tf=True, balanced=False):
+def generate_vectors(train_url, test_url=None, column='word_seg', trans=None, max_n=3, min_df=3, max_df=0.8,
+                     max_features=3000000, sublinear_tf=True, balanced=False, re_weight=9):
     """ generate X, y, X_test vectors with csv(with header) url use pandas and CountVectorizer
 
     Args:
@@ -168,11 +176,13 @@ def generate_vectors(train_url, test_url=None, column='word_seg', trans=None, ma
         max_features: max_features for CountVectorizer
         sublinear_tf: sublinear_tf for default TfdcTransformer
         balanced: balanced for default TfdcTransformer
+        re_weight: re_weight for TfdcTransformer
 
     Returns:
         X, y, X_test
 
     """
+    print("loading data from %s with pandas" % train_url)
     train_df = pd.read_csv(train_url)
 
     # vectorizer
@@ -181,14 +191,16 @@ def generate_vectors(train_url, test_url=None, column='word_seg', trans=None, ma
     print(vec.get_params())
     # transformer
     if trans is None:
-        trans = TfdcTransformer(sublinear_tf=sublinear_tf, balanced=balanced)
+        trans = TfdcTransformer(sublinear_tf=sublinear_tf, balanced=balanced, re_weight=re_weight)
 
     s_time = time()
-    print("vectorizing", train_url)
+    print("finish loading, vectorizing")
     X = vec.fit_transform(train_df[column])
+    print("vectorizer params:", vec.get_params())
     e_time = time()
 
     print("finish vectorizing in %.3f seconds, transforming" % (e_time - s_time))
+    print("transformer params:", trans.get_params())
     y = np.array((train_df["class"]).astype(int))
     X = trans.fit_transform(X, y)
 

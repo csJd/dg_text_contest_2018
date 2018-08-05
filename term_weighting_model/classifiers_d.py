@@ -15,7 +15,7 @@ import pandas as pd
 from utils.path_util import from_project_root
 from term_weighting_model.transformer import generate_vectors
 
-N_JOBS = 4
+N_JOBS = -1
 CV = 5
 
 
@@ -36,11 +36,12 @@ def tune_clf(clf, X, y, param_grid):
         print("None as param_grid is invalid, the original clf will be returned")
         return clf
     s_time = time()
-    clf = GridSearchCV(clf, param_grid, scoring='f1_macro', n_jobs=N_JOBS, cv=CV, error_score=0, verbose=True)
+    clf = GridSearchCV(clf, param_grid, scoring='f1_macro', n_jobs=N_JOBS, cv=CV,
+                       error_score=0, verbose=True)
     clf.fit(X, y)
     e_time = time()
     # print cv results
-    print("grid_search_cv is done in %.3f seconds", e_time - s_time)
+    print("grid_search_cv is done in %.3f seconds" % (e_time - s_time))
     print("mean_test_macro_f1 = %f\n" % clf.cv_results_['mean_test_score'])
     return clf
 
@@ -119,7 +120,7 @@ def init_clfs():
     return clfs
 
 
-def train_clfs(clfs, X, y, test_size=0.2, tuning=False):
+def train_clfs(clfs, X, y, test_size=0.2, tuning=False, random_state=None):
     """ train clfs
 
     Args:
@@ -128,11 +129,12 @@ def train_clfs(clfs, X, y, test_size=0.2, tuning=False):
         y: target y of shape (samples_num,)
         test_size: test_size for train_test_split
         tuning: whether to tune parameters use param_grid_cv
+        random_state: random_state for train_test_split
 
     """
 
     # split data into train and test
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
     print("train data shape", X_train.shape, y_train.shape)
     print("dev data shape  ", X_test.shape, y_test.shape)
     for clf_name in clfs:
@@ -170,16 +172,17 @@ def train_and_gen_result(clf, X, y, X_test, save_url='result.csv'):
 
     """
     clf.fit(X, y)
-    preds = clf.predict(X_test)
+    pred = clf.predict(X_test)
 
     result_file = open(save_url, 'w')
     result_file.write("id,class" + "\n")
-    for i, label in enumerate(preds):
+    for i, label in enumerate(pred):
         result_file.write(str(i) + "," + str(label) + "\n")
     result_file.close()
 
 
 def main():
+
     clfs = init_linear_clfs()
 
     # load from pickle
@@ -189,9 +192,14 @@ def main():
 
     # generate from original csv
     train_url = from_project_root("data/train_set.csv")
-    X, y, _ = generate_vectors(train_url, max_n=3, min_df=3, max_df=0.8,
-                               max_features=3000000, balanced=False)
-    train_clfs(clfs, X, y)
+    # test_url = from_project_root("data/test_set.csv")
+    test_url = None
+    X, y, X_test = generate_vectors(train_url, test_url, max_n=3, min_df=3, max_df=0.8,
+                                    max_features=4000000, balanced=False)
+    train_clfs(clfs, X, y, tuning=True)
+    # save_url = from_project_root("processed_data/com_result/result.csv")
+    # clf = LinearSVC(C=1)
+    # train_and_gen_result(clf, X, y, X_test, save_url)
     pass
 
 
