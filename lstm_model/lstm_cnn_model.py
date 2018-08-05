@@ -15,7 +15,8 @@ def length(sequence):
 
 class LSTM_CNN_Model():
 
-    def __init__(self,num_classes,init_embedding_mat,max_doc_length,filter_sizes,num_filters,embedding_size=300,hidden_size=50):
+    def __init__(self,num_classes,init_embedding_mat,max_doc_length,filter_sizes,
+                 num_filters,embedding_size=300,hidden_size=50):
 
         self.num_classes = num_classes
         self.embedding_size = embedding_size

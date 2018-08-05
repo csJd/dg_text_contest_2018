@@ -9,9 +9,11 @@
 from utils.path_util import from_project_root
 import collections
 import pickle as pk
+import utils.json_util as ju
 import tqdm
 
-def pre_processed_sen(bdc_pickle,tf_pickle,dc_pickle,df_pickle,train_file,processed_data_file,limit_word=400):
+# 根据权重方案进行过滤
+def pre_processed_sen(bdc_pickle,tf_pickle,dc_pickle,train_file,processed_data_file,limit_word=400):
 
     """
     :param bdc_pickle: 根据全局计算出来的bdc权重
@@ -21,13 +23,11 @@ def pre_processed_sen(bdc_pickle,tf_pickle,dc_pickle,df_pickle,train_file,proces
     :return:
     """
     # 加载bdc_value
-    bdc_dict = pk.load(open(bdc_pickle,'rb'))
+    # bdc_dict = ju.load(bdc_pickle)
     # 加载tf_value
-    tf_dict = pk.load(open(tf_pickle,'rb'))
+    tf_dict = ju.load(tf_pickle)
     # 加载dc_value
-    dc_dict = pk.load(open(dc_pickle,'rb'))
-    # 加载df_value
-    df_dict = pk.load(open(df_pickle,'rb'))
+    dc_dict = ju.load(dc_pickle)
     line_count = 0
     # 读取训练文档
     with open(train_file,'r',encoding='utf-8') as f,open(processed_data_file,'w',encoding='utf-8') as wf:
@@ -42,13 +42,12 @@ def pre_processed_sen(bdc_pickle,tf_pickle,dc_pickle,df_pickle,train_file,proces
             # 记录词语的权重
             label = line_list[0]
             word_list = line_list[1].strip().split()
+            word_list = [" ".join(word.split("#")) for word in word_list]
 
             # 过滤超高词频的词语==========================
             filted_word_list = []
             for word in word_list:
-                if int(df_dict[word]) <= 1 :
-                    continue
-                if tf_dict[word] <= 2:
+                if tf_dict[word] <= 3 or tf_dict[word] > 7000 :
                     continue
                 filted_word_list.append(word)
 
@@ -68,6 +67,7 @@ def pre_processed_sen(bdc_pickle,tf_pickle,dc_pickle,df_pickle,train_file,proces
 
             if len(sorted_word_tuple) < limit_word:  # 如果小于阈值,无需压缩
                 processed_word_list = filted_word_list
+                processed_word_list = ["#".join(word.split(' ')) for word in processed_word_list]
                 wf.write("{},{}\n".format(label, ' '.join(processed_word_list)))
                 continue
 
@@ -79,17 +79,54 @@ def pre_processed_sen(bdc_pickle,tf_pickle,dc_pickle,df_pickle,train_file,proces
             for word in filted_word_list:
                 if word in keep_words:
                     processed_word_list.append(word)
+            processed_word_list = ["#".join(word.split(' ')) for word in processed_word_list]
             wf.write("{},{}\n".format(label,' '.join(processed_word_list)))
 
-def main():
-    bdc_pickle= from_project_root("lstm_model/processed_data/phrase_bdc.pk")
-    tf_pickle = from_project_root("lstm_model/processed_data/phrase_tf.pk")
-    dc_pickle = from_project_root("lstm_model/processed_data/phrase_level_dc.pk")
-    df_pickle = from_project_root("lstm_model/processed_data/df_pickle.pk")
+'''
+    此方法对训练数据的每篇文档转化为n-gram的形式
+    输入：最原始的数据文件phrase_level_data.csv
+    输出：转化后的n-gram的文档 {}-gram_phrase_level_data.csv
+'''
+def create_n_gram_sentence(n_gram,phrase_train_file,n_gram_phrase_train_file):
+    #
+    with open(phrase_train_file,'r',encoding='utf-8') as f,\
+            open(n_gram_phrase_train_file,'w',encoding='utf-8') as wf:
+        for line in f.readlines():
+            line_list = line.strip().split(",")
+            label = line_list[0]
+            word_list = line_list[1].strip().split()
 
-    train_file = from_project_root("lstm_model/processed_data/phrase_level_data.csv")
-    processed_data_file = from_project_root("lstm_model/processed_data/filter_phrase_level_data.csv")
-    pre_processed_sen(bdc_pickle, tf_pickle,dc_pickle,df_pickle,train_file, processed_data_file, limit_word=200)
+            # 构造n_gram文本 #为两个词语的分隔符
+            n_gram_list = ["#".join(word_list[i:i+n_gram]) for i in range(len(word_list)-(n_gram-1))]
+
+            # 保持句子词语的顺序
+            n_gram_arr = []
+            for i in range(len(word_list)):
+                n_gram_arr.append(word_list[i])
+                if i < len(n_gram_list):
+                    n_gram_arr.append(n_gram_list[i])
+
+            # 写入文件
+            wf.write("{},{}\n".format(label," ".join(n_gram_arr)))
+
+
+def main():
+
+    # 将one-gram转变成n-gram
+    # n_gram = 2
+    # phrase_train_file = from_project_root("lstm_model/processed_data/phrase_level_data.csv")
+    # n_gram_phrase_train_file = from_project_root("lstm_model/processed_data/two_gram/{}-gram_phrase_level_data.csv".format(n_gram))
+    # create_n_gram_sentence(n_gram,phrase_train_file,n_gram_phrase_train_file)
+    # exit()
+
+    # 对于每个句子进行过滤
+    bdc_pickle= from_project_root("lstm_model/processed_data/two_gram/phrase_level_2gram_bdc.json")
+    tf_pickle = from_project_root("lstm_model/processed_data/two_gram/phrase_level2gram_tf.json")
+    dc_pickle = from_project_root("lstm_model/processed_data/two_gram/phrase_level_2gram_dc.json")
+
+    train_file = from_project_root("lstm_model/processed_data/two_gram/2-gram_phrase_level_data.csv")
+    processed_data_file = from_project_root("lstm_model/processed_data/two_gram/filter_2-gram_phrase_level_data.csv")
+    pre_processed_sen(bdc_pickle, tf_pickle,dc_pickle,train_file, processed_data_file, limit_word=500)
     pass
 
 if __name__ == '__main__':

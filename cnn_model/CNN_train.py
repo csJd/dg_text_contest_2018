@@ -15,29 +15,30 @@ from utils.path_util import from_project_root
 #==================================================================================================
 
 #dev percent 验证集的大小
-tf.flags.DEFINE_float("dev_sample_percentage",0.002,"Percentage of the training data to use for validation")
+tf.flags.DEFINE_float("dev_sample_percentage",0.01,"Percentage of the training data to use for validation")
 
 #Model HypereParameters
 tf.flags.DEFINE_integer("embedding_dim",64,"Dimensionality of character embedding")
-tf.flags.DEFINE_string("filter_size","2,3,4,5,7,9,11","the size of the filter")
+tf.flags.DEFINE_string("filter_size","2,3,4","the size of the filter")
 tf.flags.DEFINE_integer("num_filters",64,"the num of channels in per filter")
 tf.flags.DEFINE_float("dropout_keep_prob",0.9,"Dropout keep probability for regularization")
 tf.flags.DEFINE_float("l2_reg_lambda",0.0,"l2 regularization lambda fro regularization")
 
 #Training Parameters
 tf.flags.DEFINE_integer("batch_size", 100, "Batch Size (default: 64)")
-tf.flags.DEFINE_integer("num_epochs", 200, "Number of training epochs (default: 200)")
+tf.flags.DEFINE_integer("num_epochs", 5, "Number of training epochs (default: 200)")
 tf.flags.DEFINE_integer("evaluate_every", 50, "Evaluate model on dev set after this many steps (default: 100)")
 tf.flags.DEFINE_integer("checkpoint_every", 100, "Save model after this many steps (default: 100)")
 tf.flags.DEFINE_integer("num_checkpoints", 5, "Number of checkpoints to store (default: 5)")
-tf.flags.DEFINE_float("learning_rate",0.2,"Learning rate for the optimizer")
+tf.flags.DEFINE_float("learning_rate",0.05,"Learning rate for the optimizer")
+tf.flags.DEFINE_integer("max_doc_len", 1000, "Number of checkpoints to store (default: 5)")
 
 # Misc Parameters
 tf.flags.DEFINE_boolean("allow_soft_placement", True, "Allow device soft device placement")
 tf.flags.DEFINE_boolean("log_device_placement", False, "Log placement of ops on devices")
 
 #Training file path # 训练数据，已经分好词
-tf.flags.DEFINE_string("train_file","lstm_model/processed_data/filter_phrase_level_data_train.csv","Training file")
+tf.flags.DEFINE_string("train_file","lstm_model/processed_data/two_gram/filter_2-gram_phrase_level_data_dev.csv","Training file")
 
 FLAGS = tf.flags.FLAGS
 # FLAGS._parse_flags()
@@ -65,7 +66,7 @@ x_text,y = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file))
 
 #Build Vacabulary  由于卷积神经网络需要固定句子的长度
 max_document_length = max(len(x.split(" ")) for x in x_text)
-vocab_processor = learn.preprocessing.VocabularyProcessor(700) #创建一个字典处理器,并设置句子固定长度
+vocab_processor = learn.preprocessing.VocabularyProcessor(FLAGS.max_doc_len) #创建一个字典处理器,并设置句子固定长度
 x = np.array( list( vocab_processor.fit_transform(x_text)))   #x就转化为字典的下表表示的数组
 
 #格式化输出

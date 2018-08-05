@@ -17,16 +17,16 @@ import pickle as pk
 tf.flags.DEFINE_boolean("allow_soft_placement", True, "Allow device soft device placement")
 tf.flags.DEFINE_boolean("log_device_placement", False, "Log placement of ops on devices")
 # 预测文件路径
-tf.flags.DEFINE_string("predict_filename","lstm_model/processed_data/filter_phrase_level_data_dev.csv","predict_filename path")
+tf.flags.DEFINE_string("predict_filename","lstm_model/processed_data/two_gram/filter_2-gram_phrase_level_data_dev.csv","predict_filename path")
 
 # vocabulary path
-tf.flags.DEFINE_string("vocabulary_path","./runs/1533137377/vocab","vocabulary_path")
+tf.flags.DEFINE_string("vocabulary_path","./runs/1533471123/vocab","vocabulary_path")
 tf.flags.DEFINE_string("vocab_file","lstm_model/processed_data/filter_phrase_level_vocab.pk","vocab file url")
-tf.flags.DEFINE_integer("max_word_in_sent",800,"max_word_in_sent")
+tf.flags.DEFINE_integer("max_word_in_sent",1000,"max_word_in_sent")
 # model checkpoint path
-tf.flags.DEFINE_string("meta_path","./runs/1533137377/checkpoints/model-1700.meta","meta_path")
-tf.flags.DEFINE_string("model_path","./runs/1533137377/checkpoints/model-1700","model_path")
-tf.flags.DEFINE_string("result_path","./result/result_predict-1700.csv","result path")
+tf.flags.DEFINE_string("meta_path","./runs/1533471123/checkpoints/model-1300.meta","meta_path")
+tf.flags.DEFINE_string("model_path","./runs/1533471123/checkpoints/model-1300","model_path")
+tf.flags.DEFINE_string("result_path","./result/result_predict-1300.csv","result path")
 
 FLAGS = tf.flags.FLAGS
 # FLAGS._parse_flags()
@@ -35,15 +35,19 @@ FLAGS = tf.flags.FLAGS
 # 获取预测文本
 predict_context,predict_labels = Data_helper.get_predict_data(from_project_root(FLAGS.predict_filename))
 
-# 加载词典
-vocab_dict = pk.load(open(from_project_root(FLAGS.vocab_file),'rb'))
-x_vecs = []
-for x in predict_context:
-    word_list = x.strip().split()
-    x_vec = [0] * FLAGS.max_word_in_sent
-    for i in range(min(FLAGS.max_word_in_sent,len(word_list))):
-        x_vec[i] = vocab_dict[word_list[i]]
-    x_vecs.append(x_vec)
+# 加载自己定义好的词典
+# vocab_dict = pk.load(open(from_project_root(FLAGS.vocab_file),'rb'))
+# x_vecs = []
+# for x in predict_context:
+#     word_list = x.strip().split()
+#     x_vec = [0] * FLAGS.max_word_in_sent
+#     for i in range(min(FLAGS.max_word_in_sent,len(word_list))):
+#         x_vec[i] = vocab_dict[word_list[i]]
+#     x_vecs.append(x_vec)
+
+vocab_processor = learn.preprocessing.VocabularyProcessor.restore(FLAGS.vocabulary_path)
+x_vecs = np.array(list(vocab_processor.transform(predict_context)))
+
 
 # predition
 print("prediction.......")
@@ -72,7 +76,7 @@ with graph.as_default():
         #
         predictions = graph.get_operation_by_name("fully_connection_layer/prediction").outputs[0]
 
-        per_predict_limit = 50
+        per_predict_limit = 100
         sum_predict = len(x_vecs)
         batch_size = int(sum_predict / per_predict_limit)
 

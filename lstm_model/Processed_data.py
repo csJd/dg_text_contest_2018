@@ -64,12 +64,12 @@ def get_average_sen_len(filename):
             sen_count += 1
             line_list = line.strip().split(',')
             sen_len = len(line_list[1].strip().split())
-            if sen_len < 600:
+            if sen_len < 800:
                 limit_count += 1
             sum_len += sen_len
     average_len = sum_len / sen_count
     print("句子平均长度：{}".format(average_len))
-    print("句子长度大于250: {}".format(limit_count))
+    print("限定条件下: {}".format(limit_count))
     return average_len
 
 # 从phrase_level_dc.csv中提取df——词语的文档数
@@ -174,6 +174,14 @@ def train_dev_split_for_data_word_bag(pca_tfbdc_1gram_300000_Xy,filter_phrase_le
     f2.close()
     pass
 
+# 根据标签提取训练集
+def extract_data_by_label(train_file,index_arr,save_file):
+
+    #
+    with open(train_file,'r',encoding='utf-8') as f,open(save_file,'w',encoding="utf-8"):
+        pass
+    pass
+
 
 def main():
 
@@ -196,7 +204,7 @@ def main():
     # exit()
 
     # 计算平均句子长度
-    # get_average_sen_len(from_project_root("lstm_model/processed_data/filtered_phrase_data_train.csv"))
+    # get_average_sen_len(from_project_root("lstm_model/processed_data/two_gram/filter_2-gram_phrase_level_data.csv"))
     # exit()
 
     # extract data
@@ -205,14 +213,14 @@ def main():
     # exit()
 
     # 划分数据集
-    # train_dev_split(from_project_root("lstm_model/processed_data/filter_phrase_level_data.csv"))
-    # exit()
+    train_dev_split(from_project_root("lstm_model/processed_data/two_gram/filter_2-gram_phrase_level_data.csv"))
+    exit()
 
     # 同时划分 data 和 word_bag
     # 编写占内存太大有问题！！ 应该使用from sklearn.model_selection import train_test_split
-    pca_tfbdc_1gram_300000_Xy = from_project_root("lstm_model/processed_data/vector/pca_tfbdc_1gram_300000_Xy.csv")
-    filter_phrase_level_data_file = from_project_root("lstm_model/processed_data/filter_phrase_level_data.csv")
-    train_dev_split_for_data_word_bag(pca_tfbdc_1gram_300000_Xy,filter_phrase_level_data_file)
+    # pca_tfbdc_1gram_300000_Xy = from_project_root("lstm_model/processed_data/vector/pca_tfbdc_1gram_300000_Xy.csv")
+    # filter_phrase_level_data_file = from_project_root("lstm_model/processed_data/filter_phrase_level_data.csv")
+    # train_dev_split_for_data_word_bag(pca_tfbdc_1gram_300000_Xy,filter_phrase_level_data_file)
 
     # tf_pickle = from_project_root("lstm_model/processed_data/phrase_tf.pk")
     # transfer_tf
