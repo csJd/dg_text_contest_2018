@@ -24,9 +24,9 @@ tf.flags.DEFINE_string("vocabulary_path","./runs/1533471123/vocab","vocabulary_p
 tf.flags.DEFINE_string("vocab_file","lstm_model/processed_data/filter_phrase_level_vocab.pk","vocab file url")
 tf.flags.DEFINE_integer("max_word_in_sent",1000,"max_word_in_sent")
 # model checkpoint path
-tf.flags.DEFINE_string("meta_path","./runs/1533471123/checkpoints/model-1200.meta","meta_path")
-tf.flags.DEFINE_string("model_path","./runs/1533471123/checkpoints/model-1200","model_path")
-tf.flags.DEFINE_string("result_path","./result/result_predict-1200.csv","result path")
+tf.flags.DEFINE_string("meta_path","./runs/1533471123/checkpoints/model-1300.meta","meta_path")
+tf.flags.DEFINE_string("model_path","./runs/1533471123/checkpoints/model-1300","model_path")
+tf.flags.DEFINE_string("result_path","./result/result_predict-1300.csv","result path")
 
 FLAGS = tf.flags.FLAGS
 # FLAGS._parse_flags()
