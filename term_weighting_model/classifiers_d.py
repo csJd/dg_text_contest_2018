@@ -42,7 +42,7 @@ def tune_clf(clf, X, y, param_grid):
     e_time = time()
     # print cv results
     print("grid_search_cv is done in %.3f seconds" % (e_time - s_time))
-    print("mean_test_macro_f1 = %f\n" % clf.cv_results_['mean_test_score'])
+    print("mean_test_macro_f1 =", clf.cv_results_['mean_test_score'])
     return clf
 
 
@@ -186,18 +186,20 @@ def main():
     clfs = init_linear_clfs()
 
     # load from pickle
-    # xy_url = from_project_root("processed_data/vector/dc_3gram_4000000_Xy.pk")
-    # print("loading data from", xy_url)
-    # X, y = joblib.load(xy_url)
+    pk_url = from_project_root("processed_data/vector/dc_3gram_4000000_Xy.pk")
+    print("loading data from", pk_url)
+    X, y, X_test = joblib.load(pk_url)
 
     # generate from original csv
-    train_url = from_project_root("data/train_set.csv")
+    # train_url = from_project_root("data/train_set.csv")
     # test_url = from_project_root("data/test_set.csv")
-    test_url = None
-    column = 'word_seg'
-    X, y, X_test = generate_vectors(train_url, test_url, column=column, max_n=3, min_df=3, max_df=0.8,
-                                    max_features=4000000, balanced=False, re_weight=9)
+    # test_url = None
+    # column = 'word_seg'
+    # X, y, X_test = generate_vectors(train_url, test_url, column=column, max_n=3, min_df=3, max_df=0.8,
+    #                                 max_features=4000000, balanced=False, re_weight=9)
+
     train_clfs(clfs, X, y, tuning=True)
+
     # save_url = from_project_root("processed_data/com_result/result.csv")
     # clf = LinearSVC(C=1)
     # train_and_gen_result(clf, X, y, X_test, save_url)

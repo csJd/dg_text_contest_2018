@@ -61,7 +61,7 @@ def load_params():
             'column': ['word_seg'],
             'max_n': [1],
             'min_df': [2, 3],
-            'max_df': [0.9],
+            'max_df': [0.8],
             'max_features': [200000],
             'balanced': [False],
             're_weight': [0]
@@ -70,10 +70,10 @@ def load_params():
             'column': ['word_seg', 'article'],
             'max_n': [2],
             'min_df': [3],
-            'max_df': [0.8],
-            'max_features': [1000000, 2000000],
-            'balanced': [False],
-            're_weight': [9]
+            'max_df': [0.8, 0.9],
+            'max_features': [500000, 2000000],
+            'balanced': [False, True],
+            're_weight': [0, 9]
         },
         {
             'column': ['word_seg', 'article'],
@@ -81,8 +81,8 @@ def load_params():
             'min_df': [3],
             'max_df': [0.8],
             'max_features': [1000000, 4000000],
-            'balanced': [False],
-            're_weight': [9]
+            'balanced': [False, True],
+            're_weight': [0, 9]
         },
     ]
 
