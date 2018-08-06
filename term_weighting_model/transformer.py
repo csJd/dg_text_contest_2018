@@ -8,6 +8,8 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from collections import defaultdict
 from sklearn.feature_extraction.text import _document_frequency
 from time import time
+from os.path import exists
+from sklearn.externals import joblib
 
 import numpy as np
 import pandas as pd
@@ -162,7 +164,7 @@ class TfdcTransformer(BaseEstimator, TransformerMixin):
 
 
 def generate_vectors(train_url, test_url=None, column='word_seg', trans=None, max_n=3, min_df=3, max_df=0.8,
-                     max_features=3000000, sublinear_tf=True, balanced=False, re_weight=0):
+                     max_features=3000000, sublinear_tf=True, balanced=False, re_weight=0, verbose=1):
     """ generate X, y, X_test vectors with csv(with header) url use pandas and CountVectorizer
 
     Args:
@@ -177,40 +179,52 @@ def generate_vectors(train_url, test_url=None, column='word_seg', trans=None, ma
         sublinear_tf: sublinear_tf for default TfdcTransformer
         balanced: balanced for default TfdcTransformer
         re_weight: re_weight for TfdcTransformer
+        verbose: True to show more information
 
     Returns:
         X, y, X_test
 
     """
     print("loading '%s' level data from %s with pandas" % (column, train_url))
-    train_df = pd.read_csv(train_url)
+
+    train_pk = train_url.replace('.csv', '_df.pk')
+    if exists(train_pk):
+        train_df = joblib.load(train_pk)
+    else:
+        train_df = pd.read_csv(train_url)
+        joblib.dump(train_df, train_pk)
 
     # vectorizer
     vec = CountVectorizer(ngram_range=(1, max_n), min_df=min_df, max_df=max_df,
                           max_features=max_features, token_pattern='\w+')
     s_time = time()
-    print("finish loading, vectorizing")
-    print("vectorizer params:", vec.get_params())
+    verbose and print("finish loading, vectorizing")
+    verbose and print("vectorizer params:", vec.get_params())
     X = vec.fit_transform(train_df[column])
     e_time = time()
-    print("finish vectorizing in %.3f seconds, transforming" % (e_time - s_time))
+    verbose and print("finish vectorizing in %.3f seconds, transforming" % (e_time - s_time))
 
     # transformer
     if trans is None:
         trans = TfdcTransformer(sublinear_tf=sublinear_tf, balanced=balanced, re_weight=re_weight)
-    print("transformer params:", trans.get_params())
+    verbose and print("transformer params:", trans.get_params())
     y = np.array((train_df["class"]).astype(int))
     X = trans.fit_transform(X, y)
 
     X_test = None
     if test_url:
-        print("transforming test set")
-        test_df = pd.read_csv(test_url)
+        verbose and print("transforming test set")
+        test_pk = test_url.replace('.csv', '_df.pk')
+        if exists(test_pk):
+            test_df = joblib.load(test_pk)
+        else:
+            test_df = pd.read_csv(test_url)
+            joblib.dump(test_df, test_pk)
         X_test = vec.transform(test_df[column])
         X_test = trans.transform(X_test)
 
     s_time = time()
-    print("finish transforming in %.3f seconds\n" % (s_time - e_time))
+    verbose and print("finish transforming in %.3f seconds\n" % (s_time - e_time))
     return X, y, X_test
 
 
