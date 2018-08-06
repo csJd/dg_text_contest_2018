@@ -8,14 +8,12 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from collections import defaultdict
 from sklearn.feature_extraction.text import _document_frequency
 from time import time
-from os.path import exists
-from sklearn.externals import joblib
 
 import numpy as np
-import pandas as pd
 import scipy.sparse as sp
 
 from utils.path_util import from_project_root
+from utils.data_util import load_to_df
 
 
 class TfdcTransformer(BaseEstimator, TransformerMixin):
@@ -187,12 +185,7 @@ def generate_vectors(train_url, test_url=None, column='word_seg', trans=None, ma
     """
     print("loading '%s' level data from %s with pandas" % (column, train_url))
 
-    train_pk = train_url.replace('.csv', '_df.pk')
-    if exists(train_pk):
-        train_df = joblib.load(train_pk)
-    else:
-        train_df = pd.read_csv(train_url)
-        joblib.dump(train_df, train_pk)
+    train_df = load_to_df(train_url)
 
     # vectorizer
     vec = CountVectorizer(ngram_range=(1, max_n), min_df=min_df, max_df=max_df,
@@ -214,12 +207,7 @@ def generate_vectors(train_url, test_url=None, column='word_seg', trans=None, ma
     X_test = None
     if test_url:
         verbose and print("transforming test set")
-        test_pk = test_url.replace('.csv', '_df.pk')
-        if exists(test_pk):
-            test_df = joblib.load(test_pk)
-        else:
-            test_df = pd.read_csv(test_url)
-            joblib.dump(test_df, test_pk)
+        test_df = load_to_df(test_url)
         X_test = vec.transform(test_df[column])
         X_test = trans.transform(X_test)
 

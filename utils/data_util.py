@@ -2,14 +2,13 @@
 # created by deng on 7/24/2018
 
 from sklearn.model_selection import train_test_split
-from utils.path_util import from_project_root
+from sklearn.externals import joblib
+from pandas import read_csv
 from time import time
+from os.path import exists
+
 import pre_process.data_util as pdu
-
-
-WORD_LEVEL_DATA_URL = from_project_root("")
-PHRASE_LEVEL_DATA_URL = from_project_root("")
-WEIGHTINGS = ['tf', 'idf', 'lf', 'df', 'bdc']
+from utils.path_util import from_project_root
 
 
 def sentence_to_ngram(sentence, max_n=1):
@@ -58,6 +57,26 @@ def load_raw_data(data_url, ngram=1):
         e_time = time()
         print("finished loading in %.3f seconds\n" % (e_time - s_time))
     return labels, sentences
+
+
+def load_to_df(data_url, save=False):
+    """ load csv data with header into pandas DataFrame
+
+    Args:
+        data_url: str, url to csv data file
+        save: boolean, save loaded df to pickle
+
+    Returns:
+        df, loaded DataFrame
+
+    """
+    pk_url = data_url.replace('.csv', '_df.pk')
+    if exists(pk_url):
+        return joblib.load(pk_url)
+    data_pk = read_csv(data_url)
+    if save:
+        joblib.dump(data_pk, pk_url)
+    return data_pk
 
 
 def train_dev_split(data_url, dev_size=0.2, including_header=False):
@@ -109,16 +128,6 @@ def gen_word_data(data_url):
     # generate processed_data/word_level_data.csv
     word_data_url = from_project_root("processed_data/word_level_data.csv")
     pdu.extract_data(data_url, 'article', word_data_url)
-
-
-def gen_term_weighting(level='phrase', weightings=WEIGHTINGS):
-    """ to generate
-
-    Args:
-        level: choose which level term weightings to generate
-        weightings: which kinds of weightings to generate
-
-    """
 
 
 def main():

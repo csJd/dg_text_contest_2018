@@ -118,13 +118,14 @@ def run_parallel(index, train_url, test_url, params, clf, cv, random_state):
 
     skf = StratifiedKFold(n_splits=cv, random_state=random_state)
     y_pred = np.zeros(y.shape)
-    for train_index, cv_index in skf.split(X, y):
+    for ind, (train_index, cv_index) in enumerate(skf.split(X, y)):
         X_train, X_cv = X[train_index], X[cv_index]
         y_train, y_cv = y[train_index], y[cv_index]
         clf.fit(X_train, y_train)
         y_pred[cv_index] = clf.predict(X_cv)
-        print(index, "cv macro f1: ", f1_score(y_cv, y_pred[cv_index], average='macro'))
-    print("macro f1: ", f1_score(y, y_pred, average='macro'))
+        print("%d/%d cv macro f1 of params set #%d:" % (ind + 1, cv, index),
+              f1_score(y_cv, y_pred[cv_index], average='macro'))
+    print("#%d macro f1: " % index, f1_score(y, y_pred, average='macro'))
 
     y_pred_test = clf.predict(X_test)
     return index, y_pred, y_pred_test
