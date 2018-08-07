@@ -5,6 +5,7 @@ from xgboost.sklearn import XGBClassifier
 from lightgbm.sklearn import LGBMClassifier
 from sklearn.svm import SVC, LinearSVC
 from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.multiclass import OneVsRestClassifier
 from sklearn.linear_model import SGDClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.externals import joblib
@@ -181,6 +182,24 @@ def train_and_gen_result(clf, X, y, X_test, save_url='result.csv'):
     result_file.close()
 
 
+def ovr_predict_proba(clf, X, y, X_test, save_url='probs.pk'):
+    """ train clf and get proba predict
+
+    Args:
+        clf: classifier
+        X: X for fit
+        y: y for fit
+        X_test: X_test for predict
+        save_url: url to save result
+
+    Returns:
+
+    """
+    clf = OneVsRestClassifier(estimator=clf)
+    clf.fit(X, y)
+    joblib.dump(clf.predict_proba(X_test), save_url)
+
+
 def main():
 
     clfs = init_linear_clfs()
@@ -191,17 +210,19 @@ def main():
     X, y, X_test = joblib.load(pk_url)
 
     # generate from original csv
-    # train_url = from_project_root("data/train_set.csv")
-    # test_url = from_project_root("data/test_set.csv")
+    train_url = from_project_root("data/train_set.csv")
+    test_url = from_project_root("data/test_set.csv")
     # test_url = None
-    # column = 'word_seg'
-    # X, y, X_test = generate_vectors(train_url, test_url, column=column, max_n=3, min_df=3, max_df=0.8,
-    #                                 max_features=4000000, balanced=False, re_weight=9)
+    column = 'word_seg'
+    X, y, X_test = generate_vectors(train_url, test_url, column=column, max_n=3, min_df=3, max_df=0.8,
+                                    max_features=4000000, balanced=False, re_weight=9)
 
-    train_clfs(clfs, X, y, tuning=True)
+    # train_clfs(clfs, X, y, tuning=True)
+
+    clf = LinearSVC(C=1)
+    ovr_predict_proba(clf, X, y, X_test, save_url='lsvc_0781_proba.pk')
 
     # save_url = from_project_root("processed_data/com_result/result.csv")
-    # clf = LinearSVC(C=1)
     # train_and_gen_result(clf, X, y, X_test, save_url)
     pass
 
