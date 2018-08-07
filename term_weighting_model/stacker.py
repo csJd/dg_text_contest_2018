@@ -10,9 +10,11 @@ from sklearn.base import clone
 from tqdm import tqdm
 import scipy as sp
 import numpy as np
+import pandas as pd
 
 from utils.path_util import from_project_root
 from term_weighting_model.transformer import generate_vectors
+from utils.data_util import load_to_df
 
 N_JOBS = 4
 CV = 5
@@ -160,6 +162,7 @@ def feature_stacking(cv=CV, random_state=None):
     for ind, y_pred, y_pred_test in rets:
         X_stack_train = np.append(X_stack_train, y_pred)
         X_stack_test = np.append(X_stack_test, y_pred_test)
+
     X = X_stack_train.reshape(len(params_list), -1).transpose()
     y = np.asarray(joblib.load(from_project_root("data/train_set_df.pk"))['class']).ravel()
     X_test = X_stack_test.reshape(len(params_list), -1).transpose()
@@ -167,9 +170,37 @@ def feature_stacking(cv=CV, random_state=None):
     return X, y, X_test
 
 
+def generate_meta_feature(data_url):
+    """ generate meta feature
+
+    Args:
+        data_url: url to data
+
+    Returns:
+
+    """
+    data_df = load_to_df(data_url)
+    meta_df = pd.DataFrame()
+
+    for level in ('word_seg', 'article'):
+        # word num
+        meta_df[level + '_num'] = data_df[level].apply(lambda x: len(x.split()))
+        # different word num
+        meta_df[level + '_unique'] = data_df[level].apply(lambda x: len(set(x.split())))
+        # most common word num
+        meta_df[level + '_common'] = data_df[level].apply(
+            lambda x: max([x.count(t) for t in set(x.split)]))
+
+    # average phrase len
+    meta_df['avg_phrase_len'] = meta_df['article_num'] / meta_df['word_seg_num']
+
+    return meta_df
+
+
 def main():
     # load_params()
-    joblib.dump(feature_stacking(), from_project_root("processed_data/vector/stacked_XyX_test.pk"))
+    save_url = from_project_root("processed_data/vector/stacked_XyX_test_%d.pk" % len(load_params()))
+    joblib.dump(feature_stacking(), save_url)
 
 
 if __name__ == '__main__':
