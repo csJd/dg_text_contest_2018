@@ -113,10 +113,10 @@ def init_clfs():
     clfs['lgbm'] = LGBMClassifier()
 
     # Add xgb model
-    clfs['xgb'] = XGBClassifier()
+    # clfs['xgb'] = XGBClassifier()
 
     # Add svc model
-    clfs['svc'] = SVC()
+    # clfs['svc'] = SVC()
 
     return clfs
 
@@ -201,11 +201,10 @@ def ovr_predict_proba(clf, X, y, X_test, save_url='probs.pk'):
 
 
 def main():
-
-    clfs = init_linear_clfs()
+    clfs = init_clfs()
 
     # load from pickle
-    pk_url = from_project_root("processed_data/vector/dc_3gram_4000000_Xy.pk")
+    pk_url = from_project_root("processed_data/vector/stacked_XyX_test_50.pk")
     print("loading data from", pk_url)
     X, y, X_test = joblib.load(pk_url)
 
@@ -216,7 +215,7 @@ def main():
     # column = 'word_seg'
     # X, y, X_test = generate_vectors(train_url, test_url, column=column, max_n=3, min_df=3, max_df=0.8,
     #                                 max_features=4000000, balanced=False, re_weight=9)
-    train_clfs(clfs, X, y, tuning=True)
+    train_clfs(clfs, X, y, tuning=False)
 
     # clf = SVC(C=1, kernel='linear')
     # ovr_predict_proba(clf, X, y, X_test, save_url=from_project_root('processed_data/vector/lsvc_0781_proba.pk'))

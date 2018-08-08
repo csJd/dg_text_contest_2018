@@ -2,6 +2,8 @@
 # created by deng on 8/5/2018
 
 from itertools import product
+from collections import Counter
+from os.path import exists
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import f1_score, accuracy_score
 from sklearn.svm import LinearSVC
@@ -177,8 +179,13 @@ def generate_meta_feature(data_url):
         data_url: url to data
 
     Returns:
+        generated meta DataFrame
 
     """
+    save_url = data_url.replace('.csv', '_meta_df.pk')
+    if exists(save_url):
+        return joblib.load(save_url)
+
     data_df = load_to_df(data_url)
     meta_df = pd.DataFrame()
 
@@ -188,12 +195,13 @@ def generate_meta_feature(data_url):
         # different word num
         meta_df[level + '_unique'] = data_df[level].apply(lambda x: len(set(x.split())))
         # most common word num
-        meta_df[level + '_common'] = data_df[level].apply(
-            lambda x: max([x.count(t) for t in set(x.split)]))
+        meta_df[[level + '_common', level + '_common_num']] = pd.DataFrame(data_df[level].apply(
+            lambda x: Counter(x.split()).most_common(1)[0]).tolist())
 
     # average phrase len
     meta_df['avg_phrase_len'] = meta_df['article_num'] / meta_df['word_seg_num']
 
+    joblib.dump(meta_df, save_url)
     return meta_df
 
 
