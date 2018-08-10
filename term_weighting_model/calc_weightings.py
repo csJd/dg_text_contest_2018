@@ -9,7 +9,7 @@ import utils.json_util as ju
 import numpy as np
 import collections
 
-DATA_URL = from_project_root("processed_data/phrase_level_data.csv")
+DATA_URL = from_project_root("lstm_model/processed_data/phrase_level_data.csv")
 
 
 def calc_tf(data_url=DATA_URL, update=False, ngram=1):
@@ -112,8 +112,8 @@ def calc_bdc(data_url=DATA_URL, update=False, ngram=1):
 
 
 def main():
-    calc_tf(ngram=2)
-    calc_bdc(ngram=2)
+    calc_tf(ngram=1)
+    calc_bdc(ngram=1)
     pass
 
 if __name__ == '__main__':

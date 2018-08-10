@@ -26,9 +26,10 @@ class LSTM_CNN_Model():
 
         with tf.name_scope("placeholder"):
 
-            # x.shape为 [batch_size,文档单词个数]
+            # x.shape为 [batch_size,max_doc_len]
             self.input_x = tf.placeholder(tf.int32,[None,None],name="input_x")
             self.input_y = tf.placeholder(tf.float32,[None,num_classes],name="input_y")
+            self.term_weight = tf.placeholder(tf.float32,[None,self.max_doc_length],name="term_weight")
 
             self.rnn_input_keep_prob = tf.placeholder(tf.float32,name="rnn_input_keep_prob")
             self.rnn_output_keep_prob = tf.placeholder(tf.float32,name="rnn_output_keep_prob")
@@ -38,7 +39,7 @@ class LSTM_CNN_Model():
 
         # create model
         # share embedding_mat
-        word_embedded_x = self.word2vec(self.input_x,"embedding")
+        word_embedded_x = self.word2vec(self.input_x,self.term_weight,"embedding")
 
         # word_encoder
         # word_encode.shape为 [ -1,max_time,hidden_size*2]
@@ -78,16 +79,18 @@ class LSTM_CNN_Model():
             self.out = self.fully_connection_layer(cnn_output,self.rnn_atten_encode)
 
     # embedding_layer
-    def word2vec(self,input,scope_name):
+    def word2vec(self,input,term_weight,scope_name):
 
         with tf.name_scope(scope_name):
             # 初始化一个vocab_size * embedding_size 的权重矩阵 ，用作初始化embedding
-            # embedding_mat = tf.Variable(self.init_embedding_mat,name="embedding_mat",dtype=tf.float32)
-            # embedding_mat = tf.Variable(tf.truncated_normal((self.vocab_size,self.embedding_size)))
-
+            # input.shape = [batch,max_doc_lenght,embedding_size]
+            # term_weight.shape = [batch,max_doc_length]
+            # word_embedding.shape=[batch,max_doc_len,embedding_size]
             word_embedding = tf.nn.embedding_lookup(self.init_embedding_mat,input,name="word_embedding")
+            expand_term_weight = tf.expand_dims(term_weight, -1) # shape=[batch,max_doc_len,1]
+            weight_word_embedding = tf.multiply(word_embedding,expand_term_weight)
 
-        return word_embedding
+        return weight_word_embedding
 
 
     def BidirectionalGRUEncoder(self,word_encoded,name):
