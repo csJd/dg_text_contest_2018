@@ -1,6 +1,7 @@
 ## 数据集基本情况
     
 * 文件基本说明
+    * 共有 102277个训练样本, 102277个测试样本
     * 第0列(id)       ：文章id  
     * 第1列(article)  ：“字”级别上的表示 
     * 第2列(word_seg) ：“词”级别上的表示  
@@ -12,10 +13,12 @@
         * 11:3571, 12:5326, 13:7907, 14:6740, 15:7511, 16:3220, 17:3094, 18:7066, 19:5524
 
     * phrase_level训练集
-        * 共有 102277个训练样本
-        * 训练集中"phrase_level"上字典维度有 875129 
-    
+        * 字典维度有 875129 
+        * 平均长度 717, 最大 39759, 最小 6
+        
     * word_level训练集
+        * 字典维度 13516
+        * 平均长度 1177, 最大 55804, 最小 50
     
     * test_set.csv
         * 共有102277个测试样本
@@ -29,11 +32,11 @@
 
 * phrase_level_data.csv
     * “phrase”级别的文档表示,分为两列，<label,phrase_doc>  
-    * 调用文件../pre_process/data_util.py中方法extract_data
+    * 调用文件../utils/data_util.py中方法 generate_level_data(..)
 	    
 * word_level_data.csv                        
 	* "word"级别上的文档表示，分为两列，<label,word_doc>
-	* 调用文件../pre_process/data_util.py中方法extract_data(..)
+	* 调用文件../utils/data_util.py中方法 generate_level_data..)
 	
 * \*_tw_processed.csv
     * 经过 term weighting 规则处理过滤的结果
@@ -141,6 +144,7 @@ ju.dump(bdc_dict, bdc_json_url)  # dump dict object to json file
 
 * `data_util`, 提供一些读入和操作数据的公用方法
   * `train_dev_split`, 将csv数据文件8:2划分为固定的训练集和验证集
+  * `generate_level_data`, 生成`processed_data/phrase_level_data.csv`和`processed_data/word_level_data.csv`，可选是否包括`header`
 
 
 ## 初步分工
@@ -160,15 +164,19 @@ ju.dump(bdc_dict, bdc_json_url)  # dump dict object to json file
   * 在保存项目的位置 `git-bash` 运行 `git clone git@github.com:csJd/dg_text.git`，生成的 `dg_text` 为项目文件夹
   
 * push 更改
-  * 将代码复制到 `dg_text` 文件夹恰当位置，运行以下命令push更改，后续修改了项目文件也是这样push更改：
+  * 将代码复制到 `dg_text` 文件夹恰当位置，运行以下命令push更改，以后直接在dg_text文件夹下开发，后续修改了项目文件也是这样push更改：
 ```sh
 git add .
 git commit -m "message"
+git pull
 git push
 ```
+  * 对git不熟悉可以使用Pycharm快捷键`Ctrl + T` pull， 然后`Ctrl + K` push
 
 * pull 更改
   * pull 其他人对项目文件作更改, 运行 `git pull` 即可
+  
+* 使用git尽量不要修改别人写的代码，而是调用其中的方法
    
 
 ## Pycharm 建议设置
