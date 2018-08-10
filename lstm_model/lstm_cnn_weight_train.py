@@ -38,7 +38,7 @@ tf.flags.DEFINE_float("rnn_output_keep_prob",0.9,"rnn_output_keep_prob")
 tf.flags.DEFINE_string("train_file","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_train.csv","train file url")
 tf.flags.DEFINE_string("vocab_file","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_vocab.pk","vocab file url")
 tf.flags.DEFINE_string("vocab_file_csv","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_vocab.csv","vocab csv file url")
-tf.flags.DEFINE_string("word2vec_file","embedding_model/models/w2v_phrase_64_2_5_1.bin","vocab csv file url")
+tf.flags.DEFINE_string("word2vec_file","embedding_model/models/w2v_phrase_64_2_5_3.bin","vocab csv file url")
 tf.flags.DEFINE_string("dc_file","lstm_model/processed_data/one_gram/phrase_level_1gram_dc.json","vocab csv file url")
 
 FLAGS = tf.flags.FLAGS
@@ -113,7 +113,7 @@ dev_sample_index = -1 * int( FLAGS.dev_sample_percentage * len(y))
 
 x_train,x_dev =x[:dev_sample_index],x[dev_sample_index:]
 y_train,y_dev = y[:dev_sample_index],y[dev_sample_index:]
-
+term_weight_train,term_weight_dev = term_weight[:dev_sample_index],term_weight[dev_sample_index:]
 # 清除内存
 del x,y
 
@@ -200,13 +200,13 @@ with tf.Session() as sess:
 
     sess.run(tf.global_variables_initializer())
     # Write vocabulary
-    vocab_processor.save(os.path.join(out_dir, "vocab"))
 
-    def train_step(x_batch,y_batch):
+    def train_step(x_batch,y_batch,term_weight_batch):
 
         feed_dict={
             new_model.input_x:x_batch,
             new_model.input_y:y_batch,
+            new_model.term_weight:term_weight_batch,
             new_model.rnn_input_keep_prob:FLAGS.rnn_input_keep_prob,
             new_model.rnn_output_keep_prob:FLAGS.rnn_output_keep_prob
         }
@@ -217,11 +217,12 @@ with tf.Session() as sess:
 
         return step
 
-    def dev_step(x_batch,y_batch,writer=None):
+    def dev_step(x_batch,y_batch,term_weght_batch,writer=None):
 
         feed_dict={
             new_model.input_x:x_batch,
             new_model.input_y:y_batch,
+            new_model.term_weight:term_weght_batch,
             new_model.rnn_input_keep_prob: 1.0,
             new_model.rnn_output_keep_prob: 1.0
         }
@@ -243,10 +244,11 @@ with tf.Session() as sess:
 
             x_batch = x_train[i:i+FLAGS.batch_size]
             y_batch = y_train[i:i+FLAGS.batch_size]
-            step = train_step(x_batch,y_batch)
+            term_weight_batch = term_weight_train[i:i+FLAGS.batch_size]
+            step = train_step(x_batch,y_batch,term_weight_batch)
 
             if step % FLAGS.evaluate_every == 0:
-                dev_step(x_dev,y_dev,dev_summary_writer)
+                dev_step(x_dev,y_dev,term_weight_dev,dev_summary_writer)
 
             if step % FLAGS.checkpoint_every == 0 :
                 path = saver.save(sess,checkpoint_prefix,global_step=step)
