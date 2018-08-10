@@ -7,10 +7,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.svm import LinearSVC
 from sklearn.externals import joblib
 
-import term_weighting_model.tw_to_vector as tw2v
 from utils.path_util import from_project_root
 from term_weighting_model.transformer import TfdcTransformer
-import utils.json_util as ju
 
 
 def tfdc_baseline():
@@ -58,39 +56,8 @@ def tfidf_baseline():
     result_file.close()
 
 
-def train_and_predict_test(clf, X_train, y_train, X_test):
-    """ train clf use all training data and generate result data of test set
-
-    Args:
-        clf: classifier
-        X_test: X of test data
-        X_train: X of all training data
-        y_train: y of all training data
-
-    """
-
-    print("classifier is training")
-    clf.fit(X_train, y_train)
-    print("training finished, predicting")
-    y_pred = clf.predict(X_test)
-
-    result_file = open(from_project_root('processed_data/com_result/bdc4000000.csv'), 'w')
-    result_file.write("id,class" + "\n")
-    for i, label in enumerate(y_pred):
-        result_file.write(str(i) + "," + str(label) + "\n")
-    result_file.close()
-
-
 def main():
-    column = "word_seg"
-    test_df = pd.read_csv(from_project_root('data/test_set.csv'))
-    sentences = test_df[column]
-    tw_dict = ju.load(from_project_root("processed_data/saved_weight/phrase_level_3gram_bdc.json"))
-    X_test = tw2v.to_vector(sentences, tw_dict, max_features=4000000)
-
-    X, y = joblib.load(from_project_root("processed_data/vector/bdc_3gram_4000000_Xy.pk"))
-    clf = LinearSVC()
-    train_and_predict_test(clf, X, y, X_test)
+    pass
 
 
 if __name__ == '__main__':

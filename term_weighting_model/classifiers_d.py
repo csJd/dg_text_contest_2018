@@ -5,6 +5,7 @@ from xgboost.sklearn import XGBClassifier
 from lightgbm.sklearn import LGBMClassifier
 from sklearn.svm import SVC, LinearSVC
 from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.linear_model import SGDClassifier
 from sklearn.neighbors import KNeighborsClassifier
@@ -67,7 +68,8 @@ def init_param_grid(clf=None, clf_type=None):
         ]
     elif isinstance(clf, LGBMClassifier) or clf_type == 'lgbm':
         param_grid = [
-            {'boosting_type': ['gbdt', 'dart', 'rf'], 'learning_rate': [0.1, 0.01]},
+            # {'boosting_type': ['gbdt', 'dart', 'rf'], 'learning_rate': [0.1, 0.01]},
+            {'boosting_type': ['gbdt'], 'learning_rate': [0.1]},
         ]
     elif isinstance(clf, XGBClassifier) or clf_type == 'xgb':
         param_grid = [
@@ -185,7 +187,7 @@ def train_and_gen_result(clf, X, y, X_test, save_url='result.csv'):
     result_file.close()
 
 
-def ovr_predict_proba(clf, X, y, X_test, save_url='probs.pk'):
+def predict_proba(clf, X, y, X_test, save_url='probas.pk'):
     """ train clf and get proba predict
 
     Args:
@@ -198,15 +200,23 @@ def ovr_predict_proba(clf, X, y, X_test, save_url='probs.pk'):
     Returns:
 
     """
-    clf = OneVsRestClassifier(estimator=clf)
     clf.fit(X, y)
-    joblib.dump(clf.predict_proba(X_test), save_url)
+    if hasattr(clf, 'predict_proba'):
+        proba = clf.predict_proba(X_test)
+    elif hasattr(clf, '_predict_proba_lr'):
+        proba = clf._predict_proba_lr(X_test)
+    else:
+        clf = CalibratedClassifierCV(clf)
+        clf.fit(X, y)
+        proba = clf.predict_proba(X_test)
+    joblib.dump(proba, save_url)
 
 
 def main():
     clfs = init_clfs()
 
     # load from pickle
+    # clfs = init_linear_clfs()
     # pk_url = from_project_root("processed_data/vector/stacked_XyX_test_50.pk")
     # print("loading data from", pk_url)
     # X, y, X_test = joblib.load(pk_url)
@@ -215,8 +225,7 @@ def main():
     train_url = from_project_root("data/train_set.csv")
     # test_url = from_project_root("data/test_set.csv")
     test_url = None
-    column = 'word_seg'
-    X, y, X_test = generate_vectors(train_url, test_url, column=column, max_n=3, min_df=3, max_df=0.8,
+    X, y, X_test = generate_vectors(train_url, test_url, column='word_seg', max_n=3, min_df=3, max_df=0.8,
                                     max_features=2000000, balanced=False, re_weight=9)
 
     X_a, _, X_test_a = generate_vectors(train_url, test_url, column='article', max_n=3, min_df=3, max_df=0.8,
@@ -227,10 +236,10 @@ def main():
     X = sp.hstack([X, X_a])  # append horizontally on sparse matrix
     # X_test = sp.hstack([X_test, X_test_a])
 
-    train_clfs(clfs, X, y, tuning=False)
+    train_clfs(clfs, X, y, tuning=True)
 
     # clf = SVC(C=1, kernel='linear')
-    # ovr_predict_proba(clf, X, y, X_test, save_url=from_project_root('processed_data/vector/lsvc_0781_proba.pk'))
+    # predict_proba(clf, X, y, X_test, save_url=from_project_root('processed_data/vector/lsvc_0781_proba.pk'))
 
     # save_url = from_project_root("processed_data/com_result/result.csv")
     # train_and_gen_result(clf, X, y, X_test, save_url)
