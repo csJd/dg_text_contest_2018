@@ -215,6 +215,6 @@ class LSTM_CNN_Model():
 
         # fc_output.shape = [batch ,num_classes]
         fc_output = tf.contrib.layers.fully_connected(inputs=fc_output1, num_outputs=self.num_classes, activation_fn=None)
-        predict = tf.argmax(fc_output, axis=1, name="prediction") # 预测结果
+        self.predict = tf.argmax(fc_output, axis=1, name="prediction") # 预测结果
 
         return fc_output
