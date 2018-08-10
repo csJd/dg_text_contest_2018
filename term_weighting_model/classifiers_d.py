@@ -206,19 +206,24 @@ def main():
     clfs = init_clfs()
 
     # load from pickle
-    pk_url = from_project_root("processed_data/vector/stacked_XyX_test_50.pk")
-    print("loading data from", pk_url)
-    X, y, X_test = joblib.load(pk_url)
+    # pk_url = from_project_root("processed_data/vector/stacked_XyX_test_50.pk")
+    # print("loading data from", pk_url)
+    # X, y, X_test = joblib.load(pk_url)
 
     # generate from original csv
     train_url = from_project_root("data/train_set.csv")
     test_url = from_project_root("data/test_set.csv")
     # test_url = None
-    # column = 'word_seg'
-    # X, y, X_test = generate_vectors(train_url, test_url, column=column, max_n=3, min_df=3, max_df=0.8,
-    #                                 max_features=4000000, balanced=False, re_weight=9)
+    column = 'word_seg'
+    X, y, X_test = generate_vectors(train_url, test_url, column=column, max_n=3, min_df=3, max_df=0.8,
+                                    max_features=2000000, balanced=False, re_weight=9)
 
-    X = np.append(X, generate_meta_feature(train_url), axis=1)
+    # X_a = generate_meta_feature(train_url)
+    X_a, _, X_test_a = generate_vectors(train_url, test_url, column='article', max_n=3, min_df=3, max_df=0.8,
+                                        max_features=2000000, balanced=False, re_weight=9)
+
+    X = np.append(X, X_a, axis=1)
+    X_test = np.append(X_test, X_test_a, axis=1)
     train_clfs(clfs, X, y, tuning=False)
 
     # clf = SVC(C=1, kernel='linear')
