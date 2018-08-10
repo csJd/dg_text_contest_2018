@@ -7,7 +7,6 @@ from pandas import read_csv
 from time import time
 from os.path import exists
 
-import pre_process.data_util as pdu
 from utils.path_util import from_project_root
 
 
@@ -30,6 +29,22 @@ def sentence_to_ngram(sentence, max_n=1):
     return ngrams
 
 
+def generate_level_data(train_url, header=False, index=False):
+    """ generate phrase level data and word level data
+
+    Args:
+        train_url: original train file url
+        header: True to contain header in generated file
+        index: True to contain index in generated file
+
+    """
+    train_df = load_to_df(train_url)
+    phrase_level_url = from_project_root("processed_data/phrase_level_data.csv")
+    train_df[['class', 'word_seg']].to_csv(phrase_level_url, header=header, index=index)
+    word_level_url = from_project_root("processed_data/word_level_data.csv")
+    train_df[['class', 'article']].to_csv(word_level_url, header=header, index=index)
+
+
 def load_raw_data(data_url, ngram=1):
     """ load data to get labels list and sentences list, set ngram=None if you
         want every sentence to be a space separated string instead of ngram list
@@ -42,6 +57,9 @@ def load_raw_data(data_url, ngram=1):
         (list, list): labels and sentences
 
     """
+    if not exists(data_url):
+        generate_level_data(from_project_root("data/train_set.csv"))
+
     with open(data_url, "r", encoding="utf-8") as data_file:
         labels = list()
         sentences = list()
@@ -106,33 +124,8 @@ def train_dev_split(data_url, dev_size=0.2, including_header=False):
               % (len(lines), len(train_lines), len(dev_lines)))
 
 
-def gen_phrase_data(data_url):
-    """ generate phrase level data (word_seg)
-
-    Args:
-        data_url: original data url
-
-    """
-    # generate processed_data/phrase_level_data.csv
-    phrase_data_url = from_project_root("processed_data/phrase_level_data.csv")
-    pdu.extract_data(data_url, 'word_seg', phrase_data_url)
-
-
-def gen_word_data(data_url):
-    """ generate word level data (article)
-
-    Args:
-        data_url: original data url
-
-    """
-    # generate processed_data/word_level_data.csv
-    word_data_url = from_project_root("processed_data/word_level_data.csv")
-    pdu.extract_data(data_url, 'article', word_data_url)
-
-
 def main():
     data_url = from_project_root("data/train_set.csv")
-    gen_phrase_data(data_url)
     # train_data_url = from_project_root("processed_data/phrase_level_data_train.csv")
     # labels, sentences = load_raw_data(train_data_url)
     pass
