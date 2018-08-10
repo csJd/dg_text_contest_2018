@@ -161,8 +161,8 @@ class TfdcTransformer(BaseEstimator, TransformerMixin):
         return np.ravel(self._dc_diag.sum(axis=0))
 
 
-def generate_vectors(train_url, test_url=None, column='word_seg', trans=None, max_n=3, min_df=3, max_df=0.8,
-                     max_features=3000000, sublinear_tf=True, balanced=False, re_weight=0, verbose=1):
+def generate_vectors(train_url, test_url=None, column='word_seg', trans=None, max_n=1, min_df=3, max_df=0.8,
+                     max_features=100, sublinear_tf=True, balanced=False, re_weight=0, verbose=1):
     """ generate X, y, X_test vectors with csv(with header) url use pandas and CountVectorizer
 
     Args:

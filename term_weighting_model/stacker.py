@@ -18,6 +18,7 @@ from utils.path_util import from_project_root
 from term_weighting_model.transformer import generate_vectors
 from utils.data_util import load_to_df
 
+N_CLASSES = 19
 N_JOBS = 4
 CV = 5
 
@@ -100,7 +101,7 @@ def load_params():
     return params_list
 
 
-def run_parallel(index, train_url, test_url, params, clf, cv, random_state):
+def run_parallel(index, train_url, test_url, params, clf, cv, random_state, proba=False):
     """ for run cvs parallel
 
     Args:
@@ -111,6 +112,7 @@ def run_parallel(index, train_url, test_url, params, clf, cv, random_state):
         clf: classifier
         cv: n_splits for KFold
         random_state: random_state for KFold
+        proba: True to predict probabilities of labels instead label
 
     Returns:
 
@@ -122,25 +124,33 @@ def run_parallel(index, train_url, test_url, params, clf, cv, random_state):
 
     skf = StratifiedKFold(n_splits=cv, random_state=random_state)
     y_pred = np.zeros(y.shape)
+    y_pred_proba = np.zeros((X.shape[0], N_CLASSES))
+    y_test_pred_proba = np.zeros((X_test.shape[0], N_CLASSES))
     for ind, (train_index, cv_index) in enumerate(skf.split(X, y)):
         X_train, X_cv = X[train_index], X[cv_index]
         y_train, y_cv = y[train_index], y[cv_index]
         clf.fit(X_train, y_train)
         y_pred[cv_index] = clf.predict(X_cv)
+        y_pred_proba[cv_index] = clf._predict_proba_lr(X_cv)
         print("%d/%d cv macro f1 of params set #%d:" % (ind + 1, cv, index),
               f1_score(y_cv, y_pred[cv_index], average='macro'))
+        y_test_pred_proba += clf._predict_proba_lr(X_test)
     print("#%d macro f1: " % index, f1_score(y, y_pred, average='macro'))
 
-    y_pred_test = clf.predict(X_test)
-    return index, y_pred, y_pred_test
+    y_test_pred = clf.predict(X_test)
+    y_test_pred_proba /= y_test_pred_proba.sum(axis=1)
+    if not proba:
+        return index, y_pred, y_test_pred
+    return index, y_pred_proba, y_test_pred_proba
 
 
-def feature_stacking(cv=CV, random_state=None):
+def feature_stacking(cv=CV, random_state=None, proba=False):
     """
 
     Args:
         cv: n_splits for KFold
         random_state: random_state for KFlod
+        proba: True to predict probabilities of labels instead label
 
     Returns:
         X, y, X_test
@@ -151,6 +161,7 @@ def feature_stacking(cv=CV, random_state=None):
     train_url = from_project_root("data/train_set.csv")
     test_url = from_project_root("data/test_set.csv")
     # test_url = None
+    X, y, X_test = generate_vectors(train_url, test_url)  # for X.shape
 
     params_list = load_params()
     parallel = joblib.Parallel(n_jobs=N_JOBS, verbose=1)
@@ -159,17 +170,13 @@ def feature_stacking(cv=CV, random_state=None):
     ) for ind, params in enumerate(params_list))
     rets = sorted(rets, key=lambda x: x[0])
 
-    X_stack_train = np.array([])
-    X_stack_test = np.array([])
+    X_stack_train = np.empty((X.shape[0], 0), float)
+    X_stack_test = np.empty((X_test.shape[0], 0), float)
     for ind, y_pred, y_pred_test in rets:
-        X_stack_train = np.append(X_stack_train, y_pred)
-        X_stack_test = np.append(X_stack_test, y_pred_test)
+        X_stack_train = np.append(X_stack_train, y_pred, axis=1)
+        X_stack_test = np.append(X_stack_test, y_pred_test, axis=1)
 
-    X = X_stack_train.reshape(len(params_list), -1).transpose()
-    y = np.asarray(joblib.load(from_project_root("data/train_set_df.pk"))['class']).ravel()
-    X_test = X_stack_test.reshape(len(params_list), -1).transpose()
-
-    return X, y, X_test
+    return X_stack_train, y, X_stack_test
 
 
 def generate_meta_feature(data_url):
@@ -207,8 +214,8 @@ def generate_meta_feature(data_url):
 
 def main():
     # load_params()
-    save_url = from_project_root("processed_data/vector/stacked_XyX_test_%d.pk" % len(load_params()))
-    joblib.dump(feature_stacking(), save_url)
+    save_url = from_project_root("processed_data/vector/stacked_proba_XyX_test_%d.pk" % len(load_params()))
+    joblib.dump(feature_stacking(proba=True), save_url)
 
 
 if __name__ == '__main__':
