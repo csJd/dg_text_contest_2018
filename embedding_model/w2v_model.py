@@ -11,7 +11,7 @@ import numpy as np
 
 # define some val
 
-DATA_URL = from_project_root("processed_data/phrase_level_data.csv")
+DATA_URL = from_project_root("lstm_model/processed_data/phrase_level_data.csv")
 N_JOBS = 4
 
 
@@ -120,7 +120,7 @@ def main():
         'dim': 64,
         'min_count': 2,
         'window': 5,
-        'epochs': 1
+        'epochs': 3
     }
     model = train_w2v_model(DATA_URL, args_to_url(args), args=args)
     print(len(model.wv.vocab))

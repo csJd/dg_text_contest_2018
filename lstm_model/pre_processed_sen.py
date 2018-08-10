@@ -47,7 +47,7 @@ def pre_processed_sen(bdc_pickle,tf_pickle,dc_pickle,train_file,processed_data_f
             # 过滤超高词频的词语==========================
             filted_word_list = []
             for word in word_list:
-                if tf_dict[word] <= 3 or tf_dict[word] > 7000 :
+                if tf_dict[word] <= 2 or tf_dict[word] > 7500 :
                     continue
                 filted_word_list.append(word)
 
@@ -67,7 +67,6 @@ def pre_processed_sen(bdc_pickle,tf_pickle,dc_pickle,train_file,processed_data_f
 
             if len(sorted_word_tuple) < limit_word:  # 如果小于阈值,无需压缩
                 processed_word_list = filted_word_list
-                processed_word_list = ["#".join(word.split(' ')) for word in processed_word_list]
                 wf.write("{},{}\n".format(label, ' '.join(processed_word_list)))
                 continue
 
@@ -79,7 +78,6 @@ def pre_processed_sen(bdc_pickle,tf_pickle,dc_pickle,train_file,processed_data_f
             for word in filted_word_list:
                 if word in keep_words:
                     processed_word_list.append(word)
-            processed_word_list = ["#".join(word.split(' ')) for word in processed_word_list]
             wf.write("{},{}\n".format(label,' '.join(processed_word_list)))
 
 '''
@@ -120,13 +118,13 @@ def main():
     # exit()
 
     # 对于每个句子进行过滤
-    bdc_pickle= from_project_root("lstm_model/processed_data/two_gram/phrase_level_2gram_bdc.json")
-    tf_pickle = from_project_root("lstm_model/processed_data/two_gram/phrase_level2gram_tf.json")
-    dc_pickle = from_project_root("lstm_model/processed_data/two_gram/phrase_level_2gram_dc.json")
+    bdc_pickle= from_project_root("lstm_model/processed_data/one_gram/phrase_level_1gram_bdc.json")
+    tf_pickle = from_project_root("lstm_model/processed_data/one_gram/phrase_level_1gram_tf.json")
+    dc_pickle = from_project_root("lstm_model/processed_data/one_gram/phrase_level_1gram_dc.json")
 
-    train_file = from_project_root("lstm_model/processed_data/two_gram/2-gram_phrase_level_data.csv")
-    processed_data_file = from_project_root("lstm_model/processed_data/two_gram/filter_2-gram_phrase_level_data.csv")
-    pre_processed_sen(bdc_pickle, tf_pickle,dc_pickle,train_file, processed_data_file, limit_word=500)
+    train_file = from_project_root("lstm_model/processed_data/phrase_level_data.csv")
+    processed_data_file = from_project_root("lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data.csv")
+    pre_processed_sen(bdc_pickle, tf_pickle,dc_pickle,train_file, processed_data_file, limit_word=200)
     pass
 
 if __name__ == '__main__':
