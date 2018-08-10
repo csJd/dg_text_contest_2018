@@ -12,6 +12,7 @@ from sklearn.externals import joblib
 from sklearn.metrics import f1_score, accuracy_score
 from time import time
 import numpy as np
+import scipy.sparse as sp
 import pandas as pd
 
 from utils.path_util import from_project_root
@@ -212,18 +213,20 @@ def main():
 
     # generate from original csv
     train_url = from_project_root("data/train_set.csv")
-    test_url = from_project_root("data/test_set.csv")
-    # test_url = None
+    # test_url = from_project_root("data/test_set.csv")
+    test_url = None
     column = 'word_seg'
     X, y, X_test = generate_vectors(train_url, test_url, column=column, max_n=3, min_df=3, max_df=0.8,
                                     max_features=2000000, balanced=False, re_weight=9)
 
-    # X_a = generate_meta_feature(train_url)
     X_a, _, X_test_a = generate_vectors(train_url, test_url, column='article', max_n=3, min_df=3, max_df=0.8,
                                         max_features=2000000, balanced=False, re_weight=9)
 
-    X = np.append(X, X_a, axis=1)
-    X_test = np.append(X_test, X_test_a, axis=1)
+    # X = np.append(X, generate_meta_feature(train_url), axis=1)
+
+    X = sp.hstack([X, X_a])  # append horizontally on sparse matrix
+    # X_test = sp.hstack([X_test, X_test_a])
+
     train_clfs(clfs, X, y, tuning=False)
 
     # clf = SVC(C=1, kernel='linear')
