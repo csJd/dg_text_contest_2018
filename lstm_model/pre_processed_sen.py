@@ -42,7 +42,6 @@ def pre_processed_sen(bdc_pickle,tf_pickle,dc_pickle,train_file,processed_data_f
             # 记录词语的权重
             label = line_list[0]
             word_list = line_list[1].strip().split()
-            word_list = [" ".join(word.split("#")) for word in word_list]
 
             # 过滤超高词频的词语==========================
             filted_word_list = []

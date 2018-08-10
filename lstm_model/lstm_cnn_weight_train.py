@@ -3,7 +3,7 @@
 import tensorflow as tf
 import time
 import os
-from lstm_cnn_model import LSTM_CNN_Model as LSTM_CNN_Model
+from lstm_cnn_weight_model import LSTM_CNN_Model as LSTM_CNN_Model
 import numpy as np
 import Data_helper
 from utils.path_util import from_project_root
@@ -39,7 +39,7 @@ tf.flags.DEFINE_string("train_file","lstm_model/processed_data/one_gram/filter-1
 tf.flags.DEFINE_string("vocab_file","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_vocab.pk","vocab file url")
 tf.flags.DEFINE_string("vocab_file_csv","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_vocab.csv","vocab csv file url")
 tf.flags.DEFINE_string("word2vec_file","embedding_model/models/w2v_phrase_64_2_5_3.bin","vocab csv file url")
-tf.flags.DEFINE_string("dc_file","lstm_model/processed_data/one_gram/phrase_level_1gram_dc.json","vocab csv file url")
+tf.flags.DEFINE_string("dc_file","lstm_model/processed_data/one_gram/phrase_level_1gram_dc.json","dc file url")
 
 FLAGS = tf.flags.FLAGS
 
@@ -95,15 +95,16 @@ for x in x_text:
 # 使用预训练的embedding
 model = gensim.models.Word2Vec.load(from_project_root(FLAGS.word2vec_file))
 init_embedding_mat = []
-init_embedding_mat.append([0.0] * FLAGS.embedding_size)
+init_embedding_mat.append([1.0] * FLAGS.embedding_size)
 with open(from_project_root(FLAGS.vocab_file_csv),'r',encoding='utf-8') as f:
     for line in f.readlines():
         line_list = line.strip().split(',')
         word = line_list[0]
         if word not in model:
-            init_embedding_mat.append([0.0] * FLAGS.embedding_size)
+            init_embedding_mat.append([1.0] * FLAGS.embedding_size)
         else:
             init_embedding_mat.append(model[word])
+
 embedding_mat = tf.Variable(init_embedding_mat,name="embedding")
 
 print("加载数据完成.....")
@@ -111,9 +112,9 @@ print("加载数据完成.....")
 # 数据集划分
 dev_sample_index = -1 * int( FLAGS.dev_sample_percentage * len(y))
 
-x_train,x_dev =x[:dev_sample_index],x[dev_sample_index:]
+x_train,x_dev =x_vecs[:dev_sample_index],x_vecs[dev_sample_index:]
 y_train,y_dev = y[:dev_sample_index],y[dev_sample_index:]
-term_weight_train,term_weight_dev = term_weight[:dev_sample_index],term_weight[dev_sample_index:]
+term_weight_train,term_weight_dev = term_weights[:dev_sample_index],term_weights[dev_sample_index:]
 # 清除内存
 del x,y
 

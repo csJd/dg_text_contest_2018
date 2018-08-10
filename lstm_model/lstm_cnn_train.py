@@ -33,10 +33,10 @@ tf.flags.DEFINE_integer("num_filters",64,"the num of channels in per filter")
 tf.flags.DEFINE_float("rnn_input_keep_prob",0.9,"rnn_input_keep_prob")
 tf.flags.DEFINE_float("rnn_output_keep_prob",0.9,"rnn_output_keep_prob")
 
-tf.flags.DEFINE_string("train_file","lstm_model/processed_data/two_gram/filter_2-gram_phrase_level_data_train.csv","train file url")
-tf.flags.DEFINE_string("vocab_file","lstm_model/processed_data/filter_phrase_level_vocab.pk","vocab file url")
-tf.flags.DEFINE_string("vocab_file_csv","lstm_model/processed_data/filter_phrase_level_vocab.csv","vocab csv file url")
-tf.flags.DEFINE_string("word2vec_file","embedding_model/models/w2v_phrase_64_2_5_1.bin","vocab csv file url")
+tf.flags.DEFINE_string("train_file","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_train.csv","train file url")
+tf.flags.DEFINE_string("vocab_file","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_vocab.pk","vocab file url")
+tf.flags.DEFINE_string("vocab_file_csv","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_vocab.csv","vocab csv file url")
+tf.flags.DEFINE_string("word2vec_file","embedding_model/models/w2v_phrase_64_2_5_3.bin","vocab csv file url")
 
 FLAGS = tf.flags.FLAGS
 

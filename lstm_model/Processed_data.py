@@ -190,7 +190,6 @@ def main():
     # pca_tfbdc_pickle = from_project_root("lstm_model/processed_data/vector/pca_tfbdc_1gram_300000_Xy.csv")
     # pca(tfbdc_word_bag_pickle,pca_tfbdc_pickle)
     # exit()
-    pass
 
     # 根据train_file建立字典
     # train_file = from_project_root("lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data.csv")
@@ -214,8 +213,8 @@ def main():
     # exit()
 
     # 划分数据集
-    # train_dev_split(from_project_root("lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data.csv"))
-    # exit()
+    train_dev_split(from_project_root("lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data.csv"))
+    exit()
 
     # 同时划分 data 和 word_bag
     # 编写占内存太大有问题！！ 应该使用from sklearn.model_selection import train_test_split
