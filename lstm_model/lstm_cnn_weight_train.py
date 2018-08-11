@@ -90,8 +90,10 @@ print("data load finished!!!")
 '''
 vocab_size,num_classes,embedding_size=300,hidden_size=50
 '''
+config = tf.ConfigProto(allow_soft_placement=True,log_device_placement=True)
+config.gpu_options.per_process_gpu_memory_fraction = 0.5  #占用40%显存
 
-with tf.Session() as sess:
+with tf.Session(config=config) as sess:
 
     new_model = LSTM_CNN_Model(
         num_classes=FLAGS.num_classes,
