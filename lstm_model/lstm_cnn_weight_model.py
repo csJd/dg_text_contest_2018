@@ -34,9 +34,6 @@ class LSTM_CNN_Model():
             self.rnn_input_keep_prob = tf.placeholder(tf.float32,name="rnn_input_keep_prob")
             self.rnn_output_keep_prob = tf.placeholder(tf.float32,name="rnn_output_keep_prob")
 
-            # 句子级别上最大的单词数
-            # self.batch_size = tf.placeholder(tf.int32, name="batch_size")
-
         # create model
         # share embedding_mat
         word_embedded_x = self.word2vec(self.input_x,self.term_weight,"embedding")
@@ -215,6 +212,7 @@ class LSTM_CNN_Model():
 
         # fc_output.shape = [batch ,num_classes]
         fc_output = tf.contrib.layers.fully_connected(inputs=fc_output1, num_outputs=self.num_classes, activation_fn=None)
-        self.predict = tf.argmax(fc_output, axis=1, name="prediction") # 预测结果
+        self.softmax_result = tf.nn.softmax(fc_output,name="softmax_prob") # 这个可以用来输出概率结果
+        self.predict = tf.argmax(self.softmax_result, axis=1, name="prediction") # 预测结果
 
         return fc_output

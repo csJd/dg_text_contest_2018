@@ -25,7 +25,7 @@ tf.flags.DEFINE_float("dev_sample_percentage",0.002,"dev_sample_percentage")
 tf.flags.DEFINE_integer("batch_size",100,"Batch Size of training data(default 50)")
 tf.flags.DEFINE_integer("checkpoint_every",50,"Save model after this many steps (default 100)")
 tf.flags.DEFINE_integer("num_checkpoints",10,"Number of checkpoints to store (default 5)")
-tf.flags.DEFINE_integer("evaluate_every",3,"evaluate every this many batches")
+tf.flags.DEFINE_integer("evaluate_every",100,"evaluate every this many batches")
 tf.flags.DEFINE_float("learning_rate",0.01,"learning rate")  #====================
 tf.flags.DEFINE_integer("grad_clip",5,"grad clip to prevent gradient explode")
 tf.flags.DEFINE_integer("epoch",5,"number of epoch")
@@ -42,7 +42,7 @@ tf.flags.DEFINE_float("rnn_output_keep_prob",0.9,"rnn_output_keep_prob")
 tf.flags.DEFINE_string("train_file","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_train.csv","train file url")
 tf.flags.DEFINE_string("vocab_file","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_vocab.pk","vocab file url")
 tf.flags.DEFINE_string("vocab_file_csv","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_vocab.csv","vocab csv file url")
-tf.flags.DEFINE_string("word2vec_file","embedding_model/models/w2v_phrase_64_2_5_3.bin","vocab csv file url")
+tf.flags.DEFINE_string("word2vec_file","embedding_model/models/w2v_phrase_64_2_10_15.bin","vocab csv file url")
 tf.flags.DEFINE_string("dc_file","lstm_model/processed_data/one_gram/phrase_level_1gram_dc.json","dc file url")
 
 # add

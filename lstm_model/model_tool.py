@@ -41,11 +41,18 @@ def get_term_weight(x_text_arr, max_doc_len, term_weight_file):
         if mid_value == 0:  # 加一操作，防止遇到0的现象
             term_weight = [1 for value in term_weight]
         else:
-            term_weight = [(value - min_value) / mid_value + 1 for value in term_weight]
+            term_weight = [((value - min_value) / mid_value)*2 + 1 for value in term_weight]
 
         term_weights.append(term_weight)
 
     return term_weights
+
+# 将数据集划分为n折
+def split_filter_data(train_file,n):
+
+
+
+    pass
 
 def main():
     pass
