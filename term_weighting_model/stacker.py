@@ -123,7 +123,7 @@ def run_parallel(index, train_url, test_url, params, clf, cv, random_state, prob
         X = sp.sparse.csr_matrix(X)
 
     skf = StratifiedKFold(n_splits=cv, random_state=random_state)
-    y_pred = np.zeros(y.shape)
+    y_pred = np.zeros((X.shape[0], 1))
     y_pred_proba = np.zeros((X.shape[0], N_CLASSES))
     y_test_pred_proba = np.zeros((X_test.shape[0], N_CLASSES))
     for ind, (train_index, cv_index) in enumerate(skf.split(X, y)):
@@ -137,7 +137,7 @@ def run_parallel(index, train_url, test_url, params, clf, cv, random_state, prob
         y_test_pred_proba += clf._predict_proba_lr(X_test)
     print("#%d macro f1: " % index, f1_score(y, y_pred, average='macro'))
 
-    y_test_pred = clf.predict(X_test)
+    y_test_pred = clf.predict(X_test).reshape(X_test.shape[0], 1)
     y_test_pred_proba /= y_test_pred_proba.sum(axis=1)
     if not proba:
         return index, y_pred, y_test_pred
@@ -166,7 +166,7 @@ def feature_stacking(cv=CV, random_state=None, proba=False):
     params_list = load_params()
     parallel = joblib.Parallel(n_jobs=N_JOBS, verbose=1)
     rets = parallel(joblib.delayed(run_parallel)(
-        ind, train_url, test_url, params, clone(clf), cv, random_state
+        ind, train_url, test_url, params, clone(clf), cv, random_state, proba
     ) for ind, params in enumerate(params_list))
     rets = sorted(rets, key=lambda x: x[0])
 
