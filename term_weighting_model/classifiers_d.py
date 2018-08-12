@@ -4,7 +4,7 @@
 from xgboost.sklearn import XGBClassifier
 from lightgbm.sklearn import LGBMClassifier
 from sklearn.svm import SVC, LinearSVC
-from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.linear_model import SGDClassifier
@@ -21,6 +21,7 @@ from term_weighting_model.transformer import generate_vectors
 from term_weighting_model.stacker import generate_meta_feature
 
 N_JOBS = -1
+N_CLASSES = 19
 CV = 5
 
 
@@ -166,7 +167,7 @@ def train_clfs(clfs, X, y, test_size=0.2, tuning=False, random_state=None):
     return clfs
 
 
-def train_and_gen_result(clf, X, y, X_test, save_url='result.csv'):
+def train_and_gen_result(clf, X, y, X_test, save_url='result.csv', n_splits=None):
     """ train and generate result with specific clf
 
     Args:
@@ -175,8 +176,10 @@ def train_and_gen_result(clf, X, y, X_test, save_url='result.csv'):
         y: target
         X_test: test data
         save_url: url to save the result file
+        n_splits: n_splits for K-fold, None to not use k-fold
 
     """
+    slf = StratifiedKFold(n_splits=n_splits)
     clf.fit(X, y)
     pred = clf.predict(X_test)
 
@@ -185,9 +188,10 @@ def train_and_gen_result(clf, X, y, X_test, save_url='result.csv'):
     for i, label in enumerate(pred):
         result_file.write(str(i) + "," + str(label) + "\n")
     result_file.close()
+    df = pd.DataFrame(X, )
 
 
-def predict_proba(clf, X, y, X_test, save_url='probas.pk'):
+def predict_proba(clf, X, y, X_test, save_url=None):
     """ train clf and get proba predict
 
     Args:
@@ -209,7 +213,14 @@ def predict_proba(clf, X, y, X_test, save_url='probas.pk'):
         clf = CalibratedClassifierCV(clf)
         clf.fit(X, y)
         proba = clf.predict_proba(X_test)
-    joblib.dump(proba, save_url)
+    proba_df = pd.DataFrame(proba, columns=['class_prob_' + str(i + 1) for i in range(N_CLASSES)])
+    if save_url is None:
+        pass
+    elif save_url.endswith('.pk'):
+        joblib.dump(proba_df, save_url)
+    elif save_url.endswith('.csv'):
+        proba_df.to_csv(save_url, index_label='id')
+    return proba_df
 
 
 def main():
