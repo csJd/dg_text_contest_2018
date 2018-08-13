@@ -70,10 +70,10 @@ train_x_text.extend(train_x_text1)
 train_x_text.extend(train_x_text2)
 train_x_text.extend(train_x_text3)
 train_y = []
-train_y.append(train_y0)
-train_y.append(train_y1)
-train_y.append(train_y2)
-train_y.append(train_y3)
+train_y.extend(train_y0)
+train_y.extend(train_y1)
+train_y.extend(train_y2)
+train_y.extend(train_y3)
 
 dev_x_text,dev_y = Data_helper.get_predict_data(from_project_root(FLAGS.train_file4))
 
@@ -98,7 +98,6 @@ with open(from_project_root(FLAGS.vocab_file_csv),'r',encoding='utf-8') as f:
             init_embedding_mat.append(model[word])
 
 embedding_mat = tf.Variable(init_embedding_mat,name="embedding")
-
 print("加载数据完成.....")
 
 # 格式化输出
