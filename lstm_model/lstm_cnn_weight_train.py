@@ -39,7 +39,13 @@ tf.flags.DEFINE_integer("num_filters",64,"the num of channels in per filter")
 tf.flags.DEFINE_float("rnn_input_keep_prob",0.9,"rnn_input_keep_prob")
 tf.flags.DEFINE_float("rnn_output_keep_prob",0.9,"rnn_output_keep_prob")
 
-tf.flags.DEFINE_string("train_file","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_train.csv","train file url")
+tf.flags.DEFINE_string("train_file0","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_0.csv","train file url")
+tf.flags.DEFINE_string("train_file1","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_1.csv","train file url")
+tf.flags.DEFINE_string("train_file2","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_2.csv","train file url")
+tf.flags.DEFINE_string("train_file3","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_3.csv","train file url")
+tf.flags.DEFINE_string("train_file4","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_4.csv","train file url")
+
+
 tf.flags.DEFINE_string("vocab_file","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_vocab.pk","vocab file url")
 tf.flags.DEFINE_string("vocab_file_csv","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_vocab.csv","vocab csv file url")
 tf.flags.DEFINE_string("word2vec_file","embedding_model/models/w2v_phrase_64_2_10_15.bin","vocab csv file url")
@@ -53,8 +59,23 @@ FLAGS = tf.flags.FLAGS
 # load the training data
 # 准备数据
 print("Loading Data...")
-train_x_text,train_y = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file))
-dev_x_text,dev_y = Data_helper.get_predict_data(from_project_root(FLAGS.dev_file))
+train_x_text0,train_y0 = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file0))
+train_x_text1,train_y1 = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file1))
+train_x_text2,train_y2 = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file2))
+train_x_text3,train_y3 = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file3))
+
+train_x_text = []
+train_x_text.extend(train_x_text0)
+train_x_text.extend(train_x_text1)
+train_x_text.extend(train_x_text2)
+train_x_text.extend(train_x_text3)
+train_y = []
+train_y.append(train_y0)
+train_y.append(train_y1)
+train_y.append(train_y2)
+train_y.append(train_y3)
+
+dev_x_text,dev_y = Data_helper.get_predict_data(from_project_root(FLAGS.train_file4))
 
 # =====================build vocab =====================================================================================
 train_x_vecs = get_index_text(train_x_text,FLAGS.max_word_in_sent,from_project_root(FLAGS.vocab_file))
