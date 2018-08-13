@@ -39,16 +39,15 @@ class LSTM_CNN_Model():
         word_embedded_x = self.word2vec(self.input_x,self.term_weight,"embedding")
 
         # word_encoder
-        # word_encode.shape为 [ -1,max_time,hidden_size*2]
+        # word_encode.shape为 [ batch, max_time, hidden_size]
         self.word_encoded_x = self.BidirectionalGRUEncoder(word_embedded_x,"word_encoder")
 
-        # 共享attention layer中的所有参数
         # word_encoded.shape [batch , max_doc_lenght , hiddent_size * 2]
-        word_context = tf.Variable(tf.truncated_normal(shape=[self.hidden_size * 2], dtype=tf.float32))
+        word_context = tf.Variable(tf.truncated_normal(shape=[self.hidden_size], dtype=tf.float32))
         W_word = tf.Variable(
-            tf.truncated_normal(shape=[self.hidden_size * 2, self.hidden_size * 2], dtype=tf.float32),
+            tf.truncated_normal(shape=[self.hidden_size, self.hidden_size], dtype=tf.float32),
             name="word_context_weight")
-        b_word = tf.Variable(tf.truncated_normal(shape=[self.hidden_size*2], dtype=tf.float32),
+        b_word = tf.Variable(tf.truncated_normal(shape=[self.hidden_size], dtype=tf.float32),
                                  name="word_context_bias")
         # # word attention [batch , max_doc_length]
         weight_x = self.AttentionLayer(self.word_encoded_x,word_context,W_word,b_word,name="attention_1")
@@ -109,8 +108,9 @@ class LSTM_CNN_Model():
                 sequence_length=length(word_encoded),
                 dtype=tf.float32
             )
-            # outputs的size是[batch_size,max_time,hidden_size*2]
-            outputs = tf.concat((fw_outputs,bw_outputs),2,name="hidden_state")
+            # outputs的size是[batch_size,max_time,hidden_size]
+            # outputs = tf.concat((fw_outputs,bw_outputs),2,name="hidden_state")
+            outputs = tf.add(fw_outputs,bw_outputs,name="GRU_output")
             return outputs
 
     def AttentionLayer(self,word_encoded,word_context,W_word,b_word,name):
@@ -118,15 +118,15 @@ class LSTM_CNN_Model():
         with tf.name_scope(name) :
             # U_{it} = tanh(W_{w}u_{it} + b_{w})
             # 其实就是将原来的word_encoder进行重新编码。维度不变。
-            mat_multi = tf.matmul(W_word,tf.reshape(word_encoded,[-1,self.hidden_size*2]),transpose_a=False
+            mat_multi = tf.matmul(W_word,tf.reshape(word_encoded,[-1,self.hidden_size]),transpose_a=False
                                   ,transpose_b=True)
-            U_w = tf.tanh(tf.reshape( tf.transpose(mat_multi),shape=[-1,self.max_doc_length,self.hidden_size*2]) + b_word,name="U_w")
+            U_w = tf.tanh(tf.reshape( tf.transpose(mat_multi),shape=[-1,self.max_doc_length,self.hidden_size]) + b_word,name="U_w")
 
             # 计算词权重
             # expand_word_context.shape [hidden_size * 2 , 1 ]
             expand_word_context = tf.expand_dims(word_context,-1)
             # word_logits.shape [batch,max_doc_length]
-            word_logits = tf.reshape(tf.matmul(tf.reshape(U_w,shape=[-1,self.hidden_size*2]),expand_word_context),shape=[-1,self.max_doc_length])
+            word_logits = tf.reshape(tf.matmul(tf.reshape(U_w,shape=[-1,self.hidden_size]),expand_word_context),shape=[-1,self.max_doc_length])
 
             # alpha.shape [batch , max_doc_length]
             alpha = tf.nn.softmax(logits=word_logits,name="alpha")
@@ -148,8 +148,8 @@ class LSTM_CNN_Model():
 
     def cnn_layer(self,word_encode):
         """
-        :param word_encode: 经过GRU,进行编码, shape = [batch, max_doc_length,hidden_size *2 ]
-        :return:h_pool_flat.shape = [batch,num_filters * len(filter_sizes)]
+            :param word_encode: 经过GRU,进行编码, shape = [batch, max_doc_length,hidden_size *2 ]
+            :return:h_pool_flat.shape = [batch,num_filters * len(filter_sizes)]
         """
         # expand_word_encode.shape= [batch,max_doc_length, hidden_size*2,1]
         expand_word_encode = tf.expand_dims(word_encode,-1)
@@ -161,7 +161,7 @@ class LSTM_CNN_Model():
             with tf.name_scope("conv-maxpool-%s" % filter_size):
 
                 # Convolution Layer
-                filter_shape = [filter_size,self.hidden_size*2,1,self.num_filters]
+                filter_shape = [filter_size,self.hidden_size,1,self.num_filters]
 
                 W = tf.Variable(tf.truncated_normal(filter_shape,stddev=0.1),name="W")
                 b = tf.Variable(tf.constant(0.1,shape=[self.num_filters]),name="b1")

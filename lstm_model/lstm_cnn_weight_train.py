@@ -29,7 +29,7 @@ tf.flags.DEFINE_integer("evaluate_every",100,"evaluate every this many batches")
 tf.flags.DEFINE_float("learning_rate",0.01,"learning rate")  #====================
 tf.flags.DEFINE_integer("grad_clip",5,"grad clip to prevent gradient explode")
 tf.flags.DEFINE_integer("epoch",5,"number of epoch")
-tf.flags.DEFINE_integer("max_word_in_sent",1000,"max_word_in_sent")
+tf.flags.DEFINE_integer("max_word_in_sent",800,"max_word_in_sent")
 tf.flags.DEFINE_float("regularization_rate",0.001,"regularization rate random") #=======================
 
 # cnn
@@ -90,10 +90,8 @@ print("data load finished!!!")
 '''
 vocab_size,num_classes,embedding_size=300,hidden_size=50
 '''
-config = tf.ConfigProto(allow_soft_placement=True,log_device_placement=True)
-config.gpu_options.per_process_gpu_memory_fraction = 0.5  #占用40%显存
 
-with tf.Session(config=config) as sess:
+with tf.Session() as sess:
 
     new_model = LSTM_CNN_Model(
         num_classes=FLAGS.num_classes,
@@ -113,7 +111,6 @@ with tf.Session(config=config) as sess:
 
         original_cost = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(labels=new_model.input_y,
                                                                      logits=new_model.out))
-
         loss = original_cost + regularization_cost
 
         # loss =  -tf.reduce_sum(new_model.input_y*tf.log(tf.clip_by_value(new_model.out,1e-10,1.0)))

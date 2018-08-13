@@ -4,6 +4,7 @@ import pickle as pk
 import utils.json_util as ju
 import collections
 import numpy as np
+from utils.path_util import from_project_root
 
 # 根据自己的字典将文本下标化
 def get_index_text(x_text_arr,max_doc_len,vocab_file):
@@ -48,13 +49,43 @@ def get_term_weight(x_text_arr, max_doc_len, term_weight_file):
     return term_weights
 
 # 将数据集划分为n折
-def split_filter_data(train_file,n):
+# 根据数据文件划分为分数
+def split_data_to_parts(train_data_file,n_parts,dev_nums):
 
+    all_datas = []
+    with open(train_data_file,'r',encoding='utf-8') as f:
+        for line in f.readlines():
+            all_datas.append(line.strip())
 
+    #
+    dev_data = all_datas[-dev_nums:]
+    write_to_csv(dev_data,train_data_file,"dev")
 
-    pass
+    sample_size = len(all_datas) - dev_nums
+
+    part_size = sample_size // n_parts
+    for i in range(n_parts):
+        startindex = i * part_size
+        if (i+1) * part_size + n_parts > sample_size - 1:
+            endindex = sample_size - 1
+        else:
+            endindex = (i+1) * part_size
+        part_data = all_datas[startindex:endindex]
+        write_to_csv(part_data,train_data_file,str(i))
+
+def write_to_csv(part_data,train_data_file,i):
+
+    print(len(part_data))
+    new_file_name = train_data_file[:-4]+"_"+i+".csv"
+    with open(new_file_name,'w',encoding='utf-8') as f:
+        for line in part_data:
+            f.write(line+"\n")
 
 def main():
+    train_data_file= from_project_root("lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data.csv")
+    n_parts=5
+    dev_nums = 5000
+    split_data_to_parts(train_data_file,n_parts,dev_nums)
     pass
 
 
