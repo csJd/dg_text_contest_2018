@@ -56,7 +56,8 @@ def init_param_grid(clf=None, clf_type=None):
     """
 
     Args:
-        clf_type: the type of clf
+        clf: classifier
+        clf_type: str of classifier type, not required if clf is not None
 
     Returns:
         param_grid for clf
@@ -69,15 +70,17 @@ def init_param_grid(clf=None, clf_type=None):
         ]
     elif isinstance(clf, LGBMClassifier) or clf_type == 'lgbm':
         param_grid = [
-            # {'boosting_type': ['gbdt', 'dart', 'rf'], 'learning_rate': [0.1, 0.01]},
+            # {'boosting_type': ['gbdt', 'dart', 'rf'], 'learning_rate': [0.1, 0.01]}
             {'boosting_type': ['gbdt'], 'learning_rate': [0.1]},
         ]
     elif isinstance(clf, XGBClassifier) or clf_type == 'xgb':
         param_grid = [
-            {'learning_rate': [0.3, 0.1, 0.01]}
+            # {'learning_rate': [0.3, 0.1, 0.01]}
+            {'learning_rate': [0.1]}
         ]
     elif isinstance(clf, LinearSVC) or clf_type == 'lsvc':
         param_grid = [
+            # {'C': [0.5, 1, 10]}
             {'C': [1]}
         ]
     else:
@@ -167,7 +170,7 @@ def train_clfs(clfs, X, y, test_size=0.2, tuning=False, random_state=None):
     return clfs
 
 
-def train_and_gen_result(clf, X, y, X_test, save_url='result.csv', n_splits=None):
+def train_and_gen_result(clf, X, y, X_test, use_proba=False, save_url=None, n_splits=None):
     """ train and generate result with specific clf
 
     Args:
@@ -175,36 +178,50 @@ def train_and_gen_result(clf, X, y, X_test, save_url='result.csv', n_splits=None
         X: vectorized data
         y: target
         X_test: test data
+        use_proba: predict probabilities of labels instead of label
         save_url: url to save the result file
         n_splits: n_splits for K-fold, None to not use k-fold
 
     """
-    slf = StratifiedKFold(n_splits=n_splits)
-    clf.fit(X, y)
-    pred = clf.predict(X_test)
+    if n_splits and n_splits > 1:
+        slf = StratifiedKFold(n_splits=n_splits)
+        y_pred_proba = np.zeros(X_test.shape[0], N_CLASSES)
+        for train_index, cv_index in slf.split(X, y):
+            X_train = X[train_index]
+            y_train = y[train_index]
+            clf.fit(X_train, y_train)
+            y_pred_proba += predict_proba(clf, X_train, y_train, X_test)
+        y_pred_proba /= n_splits
+        y_pred = y_pred_proba.argmax(axis=1)
 
-    result_file = open(save_url, 'w')
-    result_file.write("id,class" + "\n")
-    for i, label in enumerate(pred):
-        result_file.write(str(i) + "," + str(label) + "\n")
-    result_file.close()
-    df = pd.DataFrame(X, )
+    else:
+        clf.fit(X, y)
+        y_pred_proba = predict_proba(clf, X, y, X_test)
+        y_pred = clf.predict(X_test)
+
+    if use_proba:
+        result_df = pd.DataFrame(y_pred_proba, columns=['class_prob_' + str(i + 1) for i in range(N_CLASSES)])
+    else:
+        result_df = pd.DataFrame(y_pred, columns=['class'])
+    if save_url:
+        result_df.to_csv(save_url, index_label='id')
+    return result_df
 
 
 def predict_proba(clf, X, y, X_test, save_url=None):
     """ train clf and get proba predict
 
     Args:
-        clf: classifier
+        clf: trained classifier
         X: X for fit
         y: y for fit
         X_test: X_test for predict
-        save_url: url to save result
+        save_url: url to save result, not save if set it to None
 
     Returns:
+        DataFrame: proba_df
 
     """
-    clf.fit(X, y)
     if hasattr(clf, 'predict_proba'):
         proba = clf.predict_proba(X_test)
     elif hasattr(clf, '_predict_proba_lr'):
