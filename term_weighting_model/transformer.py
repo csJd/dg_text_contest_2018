@@ -161,15 +161,15 @@ class TfdcTransformer(BaseEstimator, TransformerMixin):
         return np.ravel(self._dc_diag.sum(axis=0))
 
 
-def generate_vectors(train_url, test_url=None, column='word_seg', trans=None, max_n=1, min_df=3, max_df=0.8,
-                     max_features=100, sublinear_tf=True, balanced=False, re_weight=0, verbose=1):
+def generate_vectors(train_url, test_url=None, column='word_seg', trans_type=None, max_n=1, min_df=3, max_df=0.8,
+                     max_features=1, sublinear_tf=True, balanced=False, re_weight=0, verbose=1):
     """ generate X, y, X_test vectors with csv(with header) url use pandas and CountVectorizer
 
     Args:
         train_url: url to train csv
         test_url: url to test csv, set to None if not need X_test
         column: column to use as feature
-        trans: predefined transformer
+        trans_type: specific transformer, {'dc','idf'}
         max_n: max_n for ngram_range
         min_df: min_df for CountVectorizer
         max_df: max_df for CountVectorizer
@@ -198,8 +198,11 @@ def generate_vectors(train_url, test_url=None, column='word_seg', trans=None, ma
     verbose and print("finish vectorizing in %.3f seconds, transforming" % (e_time - s_time))
 
     # transformer
-    if trans is None:
+    if trans_type is None or trans_type == 'idf':
+        trans = TfidfTransformer(sublinear_tf=sublinear_tf, use_idf=balanced)
+    else:
         trans = TfdcTransformer(sublinear_tf=sublinear_tf, balanced=balanced, re_weight=re_weight)
+
     verbose and print("transformer params:", trans.get_params())
     y = np.array((train_df["class"]).astype(int))
     X = trans.fit_transform(X, y)

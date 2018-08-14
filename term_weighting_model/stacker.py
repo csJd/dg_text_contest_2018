@@ -64,6 +64,7 @@ def load_params():
     params_grad = [
         {
             'column': ['word_seg'],
+            'trans_type': ['dc', 'idf'],
             'max_n': [1],
             'min_df': [2, 3],
             'max_df': [0.8],
@@ -73,21 +74,23 @@ def load_params():
         },
         {
             'column': ['word_seg', 'article'],
+            'trans_type': ['dc', 'idf'],
             'max_n': [2],
             'min_df': [3],
             'max_df': [0.8, 0.9],
-            'max_features': [500000, 2000000],
+            'max_features': [200000, 500000],
             'balanced': [False, True],
-            're_weight': [0, 9]
+            're_weight': [6]
         },
         {
             'column': ['word_seg', 'article'],
+            'trans_type': ['dc', 'idf'],
             'max_n': [3],
             'min_df': [3],
             'max_df': [0.8],
-            'max_features': [1000000, 4000000],
-            'balanced': [False, True],
-            're_weight': [0, 9]
+            'max_features': [4000000],
+            'balanced': [False],
+            're_weight': [9]
         },
     ]
 
