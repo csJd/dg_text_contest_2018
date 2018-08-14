@@ -145,6 +145,8 @@ with tf.Session() as sess:
     out_dir = os.path.abspath(os.path.join(os.path.curdir,"runs",timestamp))
     print("Wrinting to {} \n".format(out_dir))
 
+
+
     # global step
     global_step = tf.Variable(0,trainable=False)
     optimizer = tf.train.AdamOptimizer(FLAGS.learning_rate)
