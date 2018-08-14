@@ -19,16 +19,16 @@ from sklearn.metrics import accuracy_score
 
 #Data loading params
 tf.flags.DEFINE_integer("num_classes",19,"number of classes")
-tf.flags.DEFINE_integer("embedding_size",64,"Dimensionality of word embedding")
+tf.flags.DEFINE_integer("embedding_size",128,"Dimensionality of word embedding")
 tf.flags.DEFINE_integer("hidden_size",64,"Dimensionality of GRU hidden layer(default 50)") #===============
 tf.flags.DEFINE_float("dev_sample_percentage",0.002,"dev_sample_percentage")
 tf.flags.DEFINE_integer("batch_size",100,"Batch Size of training data(default 50)")
-tf.flags.DEFINE_integer("checkpoint_every",50,"Save model after this many steps (default 100)")
-tf.flags.DEFINE_integer("num_checkpoints",10,"Number of checkpoints to store (default 5)")
+tf.flags.DEFINE_integer("checkpoint_every",100,"Save model after this many steps (default 100)")
+tf.flags.DEFINE_integer("num_checkpoints",15,"Number of checkpoints to store (default 5)")
 tf.flags.DEFINE_integer("evaluate_every",100,"evaluate every this many batches")
 tf.flags.DEFINE_float("learning_rate",0.01,"learning rate")  #====================
 tf.flags.DEFINE_integer("grad_clip",5,"grad clip to prevent gradient explode")
-tf.flags.DEFINE_integer("epoch",5,"number of epoch")
+tf.flags.DEFINE_integer("epoch",3,"number of epoch")
 tf.flags.DEFINE_integer("max_word_in_sent",800,"max_word_in_sent")
 tf.flags.DEFINE_float("regularization_rate",0.001,"regularization rate random") #=======================
 
@@ -39,20 +39,20 @@ tf.flags.DEFINE_integer("num_filters",64,"the num of channels in per filter")
 tf.flags.DEFINE_float("rnn_input_keep_prob",0.9,"rnn_input_keep_prob")
 tf.flags.DEFINE_float("rnn_output_keep_prob",0.9,"rnn_output_keep_prob")
 
-tf.flags.DEFINE_string("train_file0","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_0.csv","train file url")
-tf.flags.DEFINE_string("train_file1","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_1.csv","train file url")
-tf.flags.DEFINE_string("train_file2","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_2.csv","train file url")
-tf.flags.DEFINE_string("train_file3","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_3.csv","train file url")
-tf.flags.DEFINE_string("train_file4","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_4.csv","train file url")
+tf.flags.DEFINE_string("train_file0","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200_0.csv","train file url")
+tf.flags.DEFINE_string("train_file1","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200_1.csv","train file url")
+tf.flags.DEFINE_string("train_file2","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200_2.csv","train file url")
+tf.flags.DEFINE_string("train_file3","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200_3.csv","train file url")
+tf.flags.DEFINE_string("train_file4","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200_4.csv","train file url")
 
 
-tf.flags.DEFINE_string("vocab_file","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_vocab.pk","vocab file url")
-tf.flags.DEFINE_string("vocab_file_csv","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_vocab.csv","vocab csv file url")
-tf.flags.DEFINE_string("word2vec_file","embedding_model/models/w2v_phrase_64_2_10_15.bin","vocab csv file url")
+tf.flags.DEFINE_string("vocab_file","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200_vocab.pk","vocab file url")
+tf.flags.DEFINE_string("vocab_file_csv","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200_vocab.csv","vocab csv file url")
+tf.flags.DEFINE_string("word2vec_file","embedding_model/models/w2v_phrase_128_2_10_15.bin","vocab csv file url")
 tf.flags.DEFINE_string("dc_file","lstm_model/processed_data/one_gram/phrase_level_1gram_dc.json","dc file url")
 
 # add
-tf.flags.DEFINE_string("dev_file","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_dev.csv","dev file url")
+# tf.flags.DEFINE_string("dev_file","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_dev.csv","dev file url")
 
 FLAGS = tf.flags.FLAGS
 # =====================load data========================================================================================
@@ -61,21 +61,20 @@ FLAGS = tf.flags.FLAGS
 print("Loading Data...")
 train_x_text0,train_y0 = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file0))
 train_x_text1,train_y1 = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file1))
-train_x_text2,train_y2 = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file2))
 train_x_text3,train_y3 = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file3))
-
+train_x_text4,train_y4 = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file4))
 train_x_text = []
 train_x_text.extend(train_x_text0)
 train_x_text.extend(train_x_text1)
-train_x_text.extend(train_x_text2)
 train_x_text.extend(train_x_text3)
+train_x_text.extend(train_x_text4)
 train_y = []
 train_y.extend(train_y0)
 train_y.extend(train_y1)
-train_y.extend(train_y2)
 train_y.extend(train_y3)
+train_y.extend(train_y4)
 
-dev_x_text,dev_y = Data_helper.get_predict_data(from_project_root(FLAGS.train_file4))
+dev_x_text,dev_y = Data_helper.get_predict_data(from_project_root(FLAGS.train_file2))
 
 # =====================build vocab =====================================================================================
 train_x_vecs = get_index_text(train_x_text,FLAGS.max_word_in_sent,from_project_root(FLAGS.vocab_file))
@@ -110,8 +109,10 @@ print("data load finished!!!")
 '''
 vocab_size,num_classes,embedding_size=300,hidden_size=50
 '''
-
-with tf.Session() as sess:
+# config = tf.ConfigProto(allow_soft_placement=True,log_device_placement=True)
+# config.gpu_options.per_process_gpu_memory_fraction = 0.5  #占用40%显存
+gpuConfig = tf.ConfigProto(allow_soft_placement=True)
+with tf.Session(config=gpuConfig) as sess,tf.device('/device:GPU:0'):
 
     new_model = LSTM_CNN_Model(
         num_classes=FLAGS.num_classes,
@@ -141,9 +142,11 @@ with tf.Session() as sess:
         acc = tf.reduce_mean(tf.cast(tf.equal(predict,label),tf.float32))
 
     # create model path
-    timestamp = str( int(time.time()))
+    timestamp = str( int(time.time()))+ "_2"
     out_dir = os.path.abspath(os.path.join(os.path.curdir,"runs",timestamp))
     print("Wrinting to {} \n".format(out_dir))
+
+
 
     # global step
     global_step = tf.Variable(0,trainable=False)

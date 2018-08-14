@@ -174,16 +174,27 @@ def train_dev_split_for_data_word_bag(pca_tfbdc_1gram_300000_Xy,filter_phrase_le
     f2.close()
     pass
 
-# 根据标签提取训练集
-def extract_data_by_label(train_file,index_arr,save_file):
+#
+def cal_df(train_file,df_pickle):
 
-    #
-    with open(train_file,'r',encoding='utf-8') as f,open(save_file,'w',encoding="utf-8"):
-        pass
+    df_dict = collections.defaultdict(int)
+    with open(train_file,'r',encoding='utf-8') as f:
+        for line in f.readlines():
+            line_list = line.strip().split(',')
+            label = line_list[0]
+            word_list = list(set(line_list[1].strip().split()))
+            for word in word_list:
+                df_dict[word] += 1
+    pk.dump(df_dict,open(df_pickle,'wb'))
     pass
 
 
 def main():
+    #计算df
+    train_file = from_project_root("lstm_model/processed_data/phrase_level_data.csv")
+    df_pickle = from_project_root("lstm_model/processed_data/one_gram/phrase_level_df.pk")
+    cal_df(train_file,df_pickle)
+    exit()
 
     # 将词袋模型的tf_bdc权重进行降维
     # tfbdc_word_bag_pickle = from_project_root("lstm_model/processed_data/vector/tfbdc_1gram_300000_Xy.pk")
@@ -213,8 +224,8 @@ def main():
     # exit()
 
     # 划分数据集
-    train_dev_split(from_project_root("lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data.csv"))
-    exit()
+    # train_dev_split(from_project_root("lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data.csv"))
+    # exit()
 
     # 同时划分 data 和 word_bag
     # 编写占内存太大有问题！！ 应该使用from sklearn.model_selection import train_test_split
