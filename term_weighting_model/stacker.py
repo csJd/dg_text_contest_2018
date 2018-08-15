@@ -104,7 +104,7 @@ def load_params():
     return params_list
 
 
-def run_parallel(index, train_url, test_url, params, clf, cv, random_state, proba=False):
+def run_parallel(index, train_url, test_url, params, clf, cv, random_state, proba=False, verbose=False):
     """ for run cvs parallel
 
     Args:
@@ -116,12 +116,13 @@ def run_parallel(index, train_url, test_url, params, clf, cv, random_state, prob
         cv: n_splits for KFold
         random_state: random_state for KFold
         proba: True to predict probabilities of labels instead label
+        verbose: True to print more info
 
     Returns:
 
     """
 
-    X, y, X_test = generate_vectors(train_url, test_url, **params)
+    X, y, X_test = generate_vectors(train_url, test_url, verbose=verbose, **params)
     if not sp.sparse.isspmatrix_csr(X):
         X = sp.sparse.csr_matrix(X)
 
@@ -133,7 +134,7 @@ def run_parallel(index, train_url, test_url, params, clf, cv, random_state, prob
         X_train, X_cv = X[train_index], X[cv_index]
         y_train, y_cv = y[train_index], y[cv_index]
         clf.fit(X_train, y_train)
-        y_pred[cv_index] = clf.predict(X_cv)
+        y_pred[cv_index] = clf.predict(X_cv).reshape(-1, 1)
         y_pred_proba[cv_index] = clf._predict_proba_lr(X_cv)
         print("%d/%d cv macro f1 of params set #%d:" % (ind + 1, cv, index),
               f1_score(y_cv, y_pred[cv_index], average='macro'))
@@ -147,13 +148,14 @@ def run_parallel(index, train_url, test_url, params, clf, cv, random_state, prob
     return index, y_pred_proba, y_test_pred_proba
 
 
-def feature_stacking(cv=CV, random_state=None, proba=False):
+def feature_stacking(cv=CV, random_state=None, proba=False, verbose=False):
     """
 
     Args:
         cv: n_splits for KFold
         random_state: random_state for KFlod
         proba: True to predict probabilities of labels instead label
+        verbose: True to print more info
 
     Returns:
         X, y, X_test
@@ -169,7 +171,7 @@ def feature_stacking(cv=CV, random_state=None, proba=False):
     params_list = load_params()
     parallel = joblib.Parallel(n_jobs=N_JOBS, verbose=1)
     rets = parallel(joblib.delayed(run_parallel)(
-        ind, train_url, test_url, params, clone(clf), cv, random_state, proba
+        ind, train_url, test_url, params, clone(clf), cv, random_state, proba, verbose
     ) for ind, params in enumerate(params_list))
     rets = sorted(rets, key=lambda x: x[0])
 

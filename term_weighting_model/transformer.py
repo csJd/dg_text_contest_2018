@@ -81,7 +81,7 @@ class TfdcTransformer(BaseEstimator, TransformerMixin):
 
             # all labels
             labels = set(y)
-            print(X.shape, y.shape)
+            # print(X.shape, y.shape)
             for label in labels:
                 label_X = X[y == label]
                 label_tfs = np.asarray(label_X.sum(axis=0)).ravel()  # f(t, Ci)

@@ -242,35 +242,35 @@ def predict_proba(clf, X, y, X_test, save_url=None):
 
 def main():
     clfs = init_clfs()
+    # clfs = init_linear_clfs()
 
     # load from pickle
-    # clfs = init_linear_clfs()
-    # pk_url = from_project_root("processed_data/vector/stacked_XyX_test_50.pk")
-    # print("loading data from", pk_url)
-    # X, y, X_test = joblib.load(pk_url)
+    pk_url = from_project_root("processed_data/vector/stacked_XyX_test_50.pk")
+    print("loading data from", pk_url)
+    X, y, X_test = joblib.load(pk_url)
 
-    # generate from original csv
     train_url = from_project_root("data/train_set.csv")
-    # test_url = from_project_root("data/test_set.csv")
-    test_url = None
-    X, y, X_test = generate_vectors(train_url, test_url, column='word_seg', max_n=3, min_df=3, max_df=0.8,
-                                    max_features=2000000, balanced=False, re_weight=9)
-
-    X_a, _, X_test_a = generate_vectors(train_url, test_url, column='article', max_n=3, min_df=3, max_df=0.8,
-                                        max_features=2000000, balanced=False, re_weight=9)
-
-    # X = np.append(X, generate_meta_feature(train_url), axis=1)
-
-    X = sp.hstack([X, X_a])  # append horizontally on sparse matrix
+    test_url = from_project_root("data/test_set.csv")
+    # generate from original csv
+    # X, y, X_test = generate_vectors(train_url, test_url, column='word_seg', max_n=3, min_df=3, max_df=0.8,
+    #                                 max_features=2000000, balanced=False, re_weight=9)
+    # X = sp.hstack([X, X_a])  # append horizontally on sparse matrix
     # X_test = sp.hstack([X_test, X_test_a])
+
+    # generate meta features
+    X = np.append(X, generate_meta_feature(train_url), axis=1)
+    X_test = np.append(X, generate_meta_feature(test_url), axis=1)
 
     train_clfs(clfs, X, y, tuning=True)
 
     # clf = SVC(C=1, kernel='linear')
-    # predict_proba(clf, X, y, X_test, save_url=from_project_root('processed_data/vector/lsvc_0781_proba.pk'))
+    clf = XGBClassifier()
+    # clf = LGBMClassifier()
 
-    # save_url = from_project_root("processed_data/com_result/result.csv")
-    # train_and_gen_result(clf, X, y, X_test, save_url)
+    use_proba = True
+    save_url = from_project_root("processed_data/com_result/50_xgb_{}.csv"
+                                 .format('proba' if use_proba else 'label'))
+    train_and_gen_result(clf, X, y, X_test, use_proba=False, save_url=save_url)
     pass
 
 
