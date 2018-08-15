@@ -18,17 +18,17 @@ from lstm_model.model_tool import get_term_weight,get_index_text
 tf.flags.DEFINE_boolean("allow_soft_placement", True, "Allow device soft device placement")
 tf.flags.DEFINE_boolean("log_device_placement", False, "Log placement of ops on devices")
 # 预测文件路径
-tf.flags.DEFINE_string("predict_filename","lstm_model/processed_data/two_gram/filter_2-gram_phrase_level_data_dev.csv","predict_filename path")
+tf.flags.DEFINE_string("predict_filename","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_dev.csv","predict_filename path")
 
 # vocabulary path
-tf.flags.DEFINE_string("vocabulary_path","./runs/1533471123/vocab","vocabulary_path")
-tf.flags.DEFINE_string("vocab_file","lstm_model/processed_data/filter_phrase_level_vocab.pk","vocab file url")
+tf.flags.DEFINE_string("vocab_file","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_vocab.pk","vocab file url")
 tf.flags.DEFINE_integer("max_word_in_sent",800,"max_word_in_sent")
 # model checkpoint path
-tf.flags.DEFINE_string("meta_path","./runs/1533471123/checkpoints/model-1300.meta","meta_path")
-tf.flags.DEFINE_string("model_path","./runs/1533471123/checkpoints/model-1300","model_path")
+tf.flags.DEFINE_string("meta_path","./runs/1534176871/checkpoints/model-1400.meta","meta_path")
+tf.flags.DEFINE_string("model_path","./runs/1534176871/checkpoints/model-1400","model_path")
+tf.flags.DEFINE_string("dc_file","lstm_model/processed_data/one_gram/phrase_level_1gram_dc.json","dc file url")
 
-tf.flags.DEFINE_string("result_path","./result/result_predict-1300.csv","result path")
+tf.flags.DEFINE_string("result_path","./result/result_predict-1400.csv","result path")
 
 FLAGS = tf.flags.FLAGS
 # FLAGS._parse_flags()
@@ -36,9 +36,8 @@ FLAGS = tf.flags.FLAGS
 # ===================================================================================
 # 获取预测文本
 predict_context,predict_labels = Data_helper.get_predict_data(from_project_root(FLAGS.predict_filename))
-
 x_vecs = get_index_text(predict_context,FLAGS.max_word_in_sent,from_project_root(FLAGS.vocab_file))
-
+term_wegits_vec = get_term_weight(predict_context, FLAGS.max_word_in_sent, from_project_root(FLAGS.dc_file))
 
 # predition
 print("prediction.......")
@@ -61,6 +60,7 @@ with graph.as_default():
 
         # 获取模型输入
         input_x = graph.get_operation_by_name("placeholder/input_x").outputs[0]
+        term_weight = graph.get_operation_by_name("placeholder/term_weight").outputs[0]
         rnn_input_keep_prob = graph.get_operation_by_name("placeholder/rnn_input_keep_prob").outputs[0]
         rnn_output_keep_prob = graph.get_operation_by_name("placeholder/rnn_output_keep_prob").outputs[0]
 
@@ -81,7 +81,10 @@ with graph.as_default():
             else:
                 end_index = start_index + per_predict_limit
             predict_text = x_vecs[start_index:end_index]
-            predict_result = sess.run(predictions,{input_x:predict_text,rnn_input_keep_prob:1.0,
+            term_weights_batch = term_wegits_vec[start_index:end_index]
+            predict_result = sess.run(predictions,{input_x:predict_text,
+                                                   term_weight:term_weights_batch,
+                                                   rnn_input_keep_prob:1.0,
                                                    rnn_output_keep_prob:1.0})
             batch_prediction_all.extend(predict_result)
 
