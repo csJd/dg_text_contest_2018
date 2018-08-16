@@ -151,11 +151,12 @@ def feature_stacking(n_splits=CV, random_state=None, use_proba=False, verbose=Fa
     return X_stack_train, y, X_stack_test
 
 
-def generate_meta_feature(data_url):
+def generate_meta_feature(data_url, normalize=True):
     """ generate meta feature
 
     Args:
         data_url: url to data
+        normalize: normalize result into [0, 1]
 
     Returns:
         generated meta DataFrame
@@ -175,10 +176,16 @@ def generate_meta_feature(data_url):
         meta_df[level + '_unique'] = data_df[level].apply(lambda x: len(set(x.split())))
         # most common word num
         meta_df[[level + '_common', level + '_common_num']] = pd.DataFrame(data_df[level].apply(
-            lambda x: Counter(x.split()).most_common(1)[0]).tolist())
+            lambda x: Counter(x.split()).most_common(1)[0]).tolist()).astype(int)
 
     # average phrase len
     meta_df['avg_phrase_len'] = meta_df['article_num'] / meta_df['word_seg_num']
+
+    # normalization
+    if normalize:
+        for col in meta_df:
+            meta_df[col] -= meta_df[col].min()
+            meta_df[col] /= meta_df[col].max()
 
     joblib.dump(meta_df, save_url)
     return meta_df
