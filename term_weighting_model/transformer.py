@@ -162,7 +162,7 @@ class TfdcTransformer(BaseEstimator, TransformerMixin):
 
 
 def generate_vectors(train_url, test_url=None, column='word_seg', trans_type=None, max_n=1, min_df=3, max_df=0.8,
-                     max_features=1, sublinear_tf=True, balanced=False, re_weight=0, verbose=1):
+                     max_features=1, sublinear_tf=True, balanced=False, re_weight=0, verbose=False):
     """ generate X, y, X_test vectors with csv(with header) url use pandas and CountVectorizer
 
     Args:
@@ -175,7 +175,7 @@ def generate_vectors(train_url, test_url=None, column='word_seg', trans_type=Non
         max_df: max_df for CountVectorizer
         max_features: max_features for CountVectorizer
         sublinear_tf: sublinear_tf for default TfdcTransformer
-        balanced: balanced for default TfdcTransformer
+        balanced: balanced for default TfdcTransformer, for idf transformer, it is use_idf
         re_weight: re_weight for TfdcTransformer
         verbose: True to show more information
 
@@ -183,7 +183,7 @@ def generate_vectors(train_url, test_url=None, column='word_seg', trans_type=Non
         X, y, X_test
 
     """
-    print("loading '%s' level data from %s with pandas" % (column, train_url))
+    verbose and print("loading '%s' level data from %s with pandas" % (column, train_url))
 
     train_df = load_to_df(train_url)
 

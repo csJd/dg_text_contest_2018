@@ -9,7 +9,6 @@ from sklearn.metrics import f1_score, accuracy_score
 from sklearn.svm import LinearSVC
 from sklearn.externals import joblib
 from sklearn.base import clone
-from tqdm import tqdm
 import scipy as sp
 import numpy as np
 import pandas as pd
@@ -30,37 +29,6 @@ def load_params():
         list, list of params dict
 
     """
-
-    # params_grad = [
-    #     {
-    #         'column': ['word_seg', 'article'],
-    #         'max_n': [1],
-    #         'min_df': [2, 3],
-    #         'max_df': [0.8, 0.9],
-    #         'max_features': [200000, 300000],
-    #         'balanced': [False, True],
-    #         're_weight': [0, 9]
-    #     },
-    #     {
-    #         'column': ['word_seg', 'article'],
-    #         'max_n': [2],
-    #         'min_df': [2, 3],
-    #         'max_df': [0.8, 0.9],
-    #         'max_features': [500000, 1000000, 2000000],
-    #         'balanced': [False, True],
-    #         're_weight': [0, 9]
-    #     },
-    #     {
-    #         'column': ['word_seg', 'article'],
-    #         'max_n': [3],
-    #         'min_df': [2, 3],
-    #         'max_df': [0.8, 0.9],
-    #         'max_features': [1000000, 2000000, 3000000, 4000000],
-    #         'balanced': [False, True],
-    #         're_weight': [0, 9]
-    #     },
-    # ]
-
     params_grad = [
         {
             'column': ['word_seg'],
@@ -99,12 +67,11 @@ def load_params():
         keys, value_lists = zip(*(params_dict.items()))
         for prod in product(*value_lists):
             params_list.append(dict(zip(keys, prod)))
-    print('len(params_list) =', len(params_list))
 
     return params_list
 
 
-def run_parallel(index, train_url, test_url, params, clf, cv, random_state, proba=False, verbose=False):
+def run_parallel(index, train_url, test_url, params, clf, n_splits, random_state, use_proba=False, verbose=False):
     """ for run cvs parallel
 
     Args:
@@ -113,9 +80,9 @@ def run_parallel(index, train_url, test_url, params, clf, cv, random_state, prob
         test_url: teat data url
         params: params for generate_vectors
         clf: classifier
-        cv: n_splits for KFold
+        n_splits: n_splits for KFold
         random_state: random_state for KFold
-        proba: True to predict probabilities of labels instead label
+        use_proba: True to predict probabilities of labels instead of labels
         verbose: True to print more info
 
     Returns:
@@ -126,7 +93,7 @@ def run_parallel(index, train_url, test_url, params, clf, cv, random_state, prob
     if not sp.sparse.isspmatrix_csr(X):
         X = sp.sparse.csr_matrix(X)
 
-    skf = StratifiedKFold(n_splits=cv, random_state=random_state)
+    skf = StratifiedKFold(n_splits=n_splits, shuffle=bool(random_state), random_state=random_state)
     y_pred = np.zeros((X.shape[0], 1))
     y_pred_proba = np.zeros((X.shape[0], N_CLASSES))
     y_test_pred_proba = np.zeros((X_test.shape[0], N_CLASSES))
@@ -136,25 +103,25 @@ def run_parallel(index, train_url, test_url, params, clf, cv, random_state, prob
         clf.fit(X_train, y_train)
         y_pred[cv_index] = clf.predict(X_cv).reshape(-1, 1)
         y_pred_proba[cv_index] = clf._predict_proba_lr(X_cv)
-        print("%d/%d cv macro f1 of params set #%d:" % (ind + 1, cv, index),
+        print("%d/%d cv macro f1 of params set #%d:" % (ind + 1, n_splits, index),
               f1_score(y_cv, y_pred[cv_index], average='macro'))
         y_test_pred_proba += clf._predict_proba_lr(X_test)
     print("#%d macro f1: " % index, f1_score(y, y_pred, average='macro'))
 
     y_test_pred = clf.predict(X_test).reshape(X_test.shape[0], 1)
-    y_test_pred_proba /= y_test_pred_proba.sum(axis=1)
-    if not proba:
+    y_test_pred_proba /= n_splits  # normalize to 1
+    if not use_proba:
         return index, y_pred, y_test_pred
     return index, y_pred_proba, y_test_pred_proba
 
 
-def feature_stacking(cv=CV, random_state=None, proba=False, verbose=False):
+def feature_stacking(n_splits=CV, random_state=None, use_proba=False, verbose=False):
     """
 
     Args:
-        cv: n_splits for KFold
+        n_splits: n_splits for KFold
         random_state: random_state for KFlod
-        proba: True to predict probabilities of labels instead label
+        use_proba: True to predict probabilities of labels instead of labels
         verbose: True to print more info
 
     Returns:
@@ -169,9 +136,9 @@ def feature_stacking(cv=CV, random_state=None, proba=False, verbose=False):
     X, y, X_test = generate_vectors(train_url, test_url)  # for X.shape
 
     params_list = load_params()
-    parallel = joblib.Parallel(n_jobs=N_JOBS, verbose=1)
+    parallel = joblib.Parallel(n_jobs=N_JOBS, verbose=True)
     rets = parallel(joblib.delayed(run_parallel)(
-        ind, train_url, test_url, params, clone(clf), cv, random_state, proba, verbose
+        ind, train_url, test_url, params, clone(clf), n_splits, random_state, use_proba, verbose
     ) for ind, params in enumerate(params_list))
     rets = sorted(rets, key=lambda x: x[0])
 
@@ -218,9 +185,8 @@ def generate_meta_feature(data_url):
 
 
 def main():
-    # load_params()
     save_url = from_project_root("processed_data/vector/stacked_proba_XyX_test_%d.pk" % len(load_params()))
-    joblib.dump(feature_stacking(proba=True), save_url)
+    joblib.dump(feature_stacking(use_proba=True), save_url)
 
 
 if __name__ == '__main__':
