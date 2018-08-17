@@ -75,7 +75,8 @@ train_y.extend(train_y1)
 train_y.extend(train_y3)
 train_y.extend(train_y4)
 
-dev_x_text,dev_y = Data_helper.get_predict_data(from_project_root(FLAGS.train_file2))
+# dev_x_text,dev_y = Data_helper.get_predict_data(from_project_root(FLAGS.train_file2))
+dev_x_text,dev_y = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file2))
 
 # =====================build vocab =====================================================================================
 train_x_vecs = get_index_text(train_x_text,FLAGS.max_word_in_sent,from_project_root(FLAGS.vocab_file))

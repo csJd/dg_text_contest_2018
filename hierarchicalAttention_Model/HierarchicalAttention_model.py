@@ -6,7 +6,7 @@ import numpy as np
 import tensorflow.contrib as tf_contrib
 
 class HierarchicalAttention:
-    def __init__(self, num_classes, learning_rate, batch_size, decay_steps, decay_rate, sequence_length, num_sentences,
+    def __init__(self, num_classes, learning_rate, decay_steps, decay_rate, sequence_length, num_sentences,
                  vocab_size, embed_size,
                  hidden_size, is_training, need_sentence_level_attention_encoder_flag=True, multi_label_flag=False,
                  initializer=tf.random_normal_initializer(stddev=0.1),clip_gradients=5.0):#0.01
@@ -14,7 +14,6 @@ class HierarchicalAttention:
         """init all hyperparameter here"""
         # set hyperparamter
         self.num_classes = num_classes
-        self.batch_size = batch_size
         self.sequence_length = sequence_length
         self.num_sentences = num_sentences
         self.vocab_size = vocab_size
@@ -34,7 +33,7 @@ class HierarchicalAttention:
 
             self.sequence_length = int(self.sequence_length / self.num_sentences) # TODO
             self.input_y = tf.placeholder(tf.int32, [None, ], name="input_y")  # y:[None,num_classes]
-            # y:[None,num_classes]. this is for multi-label classification only.
+            self.batch_size = tf.placeholder(tf.int32,name="batch_size")
             self.input_y_multilabel = tf.placeholder(tf.float32, [None, self.num_classes],name="input_y_multilabel")
             self.dropout_keep_prob = tf.placeholder(tf.float32, name="dropout_keep_prob")
 
