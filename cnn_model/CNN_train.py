@@ -10,21 +10,21 @@ import os
 import datetime
 from utils.path_util import from_project_root
 
-#Setting parameters
+# Setting parameters
 
-#==================================================================================================
+# ==================================================================================================
 
-#dev percent 验证集的大小
+# dev percent 验证集的大小
 tf.flags.DEFINE_float("dev_sample_percentage",0.01,"Percentage of the training data to use for validation")
 
-#Model HypereParameters
+# Model HypereParameters
 tf.flags.DEFINE_integer("embedding_dim",64,"Dimensionality of character embedding")
 tf.flags.DEFINE_string("filter_size","2,3,4","the size of the filter")
 tf.flags.DEFINE_integer("num_filters",64,"the num of channels in per filter")
 tf.flags.DEFINE_float("dropout_keep_prob",0.9,"Dropout keep probability for regularization")
 tf.flags.DEFINE_float("l2_reg_lambda",0.0,"l2 regularization lambda fro regularization")
 
-#Training Parameters
+# Training Parameters
 tf.flags.DEFINE_integer("batch_size", 100, "Batch Size (default: 64)")
 tf.flags.DEFINE_integer("num_epochs", 5, "Number of training epochs (default: 200)")
 tf.flags.DEFINE_integer("evaluate_every", 50, "Evaluate model on dev set after this many steps (default: 100)")
@@ -37,14 +37,14 @@ tf.flags.DEFINE_integer("max_doc_len", 1000, "Number of checkpoints to store (de
 tf.flags.DEFINE_boolean("allow_soft_placement", True, "Allow device soft device placement")
 tf.flags.DEFINE_boolean("log_device_placement", False, "Log placement of ops on devices")
 
-#Training file path # 训练数据，已经分好词
+# Training file path # 训练数据，已经分好词
 tf.flags.DEFINE_string("train_file","lstm_model/processed_data/two_gram/filter_2-gram_phrase_level_data_dev.csv","Training file")
 
 FLAGS = tf.flags.FLAGS
 # FLAGS._parse_flags()
 
-#=======================================================================================================================
-#参数打印输出
+# =======================================================================================================================
+# 参数打印输出
 print("\n Parameters:")
 
 for attr,value in sorted(FLAGS.__flags.items()):
@@ -55,60 +55,59 @@ print("")
 
 #=======================================================================================================================
 
-#准备数据
-#x_text : 分好词的字符串数组 , example: ["a b c","d e f g h"]
-#y : label example: [[0,1],[1,0],...]
+# 准备数据
+# x_text : 分好词的字符串数组 , example: ["a b c","d e f g h"]
+# y : label example: [[0,1],[1,0],...]
 
 print("Loading Data...")
 x_text,y = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file))
 
 #=======================================================================================================================
 
-#Build Vacabulary  由于卷积神经网络需要固定句子的长度
+# Build Vacabulary  由于卷积神经网络需要固定句子的长度
 max_document_length = max(len(x.split(" ")) for x in x_text)
 vocab_processor = learn.preprocessing.VocabularyProcessor(FLAGS.max_doc_len) #创建一个字典处理器,并设置句子固定长度
 x = np.array( list( vocab_processor.fit_transform(x_text)))   #x就转化为字典的下表表示的数组
 
-#格式化输出
+# 格式化输出
 print("Vocabulary size :{:d}".format(len(vocab_processor.vocabulary_)))
 
 
 #=======================================================================================================================
 
-#由于读进来的数据的label可能是有规律的，因此，使用洗牌
+# 由于读进来的数据的label可能是有规律的，因此，使用洗牌
 # np.random.seed(10)
 # shuffle_indices = np.random.permutation(np.arange(len(y))) #使用permutation对有序列进行重新随机排列
 #
 # x_shuffled = x[shuffle_indices]
 # y_shuffled = y[shuffle_indices]
 
-#=======================================================================================================================
-#数据集划分
+# =======================================================================================================================
+# 数据集划分
 
 dev_sample_index = -1 * int( FLAGS.dev_sample_percentage * len(y))
 
 x_train,x_dev = x[:dev_sample_index],x[dev_sample_index:]
 y_train,y_dev = y[:dev_sample_index],y[dev_sample_index:]
 
-#情况内存
+# 情况内存
 del x,y
 
-#格式化输出
+# 格式化输出
 print("Train / Dev split: {:d} / {:d}".format(len(y_train),len(y_dev)))
 
-#=======================================================================================================================
-#模型训练
+# =======================================================================================================================
+# 模型训练
 
 with tf.Graph().as_default():
 
-    #配置session,处理器使用的配置
+    # 配置session,处理器使用的配置
     session_conf = tf.ConfigProto(
         allow_soft_placement=FLAGS.allow_soft_placement,
         log_device_placement=FLAGS.log_device_placement
     )
     sess = tf.Session(config=session_conf)
 
-    #
     with sess.as_default():
 
         cnn = CNN_Model(
@@ -120,24 +119,24 @@ with tf.Graph().as_default():
             num_filters = FLAGS.num_filters,
             l2_reg_lambda=FLAGS.l2_reg_lambda)
 
-        #Define Training procedure
+        # Define Training procedure
         global_step = tf.Variable(0,name="global_step",trainable=False)
         optimizer = tf.train.AdamOptimizer(FLAGS.learning_rate)
         grads_and_vars = optimizer.compute_gradients(cnn.loss) #计算梯度 加入global_steps，记录步数
         # 以上两步相当于 trian_op = optimizer.minimize(cnn.loss)
         train_op = optimizer.apply_gradients(grads_and_vars,global_step=global_step)
 
-        #Output diretory for models and summaries
+        # Output diretory for models and summaries
         timestamp = str(int(time.time()))
         out_dir = os.path.abspath(os.path.join(os.path.curdir,"runs",timestamp))
         print("Writing to {} \n".format(out_dir))
 
 
-        #Summaries for loss and accuracy
+        # Summaries for loss and accuracy
         loss_summary = tf.summary.scalar("loss",cnn.loss)
         acc_summary = tf.summary.scalar("accuracy",cnn.accuracy)
 
-        #Train Summary
+        # Train Summary
         train_summary_op = tf.summary.merge([loss_summary,acc_summary])
         train_summary_dir = os.path.join(out_dir,"summaries","train")
         train_summary_writer = tf.summary.FileWriter(train_summary_dir,sess.graph) # train_summary_writer.add_summary(summaries,step)
@@ -147,7 +146,7 @@ with tf.Graph().as_default():
         dev_summary_dir = os.path.join(out_dir, "summaries", "dev")
         dev_summary_writer = tf.summary.FileWriter(dev_summary_dir, sess.graph)
 
-        #模型保存
+        # 模型保存
         # Checkpoint directory. Tensorflow assumes this directory already exists so we need to create it
         checkpoint_dir = os.path.abspath(os.path.join(out_dir, "checkpoints"))
         checkpoint_prefix = os.path.join(checkpoint_dir, "model")
@@ -156,10 +155,10 @@ with tf.Graph().as_default():
 
         saver = tf.train.Saver(tf.global_variables(),max_to_keep=FLAGS.num_checkpoints)
 
-        #Write vocabulary
+        # Write vocabulary
         vocab_processor.save(os.path.join(out_dir,"vocab"))
 
-        #Initialize all variables
+        # Initialize all variables
         sess.run(tf.global_variables_initializer())
 
         #
@@ -180,7 +179,8 @@ with tf.Graph().as_default():
 
 
         def dev_step(x_batch,y_batch,writer=None):
-            #Evaluate the model by dev samples
+
+            # Evaluate the model by dev samples
             feed_dic = {
                 cnn.input_x: x_batch,
                 cnn.input_y: y_batch,
@@ -215,4 +215,3 @@ with tf.Graph().as_default():
             if current_step % FLAGS.checkpoint_every == 0:
                 path = saver.save(sess, checkpoint_prefix, global_step=current_step)
                 print("Saved model checkpoint to {}\n".format(path))
-

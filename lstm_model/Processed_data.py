@@ -173,7 +173,6 @@ def train_dev_split_for_data_word_bag(pca_tfbdc_1gram_300000_Xy,filter_phrase_le
     f1.close()
     f2.close()
     pass
-
 #
 def cal_df(train_file,df_pickle):
 
@@ -188,13 +187,12 @@ def cal_df(train_file,df_pickle):
     pk.dump(df_dict,open(df_pickle,'wb'))
     pass
 
-
 def main():
     #计算df
-    train_file = from_project_root("lstm_model/processed_data/phrase_level_data.csv")
-    df_pickle = from_project_root("lstm_model/processed_data/one_gram/phrase_level_df.pk")
-    cal_df(train_file,df_pickle)
-    exit()
+    # train_file = from_project_root("lstm_model/processed_data/phrase_level_data.csv")
+    # df_pickle = from_project_root("lstm_model/processed_data/one_gram/phrase_level_df.pk")
+    # cal_df(train_file,df_pickle)
+    # exit()
 
     # 将词袋模型的tf_bdc权重进行降维
     # tfbdc_word_bag_pickle = from_project_root("lstm_model/processed_data/vector/tfbdc_1gram_300000_Xy.pk")
@@ -219,9 +217,9 @@ def main():
     # exit()
 
     # extract data
-    # extract_data(from_project_root("data/test_set.csv"),[0,2],
-    #              from_project_root("lstm_model/processed_data/phrase_level_test_data.csv"))
-    # exit()
+    extract_data(from_project_root("data/test_set.csv"),[0,2],
+                 from_project_root("lstm_model/processed_data/phrase_level_test_data.csv"))
+    exit()
 
     # 划分数据集
     # train_dev_split(from_project_root("lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data.csv"))

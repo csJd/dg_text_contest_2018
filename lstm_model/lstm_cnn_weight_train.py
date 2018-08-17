@@ -16,6 +16,7 @@ from lstm_model.model_tool import get_term_weight,get_index_text
 import tqdm
 from sklearn.metrics import f1_score
 from sklearn.metrics import accuracy_score
+import datetime
 
 #Data loading params
 tf.flags.DEFINE_integer("num_classes",19,"number of classes")
@@ -25,7 +26,7 @@ tf.flags.DEFINE_float("dev_sample_percentage",0.002,"dev_sample_percentage")
 tf.flags.DEFINE_integer("batch_size",100,"Batch Size of training data(default 50)")
 tf.flags.DEFINE_integer("checkpoint_every",100,"Save model after this many steps (default 100)")
 tf.flags.DEFINE_integer("num_checkpoints",15,"Number of checkpoints to store (default 5)")
-tf.flags.DEFINE_integer("evaluate_every",100,"evaluate every this many batches")
+tf.flags.DEFINE_integer("evaluate_every",3,"evaluate every this many batches")
 tf.flags.DEFINE_float("learning_rate",0.01,"learning rate")  #====================
 tf.flags.DEFINE_integer("grad_clip",5,"grad clip to prevent gradient explode")
 tf.flags.DEFINE_integer("epoch",3,"number of epoch")
@@ -203,6 +204,25 @@ with tf.Session(config=gpuConfig) as sess,tf.device('/device:GPU:0'):
 
         return step
 
+    def small_dev_step(x_batch,y_batch,term_weight_batch,writer=None):
+
+        feed_dict = {
+            new_model.input_x:x_batch,
+            new_model.input_y:y_batch,
+            new_model.term_weight:term_weight_batch,
+            new_model.rnn_input_keep_prob: 1.0,
+            new_model.rnn_output_keep_prob: 1.0
+        }
+        step, summaries, cost, accuracy = sess.run(
+            [global_step, dev_summary_op,loss,acc],feed_dict)
+        time_str = datetime.datetime.now().isoformat()
+        print("{}: step {}, loss {:g}, acc {:g}".format(time_str, step, loss, accuracy))
+
+        if writer:
+            writer.add_summary(summaries, step)
+        return step
+
+
     def dev_step(dev_x_vecs,dev_y,dev_term_wegits,per_predict_limit):
 
         sum_predict = len(dev_y)
@@ -253,7 +273,8 @@ with tf.Session(config=gpuConfig) as sess,tf.device('/device:GPU:0'):
             step = train_step(x_batch,y_batch,term_weight_batch)
 
             if step % FLAGS.evaluate_every == 0:
-                dev_step(dev_x_vecs,dev_y,dev_term_wegits,FLAGS.batch_size)
+                # dev_step(dev_x_vecs,dev_y,dev_term_wegits,FLAGS.batch_size)
+                small_dev_step(dev_x_vecs[:1000],dev_y[:1000],dev_term_wegits[:1000],dev_summary_writer)
 
             if step % FLAGS.checkpoint_every == 0 :
                 path = saver.save(sess,checkpoint_prefix,global_step=step)
