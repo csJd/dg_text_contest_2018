@@ -26,6 +26,7 @@ tf.flags.DEFINE_integer("max_word_in_sent",800,"max_word_in_sent")
 
 def main():
 
+    # 将保存的预测结果进行预测
     model_path = ['1534321225_0','1534310253_1','1534299886_2','1534289273_3','1534259360_4']
     for cv_num_i in range(5):
 
