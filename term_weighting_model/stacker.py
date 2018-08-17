@@ -34,10 +34,10 @@ def load_params():
             'column': ['word_seg'],
             'trans_type': ['dc', 'idf'],
             'max_n': [1],
-            'min_df': [2, 3],
-            'max_df': [0.8],
+            'min_df': [2],
+            'max_df': [0.9],
             'max_features': [200000],
-            'balanced': [False],
+            'balanced': [True],
             're_weight': [0]
         },
         {
@@ -45,8 +45,8 @@ def load_params():
             'trans_type': ['dc', 'idf'],
             'max_n': [2],
             'min_df': [3],
-            'max_df': [0.8, 0.9],
-            'max_features': [200000, 500000],
+            'max_df': [0.8],
+            'max_features': [200000, 2000000],
             'balanced': [False, True],
             're_weight': [6]
         },
@@ -56,9 +56,9 @@ def load_params():
             'max_n': [3],
             'min_df': [3],
             'max_df': [0.8],
-            'max_features': [4000000],
-            'balanced': [False],
-            're_weight': [9]
+            'max_features': [1000000, 4000000],
+            'balanced': [False, True],
+            're_weight': [9, 13.5]
         },
     ]
 
