@@ -122,7 +122,7 @@ def init_clfs():
     clfs['lgbm'] = LGBMClassifier()
 
     # Add xgb model
-    # clfs['xgb'] = XGBClassifier()
+    # clfs['xgb'] = XGBClassifier(n_jobs=N_JOBS)
 
     # Add svc model
     # clfs['svc'] = SVC()
@@ -259,17 +259,18 @@ def main():
 
     # generate meta features
     X = np.append(X, generate_meta_feature(train_url), axis=1)
-    X_test = np.append(X, generate_meta_feature(test_url), axis=1)
+    X_test = np.append(X_test, generate_meta_feature(test_url), axis=1)
+    print(X.shape, y.shape, X_test.shape)
 
     train_clfs(clfs, X, y, tuning=True)
 
     # clf = SVC(C=1, kernel='linear')
-    clf = XGBClassifier()
+    clf = XGBClassifier(n_jobs=N_JOBS)  # xgboost's default n_jobs=1
     # clf = LGBMClassifier()
 
     use_proba = True
-    save_url = from_project_root("processed_data/com_result/50_xgb_{}.csv"
-                                 .format('proba' if use_proba else 'label'))
+    save_url = from_project_root("processed_data/com_result/{}_xgb_{}.csv"
+                                 .format(X.shape[1], 'proba' if use_proba else 'label'))
     train_and_gen_result(clf, X, y, X_test, use_proba=False, save_url=save_url)
     pass
 
