@@ -18,7 +18,7 @@ from term_weighting_model.transformer import generate_vectors
 from utils.data_util import load_to_df
 
 N_CLASSES = 19
-N_JOBS = 4
+N_JOBS = -1
 CV = 5
 
 
@@ -32,33 +32,43 @@ def load_params():
     params_grad = [
         {
             'column': ['word_seg'],
-            'trans_type': ['dc', 'idf'],
+            'trans_type': ['dc'],
             'max_n': [1],
-            'min_df': [2],
-            'max_df': [0.9],
+            'min_df': [2, 3],
+            'max_df': [0.8],
             'max_features': [200000],
-            'balanced': [True],
+            'balanced': [False],
             're_weight': [0]
         },
         {
             'column': ['word_seg', 'article'],
-            'trans_type': ['dc', 'idf'],
+            'trans_type': ['dc'],
             'max_n': [2],
             'min_df': [3],
-            'max_df': [0.8],
-            'max_features': [200000, 2000000],
+            'max_df': [0.8, 0.9],
+            'max_features': [500000, 2000000],
             'balanced': [False, True],
-            're_weight': [6]
+            're_weight': [0, 9]
         },
         {
             'column': ['word_seg', 'article'],
-            'trans_type': ['dc', 'idf'],
+            'trans_type': ['dc'],
             'max_n': [3],
             'min_df': [3],
             'max_df': [0.8],
             'max_features': [1000000, 4000000],
             'balanced': [False, True],
-            're_weight': [9, 13.5]
+            're_weight': [0, 12]
+        },
+
+        {
+            'column': ['word_seg', 'article'],
+            'trans_type': ['idf'],
+            'max_n': [3],
+            'min_df': [3],
+            'max_df': [0.8],
+            'max_features': [500000, 2000000],
+            'balanced': [False, True],
         },
     ]
 
@@ -151,6 +161,29 @@ def feature_stacking(n_splits=CV, random_state=None, use_proba=False, verbose=Fa
     return X_stack_train, y, X_stack_test
 
 
+def model_stacking_from_pk(model_urls):
+    """
+
+    Args:
+        model_urls: model stacking from model urls
+
+    Returns:
+        X, y, X_test: stacked new feature
+
+    """
+    if model_urls is None or len(model_urls) < 1:
+        print("invalid model_urls")
+        return
+
+    X, y, X_test = joblib.load(model_urls[0])
+    for url in model_urls[1:]:
+        X_a, _, X_test_a = joblib.load(url)
+        X = np.append(X, X_a, axis=1)
+        X_test = np.append(X_test, X_test_a, axis=1)
+
+    return X, y, X_test
+
+
 def generate_meta_feature(data_url, normalize=True):
     """ generate meta feature
 
@@ -192,6 +225,8 @@ def generate_meta_feature(data_url, normalize=True):
 
 
 def main():
+    params = load_params()
+    print("len(params) =", len(params))
     save_url = from_project_root("processed_data/vector/stacked_proba_XyX_test_%d.pk" % len(load_params()))
     joblib.dump(feature_stacking(use_proba=True), save_url)
 
