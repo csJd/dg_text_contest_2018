@@ -143,7 +143,7 @@ def feature_stacking(n_splits=CV, random_state=None, use_proba=False, verbose=Fa
     train_url = from_project_root("data/train_set.csv")
     test_url = from_project_root("data/test_set.csv")
     # test_url = None
-    X, y, X_test = generate_vectors(train_url, test_url)  # for X.shape
+    X, y, X_test = generate_vectors(train_url, test_url, sublinear_tf=False)  # for X.shape
 
     params_list = load_params()
     parallel = joblib.Parallel(n_jobs=N_JOBS, verbose=True)

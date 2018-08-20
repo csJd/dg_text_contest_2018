@@ -162,7 +162,7 @@ class TfdcTransformer(BaseEstimator, TransformerMixin):
 
 
 def generate_vectors(train_url, test_url=None, column='article', trans_type=None, max_n=1, min_df=1, max_df=1.0,
-                     max_features=1, sublinear_tf=False, balanced=False, re_weight=0, verbose=False):
+                     max_features=1, sublinear_tf=True, balanced=False, re_weight=0, verbose=False):
     """ generate X, y, X_test vectors with csv(with header) url use pandas and CountVectorizer
 
     Args:
