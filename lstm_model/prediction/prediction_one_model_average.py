@@ -37,8 +37,43 @@ def main():
     # 保存概率文件
     pk.dump(pro_merge,open(from_project_root("lstm_model/result/result_rcnn_0.77.pk"),'wb'))
 
+def rcnn_rcnn_attention():
+
+    rcnn_model = from_project_root("lstm_model/result/prob_rcnnbo_cv.csv")
+    rnn_cnn_attention = from_project_root("lstm_model/result/result_rcnn_0.775.pk")
+
+    rcnn_pro = []
+    with open(rcnn_model,'r',encoding='utf-8') as f:
+        for line in f.readlines()[1:]:
+            pro_list = np.array(line.strip().split(',')[:-1]).astype(np.float32)
+            rcnn_pro.append(pro_list)
+
+    rcnn_attention_pro = pk.load(open(rnn_cnn_attention,'rb'))
+
+    predict_merge = []
+    for i in range(len(rcnn_attention_pro)): # 预测样本的条数
+
+        one_predict_merge = (np.array(rcnn_pro[i])/5 + np.array(rcnn_attention_pro[i])) / 2
+
+        max_index = np.where(one_predict_merge==np.max(one_predict_merge))[0][0]
+        print(max_index)
+        predict_merge.append(max_index+1)  # 这就是最终的预测结果pro_merge
+
+    predict_context, ids = Data_helper.get_predict_data(
+        from_project_root("lstm_model/processed_data/phrase_level_test_data.csv"))
+
+    # 保存结果
+    with open(from_project_root("lstm_model/result/result_rcnn_rnn_cnn_attention.csv"), 'w', encoding='utf-8') as f:
+        f.write("id,class\n")
+        for i in range(len(ids)):
+            f.write("{},{}\n".format(ids[i], predict_merge[i]))
+
+
+    pass
 
 if __name__ == "__main__":
+    rcnn_rcnn_attention()
+    exit()
     main()
 
 

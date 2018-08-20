@@ -8,7 +8,7 @@ import tensorflow.contrib as tf_contrib
 class HierarchicalAttention:
     def __init__(self, num_classes, learning_rate, decay_steps, decay_rate, sequence_length, num_sentences,
                  vocab_size, embed_size,
-                 hidden_size, is_training, need_sentence_level_attention_encoder_flag=True, multi_label_flag=False,
+                 hidden_size, is_training,Embedding,need_sentence_level_attention_encoder_flag=True, multi_label_flag=False,
                  initializer=tf.random_normal_initializer(stddev=0.1),clip_gradients=5.0):#0.01
 
         """init all hyperparameter here"""
@@ -19,6 +19,7 @@ class HierarchicalAttention:
         self.vocab_size = vocab_size
         self.embed_size = embed_size
         self.is_training = is_training
+        self.Embedding=Embedding
         self.learning_rate = tf.Variable(learning_rate, trainable=False, name="learning_rate")#TODO ADD learning_rate
         self.learning_rate_decay_half_op = tf.assign(self.learning_rate, self.learning_rate * 0.5)
         self.initializer = initializer
@@ -220,8 +221,7 @@ class HierarchicalAttention:
 
     def train(self):
         """based on the loss, use SGD to update parameter"""
-        learning_rate = tf.train.exponential_decay(self.learning_rate, self.global_step, self.decay_steps,
-                                                   self.decay_rate, staircase=True)
+        learning_rate = tf.train.exponential_decay(self.learning_rate, self.global_step, self.decay_steps,self.decay_rate, staircase=True)
         self.learning_rate_=learning_rate
         #noise_std_dev = tf.constant(0.3) / (tf.sqrt(tf.cast(tf.constant(1) + self.global_step, tf.float32))) #gradient_noise_scale=noise_std_dev
         train_op = tf_contrib.layers.optimize_loss(self.loss_val, global_step=self.global_step,
@@ -236,19 +236,16 @@ class HierarchicalAttention:
         :return:
         """
         # update gate: decides how much past information is kept and how much new information is added.
-        z_t = tf.nn.sigmoid(tf.matmul(Xt, self.W_z) + tf.matmul(h_t_minus_1,
-                                                                self.U_z) + self.b_z)  # z_t:[batch_size*num_sentences,self.hidden_size]
+        z_t = tf.nn.sigmoid(tf.matmul(Xt, self.W_z) + tf.matmul(h_t_minus_1,self.U_z) + self.b_z)  # z_t:[batch_size*num_sentences,self.hidden_size]
         # reset gate: controls how much the past state contributes to the candidate state.
-        r_t = tf.nn.sigmoid(tf.matmul(Xt, self.W_r) + tf.matmul(h_t_minus_1,
-                                                                self.U_r) + self.b_r)  # r_t:[batch_size*num_sentences,self.hidden_size]
+        r_t = tf.nn.sigmoid(tf.matmul(Xt, self.W_r) + tf.matmul(h_t_minus_1,self.U_r) + self.b_r)  # r_t:[batch_size*num_sentences,self.hidden_size]
         # candiate state h_t~
         h_t_candiate = tf.nn.tanh(tf.matmul(Xt, self.W_h) +r_t * (tf.matmul(h_t_minus_1, self.U_h)) + self.b_h)  # h_t_candiate:[batch_size*num_sentences,self.hidden_size]
         # new state: a linear combine of pervious hidden state and the current new state h_t~
         h_t = (1 - z_t) * h_t_minus_1 + z_t * h_t_candiate  # h_t:[batch_size*num_sentences,hidden_size]
         return h_t
 
-    def gru_single_step_sentence_level(self, Xt,
-                                       h_t_minus_1):  # Xt:[batch_size, hidden_size*2]; h_t:[batch_size, hidden_size*2]
+    def gru_single_step_sentence_level(self, Xt,h_t_minus_1):  # Xt:[batch_size, hidden_size*2]; h_t:[batch_size, hidden_size*2]
         """
         single step of gru for sentence level
         :param Xt:[batch_size, hidden_size*2]
@@ -262,8 +259,7 @@ class HierarchicalAttention:
         r_t = tf.nn.sigmoid(tf.matmul(Xt, self.W_r_sentence) + tf.matmul(h_t_minus_1,
                                                                          self.U_r_sentence) + self.b_r_sentence)  # r_t:[batch_size,self.hidden_size]
         # candiate state h_t~
-        h_t_candiate = tf.nn.tanh(tf.matmul(Xt, self.W_h_sentence) + r_t * (
-        tf.matmul(h_t_minus_1, self.U_h_sentence)) + self.b_h_sentence)  # h_t_candiate:[batch_size,self.hidden_size]
+        h_t_candiate = tf.nn.tanh(tf.matmul(Xt, self.W_h_sentence) + r_t * (tf.matmul(h_t_minus_1, self.U_h_sentence)) + self.b_h_sentence)  # h_t_candiate:[batch_size,self.hidden_size]
         # new state: a linear combine of pervious hidden state and the current new state h_t~
         h_t = (1 - z_t) * h_t_minus_1 + z_t * h_t_candiate
         return h_t
@@ -353,8 +349,8 @@ class HierarchicalAttention:
     def instantiate_weights(self):
         """define all weights here"""
         with tf.name_scope("embedding_projection"):  # embedding matrix
-            self.Embedding = tf.get_variable("Embedding", shape=[self.vocab_size, self.embed_size],
-                                             initializer=self.initializer)  # [vocab_size,embed_size] tf.random_uniform([self.vocab_size, self.embed_size],-1.0,1.0)
+            # self.Embedding = tf.get_variable("Embedding", shape=[self.vocab_size, self.embed_size],
+            #                                  initializer=self.initializer)  # [vocab_size,embed_size] tf.random_uniform([self.vocab_size, self.embed_size],-1.0,1.0)
             self.W_projection = tf.get_variable("W_projection", shape=[self.hidden_size * 4, self.num_classes],
                                                 initializer=self.initializer)  # [embed_size,label_size]
             self.b_projection = tf.get_variable("b_projection", shape=[self.num_classes])  #TODO [label_size]
