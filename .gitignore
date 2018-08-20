@@ -1,6 +1,8 @@
 local_test.py
 models/
 result/
+result_test/
+logs/
 result.csv
 
 # pycharm IDE files
