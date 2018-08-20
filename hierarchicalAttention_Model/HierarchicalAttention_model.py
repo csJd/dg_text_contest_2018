@@ -7,8 +7,8 @@ import tensorflow.contrib as tf_contrib
 
 class HierarchicalAttention:
     def __init__(self, num_classes, learning_rate, decay_steps, decay_rate, sequence_length, num_sentences,
-                 vocab_size, embed_size,
-                 hidden_size, is_training,Embedding,need_sentence_level_attention_encoder_flag=True, multi_label_flag=False,
+                 embed_size,
+                 hidden_size, Embedding,is_training,need_sentence_level_attention_encoder_flag=True, multi_label_flag=False,
                  initializer=tf.random_normal_initializer(stddev=0.1),clip_gradients=5.0):#0.01
 
         """init all hyperparameter here"""
@@ -16,7 +16,6 @@ class HierarchicalAttention:
         self.num_classes = num_classes
         self.sequence_length = sequence_length
         self.num_sentences = num_sentences
-        self.vocab_size = vocab_size
         self.embed_size = embed_size
         self.is_training = is_training
         self.Embedding=Embedding
@@ -402,39 +401,4 @@ class HierarchicalAttention:
                                                         initializer=self.initializer)  # TODO o.k to use batch_size in first demension?
             self.context_vecotor_sentence = tf.get_variable("what_is_the_informative_sentence",
                                                             shape=[self.hidden_size * 2], initializer=self.initializer)
-# test started
-def test():
-    # below is a function test;
-    #  if you use this for text classifiction, you need to tranform sentence to indices of vocabulary first.
-    # then feed data to the graph.
-    num_classes = 3
-    learning_rate = 0.01
-    batch_size = 8
-    decay_steps = 1000
-    decay_rate = 0.9
-    sequence_length = 30
-    num_sentences = 6  # number of sentences，那么每个句子就相当于有5个单词
-    vocab_size = 10000
-    embed_size = 100 #100
-    hidden_size = 100
-    is_training = True
-    dropout_keep_prob = 1  # 0.5 #num_sentences
-    textRNN = HierarchicalAttention(num_classes, learning_rate, batch_size, decay_steps, decay_rate, sequence_length,
-                                    num_sentences, vocab_size, embed_size,
-                                    hidden_size, is_training,multi_label_flag=False)
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        for i in range(100):
-            # input_x should be:[batch_size, num_sentences,self.sequence_length]
-            input_x = np.zeros((batch_size, sequence_length)) #num_sentences
-            input_x[input_x > 0.5] = 1
-            input_x[input_x <= 0.5] = 0
-            input_y = np.array(
-                [1, 0, 1, 1, 1, 2, 1, 1])  # np.zeros((batch_size),dtype=np.int32) #[None, self.sequence_length]
-            loss, acc, predict, W_projection_value, _ = sess.run(
-                [textRNN.loss_val, textRNN.accuracy, textRNN.predictions, textRNN.W_projection, textRNN.train_op],
-                feed_dict={textRNN.input_x: input_x, textRNN.input_y: input_y,
-                           textRNN.dropout_keep_prob: dropout_keep_prob})
-            print("loss:", loss, "acc:", acc, "label:", input_y, "prediction:", predict)
-            # print("W_projection_value_:",W_projection_value)
-test()
+

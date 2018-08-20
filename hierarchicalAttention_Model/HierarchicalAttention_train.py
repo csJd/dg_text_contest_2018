@@ -64,52 +64,199 @@ train_y.extend(train_y4)
 
 vocab = pk.load(open(from_project_root(FLAGS.vocab_file)),'rb')
 
-# dev_x_text,dev_y = Data_helper.get_predict_data(from_project_root(FLAGS.train_file2))
-dev_x_text,dev_y = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file2))
+dev_x_text,dev_y = Data_helper.get_predict_data(from_project_root(FLAGS.train_file_0))
 
-# =====================build vocab =====================================================================================
-train_x_vecs = get_index_text(train_x_text,FLAGS.max_word_in_sent,from_project_root(FLAGS.vocab_file))
-dev_x_vecs = get_index_text(dev_x_text,FLAGS.max_word_in_sent,from_project_root(FLAGS.vocab_file))
-
-train_term_weights = get_term_weight(train_x_text,FLAGS.max_word_in_sent,from_project_root(FLAGS.dc_file))
-dev_term_wegits = get_term_weight(dev_x_text, FLAGS.max_word_in_sent, from_project_root(FLAGS.dc_file))
+# 将x_text进行向量化
+train_x_vecs = get_index_text(train_x_text,FLAGS.sequence_length,from_project_root(FLAGS.vocab_file))
+dev_x_vecs = get_index_text(dev_x_text,FLAGS.sequence_length,from_project_root(FLAGS.vocab_file))
 
 # 使用预训练的embedding
 model = gensim.models.Word2Vec.load(from_project_root(FLAGS.word2vec_file))
 init_embedding_mat = []
-init_embedding_mat.append([1.0] * FLAGS.embedding_size)
+init_embedding_mat.append([1.0] * FLAGS.embed_size)
 with open(from_project_root(FLAGS.vocab_file_csv),'r',encoding='utf-8') as f:
     for line in f.readlines():
         line_list = line.strip().split(',')
         word = line_list[0]
         if word not in model:
-            init_embedding_mat.append([1.0] * FLAGS.embedding_size)
+            init_embedding_mat.append([1.0] * FLAGS.embed_size)
         else:
             init_embedding_mat.append(model[word])
-
 embedding_mat = tf.Variable(init_embedding_mat,name="embedding")
-print("加载数据完成.....")
 
-# 2.create session.
-config=tf.ConfigProto()
-config.gpu_options.allow_growth=True
-with tf.Session(config=config) as sess:
-    # Instantia te Model
-    # num_classes, learning_rate, batch_size, decay_steps, decay_rate,sequence_length,num_sentences,vocab_size,embed_size,
-    # hidden_size,is_training
+# x_train,x_dev = x[:dev_sample_index],x[dev_sample_index:]
+# y_train,y_dev = y[:dev_sample_index],y[dev_sample_index:]
+
+# 格式化输出
+print("Train / embed_sizeDev split: {:d} / {:d}".format(len(train_y),len(dev_y)))
+
+with tf.Session() as sess:
+    # 创建对象
     model=HierarchicalAttention(FLAGS.num_classes,
                                 FLAGS.learning_rate,
-                                FLAGS.batch_size,
                                 FLAGS.decay_steps,
                                 FLAGS.decay_rate,
                                 FLAGS.sequence_length,
                                 FLAGS.num_sentences,
-                                len(vocab),
                                 FLAGS.embed_size,
                                 FLAGS.hidden_size,
-                                FLAGS.is_training,
                                 embedding_mat,
-                                multi_label_flag=FLAGS.multi_label_flag)
+                                FLAGS.is_training)
+
+    with tf.name_scope("loss"):
+        # input: `logits`:[batch_size, num_classes], and `labels`:[batch_size]
+        # output: A 1-D `Tensor` of length `batch_size` of the same type as `logits`
+        #  with the softmax cross entropy loss.
+        losses = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=model.input_y,
+                                                                logits=model.logits)
+        # sigmoid_cross_entropy_with_logits.#losses=tf.nn.softmax_cross_entropy_with_logits(labels=self.input_y,logits=self.logits)
+        # print("1.sparse_softmax_cross_entropy_with_logits.losses:",losses) # shape=(?,)
+        loss = tf.reduce_mean(losses)  # print("2.loss.loss:", loss) #shape=()
+        l2_losses = tf.add_n(
+            [tf.nn.l2_loss(v) for v in tf.trainable_variables() if 'bias' not in v.name]) * FLAGS.l2_lambda
+        loss = loss + l2_losses
+
+    with tf.name_scope("accuracy"):
+
+        correct_prediction = tf.equal(tf.cast(model.predictions, tf.int32),
+                                      model.input_y)  # tf.argmax(self.logits, 1)-->[batch_size]
+        acc = tf.reduce_mean(tf.cast(correct_prediction, tf.float32), name="Accuracy")  # shape=()
+
+    # create model path
+    timestamp = str(int(time.time()))+"_0"
+    out_dir = os.path.abspath(os.path.join(os.path.curdir, "runs", timestamp))
+    print("Wrinting to {} \n".format(out_dir))
+
+    # global step
+    global_step = tf.Variable(0, trainable=False)
+    optimizer = tf.train.AdamOptimizer(FLAGS.learning_rate)
+
+    # RNN中常用的梯度截断，防止出现梯度过大难以求导的现象
+    tvars = tf.trainable_variables()
+    grads, _ = tf.clip_by_global_norm(tf.gradients(loss, tvars), FLAGS.grad_clip)
+    grads_and_vars = tuple(zip(grads, tvars))
+    train_op = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
+
+    # Keep track of gradient values and sparsity (optional)
+    grad_summaries = []
+    for g, v in grads_and_vars:
+        if g is not None:
+            grad_hist_summary = tf.summary.histogram("{}/grad/hist".format(v.name), g)
+            grad_summaries.append(grad_hist_summary)
+
+    grad_summaries_merged = tf.summary.merge(grad_summaries)
+
+    loss_summary = tf.summary.scalar('loss', loss)
+    acc_summary = tf.summary.scalar('acc', acc)
+
+    train_summary_op = tf.summary.merge([loss_summary, acc_summary, grad_summaries_merged])
+    train_summary_dir = os.path.join(out_dir, "summaries", "train")
+    train_summary_writer = tf.summary.FileWriter(train_summary_dir, sess.graph)
+
+    dev_summary_op = tf.summary.merge([loss_summary, acc_summary])
+    dev_summary_dir = os.path.join(out_dir, "summaries", "dev")
+    dev_summary_writer = tf.summary.FileWriter(dev_summary_dir, sess.graph)
+
+    checkpoint_dir = os.path.abspath(os.path.join(out_dir, "checkpoints"))
+    checkpoint_prefix = os.path.join(checkpoint_dir, "model")
+    if not os.path.exists(checkpoint_dir):
+        os.makedirs(checkpoint_dir)
+    saver = tf.train.Saver(tf.global_variables(), max_to_keep=FLAGS.num_checkpoints)
+
+    sess.run(tf.global_variables_initializer())
+
+    def train_step(x_batch,y_batch):
+
+        feed_dict={
+            model.input_x:x_batch,
+            model.input_y:y_batch,
+            model.batch_size:len(x_batch),
+            model.dropout_keep_prob:FLAGS.dropout_keep_prob
+        }
+        _,step,summaries,cost,accuracy = sess.run([train_op,global_step,train_summary_op,loss,acc],feed_dict)
+
+        time_str = str( int(time.time()))
+        print("{} : step {}, loss {:g} , acc {:g}".format(time_str,step,cost,accuracy))
+
+        return step,accuracy
+
+    def dev_step(x_batch,y_batch,writer=None):
+
+        feed_dict={
+            model.input_x:x_batch,
+            model.input_y:y_batch,
+            model.batch_size:len(x_batch),
+            model.dropout_keep_prob:1.0
+        }
+
+        step, summaries, cost, accuracy = sess.run([global_step, dev_summary_op, loss, acc], feed_dict)
+
+        time_str = str(int(time.time()))
+        print("++++++++++++++++++dev++++++++++++++{}: step {}, loss {:g}, acc {:g}".format(time_str, step, cost,
+                                                                                           accuracy))
+
+        if writer:
+            writer.add_summary(summaries, step)
+
+
+    def dev_step(dev_x_vecs, dev_y, per_predict_limit):
+
+        sum_predict = len(dev_y)
+        batch_size = int(sum_predict / per_predict_limit)
+
+        batch_prediction_all = []
+        # 一个一个进行预测
+        for index in range(batch_size):
+
+            start_index = index * per_predict_limit
+            if index == batch_size - 1:
+                end_index = sum_predict
+            else:
+                end_index = start_index + per_predict_limit
+
+            dev_x_vecs_batch = dev_x_vecs[start_index:end_index]
+
+            feed_dict = {
+                model.input_x: dev_x_vecs_batch,
+                model.batch_size: len(dev_x_vecs_batch),
+                model.dropout_keep_prob: 1.0
+            }
+            predict_result,predict_logit = sess.run([model.predictions,model.logits], feed_dict)
+            # change　加入一个loss,
+            # step, summaries, cost, accuracy = sess.run([global_step, dev_summary_op, loss, acc], feed_dict)
+
+            batch_prediction_all.extend(predict_result)
+
+        reset_prediction_all = []
+        for predit in batch_prediction_all:
+            reset_prediction_all.append(int(predit) + 1)
+
+        macro_f1 = f1_score(dev_y, reset_prediction_all, average='macro')
+        accuracy_score1 = accuracy_score(dev_y, reset_prediction_all, normalize=True)
+
+        print("=====================dev===========================")
+        print("macro_f1:{}".format(macro_f1))
+        print("accuracy:{}".format(accuracy_score1))
+        print("=====================end===========================")
+
+
+    best_acc = 0
+    for epoch in range(FLAGS.epoch):
+        print('current epoch %s' % (epoch + 1))
+
+        for i in range(0,len(train_y)-FLAGS.batch_size,FLAGS.batch_size):
+
+            x_batch = train_x_vecs[i:i+FLAGS.batch_size]
+            y_batch = train_y[i:i+FLAGS.batch_size]
+            step,accuracy = train_step(x_batch,y_batch)
+
+            if step % FLAGS.evaluate_every == 0:
+                dev_step(dev_x_vecs,dev_y,per_predict_limit=100)
+
+            if step % FLAGS.checkpoint_every == 0 :
+                best_acc = accuracy
+                path = saver.save(sess,checkpoint_prefix,global_step=step)
+                print("Saved model checkpoint to {} \n".format(path))
     #
 
 
