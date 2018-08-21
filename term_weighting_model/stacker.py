@@ -18,7 +18,7 @@ from term_weighting_model.transformer import generate_vectors
 from utils.data_util import load_to_df
 
 N_CLASSES = 19
-N_JOBS = -1
+N_JOBS = 10
 CV = 5
 
 
