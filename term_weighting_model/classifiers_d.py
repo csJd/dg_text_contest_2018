@@ -22,6 +22,7 @@ from term_weighting_model.stacker import generate_meta_feature
 
 N_JOBS = -1
 N_CLASSES = 19
+RANDOM_STATE = 233
 CV = 5
 
 
@@ -49,7 +50,7 @@ def tune_clf(clf, X, y, param_grid):
     # print cv results
     print("grid_search_cv is done in %.3f seconds" % (e_time - s_time))
     print("mean_test_macro_f1 =", clf.cv_results_['mean_test_score'])
-    return clf
+    return clf.best_estimator_
 
 
 def init_param_grid(clf=None, clf_type=None):
@@ -118,11 +119,11 @@ def init_clfs():
     """
     clfs = dict()
 
-    # Add lgbm model
-    clfs['lgbm'] = LGBMClassifier()
-
     # Add xgb model
-    # clfs['xgb'] = XGBClassifier(n_jobs=N_JOBS)
+    clfs['xgb'] = XGBClassifier(n_jobs=-1)
+
+    # Add lgbm model
+    # clfs['lgbm'] = LGBMClassifier()
 
     # Add svc model
     # clfs['svc'] = SVC()
@@ -245,12 +246,13 @@ def main():
     # clfs = init_linear_clfs()
 
     # load from pickle
-    pk_url = from_project_root("processed_data/vector/stacked_XyX_test_50.pk")
+    pk_url = from_project_root("processed_data/vector/stacked_proba_XyX_test_50.pk")
     print("loading data from", pk_url)
     X, y, X_test = joblib.load(pk_url)
 
     train_url = from_project_root("data/train_set.csv")
     test_url = from_project_root("data/test_set.csv")
+
     # generate from original csv
     # X, y, X_test = generate_vectors(train_url, test_url, column='word_seg', max_n=3, min_df=3, max_df=0.8,
     #                                 max_features=2000000, balanced=False, re_weight=9)
@@ -260,18 +262,18 @@ def main():
     # generate meta features
     X = np.append(X, generate_meta_feature(train_url), axis=1)
     X_test = np.append(X_test, generate_meta_feature(test_url), axis=1)
-    print(X.shape, y.shape, X_test.shape)
 
-    train_clfs(clfs, X, y, tuning=True)
+    print(X.shape, y.shape, X_test.shape)
+    train_clfs(clfs, X, y, tuning=True, random_state=RANDOM_STATE)
 
     # clf = SVC(C=1, kernel='linear')
-    clf = XGBClassifier(n_jobs=N_JOBS)  # xgboost's default n_jobs=1
+    clf = XGBClassifier(n_jobs=-1)  # xgboost's default n_jobs=1
     # clf = LGBMClassifier()
 
     use_proba = True
     save_url = from_project_root("processed_data/com_result/{}_xgb_{}.csv"
-                                 .format(X.shape[1], 'proba' if use_proba else 'label'))
-    train_and_gen_result(clf, X, y, X_test, use_proba=False, save_url=save_url)
+                                 .format(X.shape[1] // N_CLASSES, 'proba' if use_proba else 'label'))
+    train_and_gen_result(clf, X, y, X_test, use_proba=use_proba, save_url=save_url)
     pass
 
 
