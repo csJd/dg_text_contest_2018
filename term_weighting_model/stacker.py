@@ -18,6 +18,7 @@ from term_weighting_model.transformer import generate_vectors
 from utils.data_util import load_to_df
 
 N_CLASSES = 19
+RANDOM_STATE = 233
 N_JOBS = 10
 CV = 5
 
@@ -228,7 +229,7 @@ def main():
     params = load_params()
     print("len(params) =", len(params))
     save_url = from_project_root("processed_data/vector/stacked_proba_XyX_test_%d.pk" % len(load_params()))
-    joblib.dump(feature_stacking(use_proba=True), save_url)
+    joblib.dump(feature_stacking(use_proba=True, random_state=RANDOM_STATE), save_url)
 
 
 if __name__ == '__main__':
