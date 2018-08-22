@@ -50,7 +50,7 @@ def tune_clf(clf, X, y, param_grid):
     # print cv results
     print("grid_search_cv is done in %.3f seconds" % (e_time - s_time))
     print("mean_test_macro_f1 =", clf.cv_results_['mean_test_score'])
-    return clf.best_estimator_
+    return clf
 
 
 def init_param_grid(clf=None, clf_type=None):
@@ -145,7 +145,8 @@ def train_clfs(clfs, X, y, test_size=0.2, tuning=False, random_state=None):
     """
 
     # split data into train and test
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size,
+                                                        random_state=random_state, stratify=y)
     print("train data shape", X_train.shape, y_train.shape)
     print("dev data shape  ", X_test.shape, y_test.shape)
     for clf_name in clfs:
@@ -155,13 +156,14 @@ def train_clfs(clfs, X, y, test_size=0.2, tuning=False, random_state=None):
             param_grid = init_param_grid(clf)
             clf = tune_clf(clf, X, y, param_grid)
             print('cv_results\n', clf.cv_results_)
-            continue
+            clf = clf.best_estimator_
 
         print("%s model is training" % clf_name)
-        s_time = time()
-        clf.fit(X_train, y_train)
-        e_time = time()
-        print(" training finished in %.3f seconds" % (e_time - s_time))
+        if not tuning:
+            s_time = time()
+            clf.fit(X_train, y_train)
+            e_time = time()
+            print(" training finished in %.3f seconds" % (e_time - s_time))
 
         y_pred = clf.predict(X_test)
         acc = accuracy_score(y_test, y_pred)
@@ -273,7 +275,7 @@ def main():
     use_proba = True
     save_url = from_project_root("processed_data/com_result/{}_xgb_{}.csv"
                                  .format(X.shape[1] // N_CLASSES, 'proba' if use_proba else 'label'))
-    train_and_gen_result(clf, X, y, X_test, use_proba=use_proba, save_url=save_url)
+    # train_and_gen_result(clf, X, y, X_test, use_proba=use_proba, save_url=save_url)
     pass
 
 
