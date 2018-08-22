@@ -4,67 +4,70 @@ import tensorflow as tf
 import os
 import numpy as np
 from hierarchicalAttention_Model.HierarchicalAttention_model import HierarchicalAttention
-import lstm_model.Data_helper as Data_helper
+import hierarchicalAttention_Model.Data_helper as Data_helper
 from utils.path_util import from_project_root
 import pickle as pk
 from lstm_model.model_tool import get_term_weight,get_index_text
 import gensim
+import time
+from sklearn.metrics import f1_score
+from sklearn.metrics import accuracy_score
 
 # configuration
 FLAGS=tf.app.flags.FLAGS
 tf.app.flags.DEFINE_integer("num_classes",19,"number of label")
-tf.app.flags.DEFINE_float("learning_rate",0.01,"learning rate") #TODO 0.01
-tf.app.flags.DEFINE_integer("batch_size", 100, "Batch size for training/evaluating.") # 批处理的大小 32-->128 #TODO
+tf.app.flags.DEFINE_float("learning_rate",0.002,"learning rate") # TODO 0.01
+tf.app.flags.DEFINE_integer("batch_size", 100, "Batch size for training/evaluating.") # 批处理的大小 32-->128 # TODO
 tf.app.flags.DEFINE_integer("decay_steps", 6000, "how many steps before decay learning rate.") # 6000批处理的大小 32-->128
 tf.app.flags.DEFINE_float("decay_rate", 1.0, "Rate of decay for learning rate.") # 0.87一次衰减多少
 tf.app.flags.DEFINE_integer("sequence_length",800,"max sentence length")
 tf.app.flags.DEFINE_integer("embed_size",128,"embedding size")
 tf.app.flags.DEFINE_boolean("is_training",True,"is traning.true:tranining,false:testing/inference")
-tf.app.flags.DEFINE_integer("num_epochs",20,"number of epochs to run.")
 tf.app.flags.DEFINE_integer("validate_every", 100, "Validate every validate_every epochs.") # 每10轮做一次验证
-tf.app.flags.DEFINE_boolean("use_embedding",True,"whether to use embedding or not.")
-
-tf.app.flags.DEFINE_string("traning_data_path","train-zhihu4-only-title-all.txt","path of traning data.") # O.K.train-zhihu4-only-title-all.txt-->training-data/test-zhihu4-only-title.txt--->'training-data/train-zhihu5-only-title-multilabel.txt'
-tf.app.flags.DEFINE_string("word2vec_model_path","zhihu-word2vec-title-desc.bin-100","word2vec's vocabulary and vectors") # zhihu-word2vec.bin-100-->zhihu-word2vec-multilabel-minicount15.bin-100
-tf.app.flags.DEFINE_boolean("multi_label_flag",True,"use multi label or single label.")
-tf.app.flags.DEFINE_integer("num_sentences", 4, "number of sentences in the document") # 每10轮做一次验证
-tf.app.flags.DEFINE_integer("hidden_size",100,"hidden size")
+tf.flags.DEFINE_float("l2_lambda",0.0001,"regularization rate random")
+tf.flags.DEFINE_integer("grad_clip",5,"grad clip to prevent gradient explode")
+tf.flags.DEFINE_integer("checkpoint_every",100,"Save model after this many steps (default 100)")
+tf.flags.DEFINE_integer("evaluate_every",100,"evaluate every this many batches")
+tf.flags.DEFINE_integer("num_checkpoints",20,"Number of checkpoints to store (default 5)")
+tf.flags.DEFINE_integer("epoch",4,"number of epoch")
+tf.flags.DEFINE_float("dropout_keep_prob",0.5,"rnn_input_keep_prob")
+tf.app.flags.DEFINE_integer("num_sentences", 80, "number of sentences in the document") # 每10轮做一次验证
+tf.app.flags.DEFINE_integer("hidden_size",128,"hidden size")
 
 # prepare thr training data
-tf.flags.DEFINE_string("train_file0", "lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200_0.csv","train file url")
-tf.flags.DEFINE_string("train_file1", "lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200_1.csv","train file url")
-tf.flags.DEFINE_string("train_file2", "lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200_2.csv","train file url")
-tf.flags.DEFINE_string("train_file3", "lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200_3.csv","train file url")
-tf.flags.DEFINE_string("train_file4", "lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200_4.csv","train file url")
+tf.flags.DEFINE_string("train_file0", "lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_400_0.csv","train file url")
+tf.flags.DEFINE_string("train_file1", "lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_400_1.csv","train file url")
+tf.flags.DEFINE_string("train_file2", "lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_400_2.csv","train file url")
+tf.flags.DEFINE_string("train_file3", "lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_400_3.csv","train file url")
+tf.flags.DEFINE_string("train_file4", "lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_400_4.csv","train file url")
 
-tf.flags.DEFINE_string("vocab_file","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200_vocab.pk","vocab file url")
-tf.flags.DEFINE_string("vocab_file_csv","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200_vocab.csv","vocab csv file url")
-tf.flags.DEFINE_string("word2vec_file", "embedding_model/models/w2v_phrase_128_2_10_15.bin", "vocab csv file url")
-tf.flags.DEFINE_string("dc_file", "lstm_model/processed_data/one_gram/phrase_level_1gram_dc.json", "dc file url")
+tf.flags.DEFINE_string("vocab_file","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_400_vocab.pk","vocab file url")
+tf.flags.DEFINE_string("vocab_file_csv","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_400_vocab.csv","vocab csv file url")
+tf.flags.DEFINE_string("word2vec_file", "embedding_model/models/w2v_phrase_128_3_10_15.bin", "vocab csv file url")
 
 FLAGS = tf.flags.FLAGS
-# =====================load data========================================================================================
+# =====================load data========= ===============================================================================
 # load the training data
 # 准备数据
 print("Loading Data...")
-train_x_text0, train_y0 = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file0))
+train_x_text2, train_y2= Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file2))
 train_x_text1, train_y1 = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file1))
-train_x_text3, train_y3 = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file3))
+train_x_text0, train_y0 = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file0))
 train_x_text4, train_y4 = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file4))
 train_x_text = []
+train_x_text.extend(train_x_text2)
 train_x_text.extend(train_x_text0)
 train_x_text.extend(train_x_text1)
-train_x_text.extend(train_x_text3)
 train_x_text.extend(train_x_text4)
 train_y = []
+train_y.extend(train_y2)
 train_y.extend(train_y0)
 train_y.extend(train_y1)
-train_y.extend(train_y3)
 train_y.extend(train_y4)
 
-vocab = pk.load(open(from_project_root(FLAGS.vocab_file)),'rb')
+vocab = pk.load(open(from_project_root(FLAGS.vocab_file),'rb'))
 
-dev_x_text,dev_y = Data_helper.get_predict_data(from_project_root(FLAGS.train_file_0))
+dev_x_text,dev_y = Data_helper.get_predict_data(from_project_root(FLAGS.train_file3))
 
 # 将x_text进行向量化
 train_x_vecs = get_index_text(train_x_text,FLAGS.sequence_length,from_project_root(FLAGS.vocab_file))
@@ -123,7 +126,7 @@ with tf.Session() as sess:
         acc = tf.reduce_mean(tf.cast(correct_prediction, tf.float32), name="Accuracy")  # shape=()
 
     # create model path
-    timestamp = str(int(time.time()))+"_0"
+    timestamp = str(int(time.time()))+"_3"
     out_dir = os.path.abspath(os.path.join(os.path.curdir, "runs", timestamp))
     print("Wrinting to {} \n".format(out_dir))
 
@@ -257,8 +260,3 @@ with tf.Session() as sess:
                 best_acc = accuracy
                 path = saver.save(sess,checkpoint_prefix,global_step=step)
                 print("Saved model checkpoint to {} \n".format(path))
-    #
-
-
-
-
