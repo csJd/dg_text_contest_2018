@@ -39,7 +39,7 @@ def main():
 
 def rcnn_rcnn_attention():
 
-    rcnn_model = from_project_root("lstm_model/result/prob_rcnnbo_cv.csv")
+    rcnn_model = from_project_root("lstm_model/result/prob_rcnnon_cv0.789744.csv")
     rnn_cnn_attention = from_project_root("lstm_model/result/result_rcnn_0.775.pk")
 
     rcnn_pro = []
@@ -51,9 +51,12 @@ def rcnn_rcnn_attention():
     rcnn_attention_pro = pk.load(open(rnn_cnn_attention,'rb'))
 
     predict_merge = []
+    predict_pro_merge = []
     for i in range(len(rcnn_attention_pro)): # 预测样本的条数
 
         one_predict_merge = (np.array(rcnn_pro[i])/5 + np.array(rcnn_attention_pro[i])) / 2
+
+        predict_pro_merge.append(one_predict_merge)
 
         max_index = np.where(one_predict_merge==np.max(one_predict_merge))[0][0]
         print(max_index)
@@ -61,6 +64,9 @@ def rcnn_rcnn_attention():
 
     predict_context, ids = Data_helper.get_predict_data(
         from_project_root("lstm_model/processed_data/phrase_level_test_data.csv"))
+
+    # 保存
+    pk.dump(predict_pro_merge,open(from_project_root("lstm_model/result/pro_rcnn_rnn_cnn_attention_0.794.pk"),'wb'))
 
     # 保存结果
     with open(from_project_root("lstm_model/result/result_rcnn_rnn_cnn_attention.csv"), 'w', encoding='utf-8') as f:

@@ -187,6 +187,7 @@ class HierarchicalAttention:
         # 5. logits(use linear layer)and predictions(argmax)
         with tf.name_scope("output"):
             logits = tf.matmul(self.h_drop, self.W_projection) + self.b_projection  # shape:[None,self.num_classes]==tf.matmul([None,hidden_size*2],[hidden_size*2,self.num_classes])
+            pro_logits = tf.nn.softmax(logits,name="softmax_pro")
         return logits
 
     def loss(self, l2_lambda=0.0001):  # 0.001
