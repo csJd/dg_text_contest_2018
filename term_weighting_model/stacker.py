@@ -33,34 +33,34 @@ def load_params():
     params_grad = [
         {
             'column': ['word_seg'],
-            'trans_type': ['dc'],
+            'trans_type': ['dc', 'idf'],
             'max_n': [1],
-            'min_df': [2, 3],
-            'max_df': [0.8],
+            'min_df': [2],
+            'max_df': [0.9],
             'max_features': [200000],
-            'balanced': [False],
+            'balanced': [False, True],
             're_weight': [0]
-        },
+        },  # 4
         {
             'column': ['word_seg', 'article'],
             'trans_type': ['dc'],
             'max_n': [2],
             'min_df': [3],
-            'max_df': [0.8, 0.9],
-            'max_features': [500000, 2000000],
+            'max_df': [0.8],
+            'max_features': [200000, 2000000],
             'balanced': [False, True],
-            're_weight': [0, 9]
-        },
+            're_weight': [9]
+        },  # 8
         {
             'column': ['word_seg', 'article'],
             'trans_type': ['dc'],
             'max_n': [3],
             'min_df': [3],
             'max_df': [0.8],
-            'max_features': [1000000, 4000000],
+            'max_features': [500000, 4000000],
             'balanced': [False, True],
-            're_weight': [0, 12]
-        },
+            're_weight': [0, 9]
+        },  # 16
 
         {
             'column': ['word_seg', 'article'],
@@ -68,10 +68,10 @@ def load_params():
             'max_n': [3],
             'min_df': [3],
             'max_df': [0.8],
-            'max_features': [500000, 2000000],
+            'max_features': [300000, 2000000],
             'balanced': [False, True],
-        },
-    ]
+        },  # 8
+    ]  # 36
 
     params_list = list()
     for params_dict in params_grad:
