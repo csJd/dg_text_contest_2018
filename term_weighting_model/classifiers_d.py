@@ -17,8 +17,10 @@ import scipy.sparse as sp
 import pandas as pd
 
 from utils.path_util import from_project_root
+from utils.proba_util import predict_proba
 from term_weighting_model.transformer import generate_vectors
-from term_weighting_model.stacker import generate_meta_feature
+from term_weighting_model.stacker import generate_meta_feature, gen_data_for_stacking
+from term_weighting_model.stacker import model_stacking_from_pk
 
 N_JOBS = -1
 N_CLASSES = 19
@@ -50,7 +52,7 @@ def tune_clf(clf, X, y, param_grid):
     # print cv results
     print("grid_search_cv is done in %.3f seconds" % (e_time - s_time))
     print("mean_test_macro_f1 =", clf.cv_results_['mean_test_score'])
-    return clf.best_estimator_
+    return clf
 
 
 def init_param_grid(clf=None, clf_type=None):
@@ -145,7 +147,8 @@ def train_clfs(clfs, X, y, test_size=0.2, tuning=False, random_state=None):
     """
 
     # split data into train and test
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, random_state=random_state, stratify=y)
     print("train data shape", X_train.shape, y_train.shape)
     print("dev data shape  ", X_test.shape, y_test.shape)
     for clf_name in clfs:
@@ -155,13 +158,14 @@ def train_clfs(clfs, X, y, test_size=0.2, tuning=False, random_state=None):
             param_grid = init_param_grid(clf)
             clf = tune_clf(clf, X, y, param_grid)
             print('cv_results\n', clf.cv_results_)
-            continue
+            clf = clf.best_estimator_
 
         print("%s model is training" % clf_name)
-        s_time = time()
-        clf.fit(X_train, y_train)
-        e_time = time()
-        print(" training finished in %.3f seconds" % (e_time - s_time))
+        if not tuning:
+            s_time = time()
+            clf.fit(X_train, y_train)
+            e_time = time()
+            print(" training finished in %.3f seconds" % (e_time - s_time))
 
         y_pred = clf.predict(X_test)
         acc = accuracy_score(y_test, y_pred)
@@ -191,13 +195,13 @@ def train_and_gen_result(clf, X, y, X_test, use_proba=False, save_url=None, n_sp
             X_train = X[train_index]
             y_train = y[train_index]
             clf.fit(X_train, y_train)
-            y_pred_proba += predict_proba(clf, X_train, y_train, X_test)
+            y_pred_proba += predict_proba(clf, X_test, X_train, y_train)
         y_pred_proba /= n_splits
         y_pred = y_pred_proba.argmax(axis=1)
 
     else:
         clf.fit(X, y)
-        y_pred_proba = predict_proba(clf, X, y, X_test)
+        y_pred_proba = predict_proba(clf, X_test, X, y)
         y_pred = clf.predict(X_test)
 
     if use_proba:
@@ -209,46 +213,21 @@ def train_and_gen_result(clf, X, y, X_test, use_proba=False, save_url=None, n_sp
     return result_df
 
 
-def predict_proba(clf, X, y, X_test, save_url=None):
-    """ train clf and get proba predict
-
-    Args:
-        clf: trained classifier
-        X: X for fit
-        y: y for fit
-        X_test: X_test for predict
-        save_url: url to save result, not save if set it to None
-
-    Returns:
-        DataFrame: proba_df
-
-    """
-    if hasattr(clf, 'predict_proba'):
-        proba = clf.predict_proba(X_test)
-    elif hasattr(clf, '_predict_proba_lr'):
-        proba = clf._predict_proba_lr(X_test)
-    else:
-        clf = CalibratedClassifierCV(clf)
-        clf.fit(X, y)
-        proba = clf.predict_proba(X_test)
-    proba_df = pd.DataFrame(proba, columns=['class_prob_' + str(i + 1) for i in range(N_CLASSES)])
-    if save_url is None:
-        pass
-    elif save_url.endswith('.pk'):
-        joblib.dump(proba_df, save_url)
-    elif save_url.endswith('.csv'):
-        proba_df.to_csv(save_url, index_label='id')
-    return proba_df
-
-
 def main():
     clfs = init_clfs()
     # clfs = init_linear_clfs()
 
     # load from pickle
-    pk_url = from_project_root("processed_data/vector/stacked_proba_XyX_test_50.pk")
-    print("loading data from", pk_url)
-    X, y, X_test = joblib.load(pk_url)
+    # pk_url = from_project_root("processed_data/vector/stacked_proba_XyX_test_50.pk")
+    # print("loading data from", pk_url)
+    # X, y, X_test = joblib.load(pk_url)
+
+    # load from stacking
+    pk_urls = {
+        from_project_root("processed_data/vector/proba_34_xgb_0.787.pk"),
+        from_project_root("processed_data/vector/xingwei_0.7897.pk")
+    }
+    X, y, X_test = model_stacking_from_pk(pk_urls)
 
     train_url = from_project_root("data/train_set.csv")
     test_url = from_project_root("data/test_set.csv")
@@ -257,7 +236,6 @@ def main():
     # X, y, X_test = generate_vectors(train_url, test_url, column='word_seg', max_n=3, min_df=3, max_df=0.8,
     #                                 max_features=2000000, balanced=False, re_weight=9)
     # X = sp.hstack([X, X_a])  # append horizontally on sparse matrix
-    # X_test = sp.hstack([X_test, X_test_a])
 
     # generate meta features
     X = np.append(X, generate_meta_feature(train_url), axis=1)
@@ -266,14 +244,18 @@ def main():
     print(X.shape, y.shape, X_test.shape)
     train_clfs(clfs, X, y, tuning=True, random_state=RANDOM_STATE)
 
-    # clf = SVC(C=1, kernel='linear')
-    clf = XGBClassifier(n_jobs=-1)  # xgboost's default n_jobs=1
+    # clf = LinearSVC(C=1)
+    clf = XGBClassifier(n_jobs=-1)  # xgb's default n_jobs=1
     # clf = LGBMClassifier()
 
     use_proba = True
     save_url = from_project_root("processed_data/com_result/{}_xgb_{}.csv"
                                  .format(X.shape[1] // N_CLASSES, 'proba' if use_proba else 'label'))
-    train_and_gen_result(clf, X, y, X_test, use_proba=use_proba, save_url=save_url)
+    # train_and_gen_result(clf, X, y, X_test, use_proba=use_proba, save_url=save_url)
+
+    save_url = from_project_root("processed_data/vector/{}_xgb.pk".format(X.shape[1] // N_CLASSES))
+    # joblib.dump(gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=233), save_url)
+
     pass
 
 

@@ -16,6 +16,7 @@ import pandas as pd
 from utils.path_util import from_project_root
 from term_weighting_model.transformer import generate_vectors
 from utils.data_util import load_to_df
+from utils.proba_util import predict_proba
 
 N_CLASSES = 19
 RANDOM_STATE = 233
@@ -33,34 +34,34 @@ def load_params():
     params_grad = [
         {
             'column': ['word_seg'],
-            'trans_type': ['dc'],
+            'trans_type': ['dc', 'idf'],
             'max_n': [1],
-            'min_df': [2, 3],
-            'max_df': [0.8],
+            'min_df': [2],
+            'max_df': [0.9],
             'max_features': [200000],
-            'balanced': [False],
+            'balanced': [False, True],
             're_weight': [0]
-        },
+        },  # 4
         {
             'column': ['word_seg', 'article'],
             'trans_type': ['dc'],
             'max_n': [2],
             'min_df': [3],
-            'max_df': [0.8, 0.9],
-            'max_features': [500000, 2000000],
+            'max_df': [0.8],
+            'max_features': [200000, 2000000],
             'balanced': [False, True],
-            're_weight': [0, 9]
-        },
+            're_weight': [9]
+        },  # 8
         {
             'column': ['word_seg', 'article'],
             'trans_type': ['dc'],
             'max_n': [3],
             'min_df': [3],
             'max_df': [0.8],
-            'max_features': [1000000, 4000000],
+            'max_features': [500000, 4000000],
             'balanced': [False, True],
-            're_weight': [0, 12]
-        },
+            're_weight': [0, 9]
+        },  # 16
 
         {
             'column': ['word_seg', 'article'],
@@ -68,10 +69,10 @@ def load_params():
             'max_n': [3],
             'min_df': [3],
             'max_df': [0.8],
-            'max_features': [500000, 2000000],
+            'max_features': [300000, 2000000],
             'balanced': [False, True],
-        },
-    ]
+        },  # 8
+    ]  # 36
 
     params_list = list()
     for params_dict in params_grad:
@@ -183,6 +184,40 @@ def model_stacking_from_pk(model_urls):
         X_test = np.append(X_test, X_test_a, axis=1)
 
     return X, y, X_test
+
+
+def gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=None):
+    """ generate single model result data for stacking
+
+    Args:
+        clf: single model
+        X: original X
+        y: original y
+        X_test: original X_test
+        n_splits: n_splits for skf
+        random_state: random_state for skf
+
+    Returns:
+        X, y, X_test
+
+    """
+    skf = StratifiedKFold(n_splits=n_splits, shuffle=bool(random_state), random_state=random_state)
+    y_pred = np.zeros((X.shape[0],))  # for printing score of each fold
+    y_pred_proba = np.zeros((X.shape[0], N_CLASSES))
+    y_test_pred_proba = np.zeros((X_test.shape[0], N_CLASSES))
+    for ind, (train_index, cv_index) in enumerate(skf.split(X, y)):  # cv split
+        X_train, X_cv = X[train_index], X[cv_index]
+        y_train, y_cv = y[train_index], y[cv_index]
+        clf.fit(X_train, y_train)
+        y_pred[cv_index] = clf.predict(X_cv)
+        y_pred_proba[cv_index] = predict_proba(clf, X_cv)
+        print("%d/%d cv macro f1 :" % (ind + 1, n_splits),
+              f1_score(y_cv, y_pred[cv_index], average='macro'))
+        y_test_pred_proba += predict_proba(clf, X_test)
+    print("macro f1:", f1_score(y, y_pred, average='macro'))  # calc macro_f1 score
+
+    y_test_pred_proba /= n_splits  # normalize to 1
+    return y_pred_proba, y, y_test_pred_proba
 
 
 def generate_meta_feature(data_url, normalize=True):
