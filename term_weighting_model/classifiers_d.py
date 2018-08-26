@@ -18,7 +18,7 @@ import pandas as pd
 
 from utils.path_util import from_project_root
 from term_weighting_model.transformer import generate_vectors
-from term_weighting_model.stacker import generate_meta_feature
+from term_weighting_model.stacker import generate_meta_feature, gen_data_for_stacking
 
 N_JOBS = -1
 N_CLASSES = 19
@@ -193,13 +193,13 @@ def train_and_gen_result(clf, X, y, X_test, use_proba=False, save_url=None, n_sp
             X_train = X[train_index]
             y_train = y[train_index]
             clf.fit(X_train, y_train)
-            y_pred_proba += predict_proba(clf, X_train, y_train, X_test)
+            y_pred_proba += predict_proba(clf, X_test, X_train, y_train)
         y_pred_proba /= n_splits
         y_pred = y_pred_proba.argmax(axis=1)
 
     else:
         clf.fit(X, y)
-        y_pred_proba = predict_proba(clf, X, y, X_test)
+        y_pred_proba = predict_proba(clf, X_test, X, y)
         y_pred = clf.predict(X_test)
 
     if use_proba:
@@ -211,7 +211,7 @@ def train_and_gen_result(clf, X, y, X_test, use_proba=False, save_url=None, n_sp
     return result_df
 
 
-def predict_proba(clf, X, y, X_test, save_url=None):
+def predict_proba(clf, X_test, X=None, y=None, save_url=None):
     """ train clf and get proba predict
 
     Args:
@@ -230,9 +230,13 @@ def predict_proba(clf, X, y, X_test, save_url=None):
     elif hasattr(clf, '_predict_proba_lr'):
         proba = clf._predict_proba_lr(X_test)
     else:
+        if X is None or y is None:
+            print("X and y is required for CalibratedClassifierCV")
+            return
         clf = CalibratedClassifierCV(clf)
         clf.fit(X, y)
         proba = clf.predict_proba(X_test)
+
     proba_df = pd.DataFrame(proba, columns=['class_prob_' + str(i + 1) for i in range(N_CLASSES)])
     if save_url is None:
         pass
@@ -259,23 +263,24 @@ def main():
     # X, y, X_test = generate_vectors(train_url, test_url, column='word_seg', max_n=3, min_df=3, max_df=0.8,
     #                                 max_features=2000000, balanced=False, re_weight=9)
     # X = sp.hstack([X, X_a])  # append horizontally on sparse matrix
-    # X_test = sp.hstack([X_test, X_test_a])
 
     # generate meta features
     X = np.append(X, generate_meta_feature(train_url), axis=1)
     X_test = np.append(X_test, generate_meta_feature(test_url), axis=1)
 
     print(X.shape, y.shape, X_test.shape)
-    train_clfs(clfs, X, y, tuning=True, random_state=RANDOM_STATE)
+    # train_clfs(clfs, X, y, tuning=True, random_state=RANDOM_STATE)
 
-    # clf = SVC(C=1, kernel='linear')
-    clf = XGBClassifier(n_jobs=-1)  # xgboost's default n_jobs=1
+    # clf = LinearSVC(C=1)
+    clf = XGBClassifier(n_jobs=-1)  # xgb's default n_jobs=1
     # clf = LGBMClassifier()
 
     use_proba = True
     save_url = from_project_root("processed_data/com_result/{}_xgb_{}.csv"
                                  .format(X.shape[1] // N_CLASSES, 'proba' if use_proba else 'label'))
     # train_and_gen_result(clf, X, y, X_test, use_proba=use_proba, save_url=save_url)
+
+    gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=233)
     pass
 
 

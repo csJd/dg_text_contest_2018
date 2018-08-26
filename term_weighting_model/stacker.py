@@ -16,6 +16,7 @@ import pandas as pd
 from utils.path_util import from_project_root
 from term_weighting_model.transformer import generate_vectors
 from utils.data_util import load_to_df
+from term_weighting_model.classifiers_d import predict_proba
 
 N_CLASSES = 19
 RANDOM_STATE = 233
@@ -204,16 +205,16 @@ def gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=None):
     y_pred = np.zeros((X.shape[0],))  # for printing score of each fold
     y_pred_proba = np.zeros((X.shape[0], N_CLASSES))
     y_test_pred_proba = np.zeros((X_test.shape[0], N_CLASSES))
-    for ind, (train_index, cv_index) in enumerate(skf.split(X, y)):
+    for ind, (train_index, cv_index) in enumerate(skf.split(X, y)):  # cv split
         X_train, X_cv = X[train_index], X[cv_index]
         y_train, y_cv = y[train_index], y[cv_index]
         clf.fit(X_train, y_train)
         y_pred[cv_index] = clf.predict(X_cv)
-        y_pred_proba[cv_index] = clf._predict_proba_lr(X_cv)
+        y_pred_proba[cv_index] = predict_proba(clf, X_cv)
         print("%d/%d cv macro f1 :" % (ind + 1, n_splits),
               f1_score(y_cv, y_pred[cv_index], average='macro'))
-        y_test_pred_proba += clf._predict_proba_lr(X_test)
-    print("macro f1:", f1_score(y, y_pred, average='macro'))
+        y_test_pred_proba += predict_proba(clf, X_test)
+    print("macro f1:", f1_score(y, y_pred, average='macro'))  # calc macro_f1 score
 
     y_test_pred_proba /= n_splits  # normalize to 1
     return y_pred_proba, y, y_test_pred_proba
