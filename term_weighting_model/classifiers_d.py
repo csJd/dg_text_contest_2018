@@ -280,7 +280,8 @@ def main():
                                  .format(X.shape[1] // N_CLASSES, 'proba' if use_proba else 'label'))
     # train_and_gen_result(clf, X, y, X_test, use_proba=use_proba, save_url=save_url)
 
-    gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=233)
+    save_url = from_project_root("processed_data/vector/{}_xgb.pk".format(X.shape[1] // N_CLASSES))
+    joblib.dump(gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=233), save_url)
     pass
 
 
