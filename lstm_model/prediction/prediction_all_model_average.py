@@ -56,8 +56,9 @@ def main(result_dir):
     # print("accuracy:{}".format(accuracy_score1))
 
     # save
-    pk.dump(predict_all_pro,open(result_dir+""))
+    pk.dump(predict_all_pro,open(result_dir+"/predict_merge.pk",'wb'))
 
 if __name__ == "__main__":
 
-    result_dir = from_project_root()
+    result_dir = from_project_root("hierarchicalAttention_Model/result")
+    main(result_dir)
