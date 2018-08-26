@@ -19,6 +19,7 @@ import pandas as pd
 from utils.path_util import from_project_root
 from term_weighting_model.transformer import generate_vectors
 from term_weighting_model.stacker import generate_meta_feature, gen_data_for_stacking
+from term_weighting_model.stacker import model_stacking_from_pk
 
 N_JOBS = -1
 N_CLASSES = 19
@@ -252,9 +253,16 @@ def main():
     # clfs = init_linear_clfs()
 
     # load from pickle
-    pk_url = from_project_root("processed_data/vector/stacked_proba_XyX_test_50.pk")
-    print("loading data from", pk_url)
-    X, y, X_test = joblib.load(pk_url)
+    # pk_url = from_project_root("processed_data/vector/stacked_proba_XyX_test_50.pk")
+    # print("loading data from", pk_url)
+    # X, y, X_test = joblib.load(pk_url)
+
+    # load from stacking
+    pk_urls = {
+        from_project_root("processed_data/vector/proba_34_xgb_0.787.pk"),
+        from_project_root("processed_data/vector/xingwei_0.7897.pk")
+    }
+    X, y, X_test = model_stacking_from_pk(pk_urls)
 
     train_url = from_project_root("data/train_set.csv")
     test_url = from_project_root("data/test_set.csv")
@@ -282,6 +290,7 @@ def main():
 
     save_url = from_project_root("processed_data/vector/{}_xgb.pk".format(X.shape[1] // N_CLASSES))
     joblib.dump(gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=233), save_url)
+
     pass
 
 
