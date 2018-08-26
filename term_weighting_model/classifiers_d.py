@@ -17,6 +17,7 @@ import scipy.sparse as sp
 import pandas as pd
 
 from utils.path_util import from_project_root
+from utils.proba_util import predict_proba
 from term_weighting_model.transformer import generate_vectors
 from term_weighting_model.stacker import generate_meta_feature, gen_data_for_stacking
 from term_weighting_model.stacker import model_stacking_from_pk
@@ -146,8 +147,8 @@ def train_clfs(clfs, X, y, test_size=0.2, tuning=False, random_state=None):
     """
 
     # split data into train and test
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size,
-                                                        random_state=random_state, stratify=y)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, random_state=random_state, stratify=y)
     print("train data shape", X_train.shape, y_train.shape)
     print("dev data shape  ", X_test.shape, y_test.shape)
     for clf_name in clfs:
@@ -212,42 +213,6 @@ def train_and_gen_result(clf, X, y, X_test, use_proba=False, save_url=None, n_sp
     return result_df
 
 
-def predict_proba(clf, X_test, X=None, y=None, save_url=None):
-    """ train clf and get proba predict
-
-    Args:
-        clf: trained classifier
-        X: X for fit
-        y: y for fit
-        X_test: X_test for predict
-        save_url: url to save result, not save if set it to None
-
-    Returns:
-        DataFrame: proba_df
-
-    """
-    if hasattr(clf, 'predict_proba'):
-        proba = clf.predict_proba(X_test)
-    elif hasattr(clf, '_predict_proba_lr'):
-        proba = clf._predict_proba_lr(X_test)
-    else:
-        if X is None or y is None:
-            print("X and y is required for CalibratedClassifierCV")
-            return
-        clf = CalibratedClassifierCV(clf)
-        clf.fit(X, y)
-        proba = clf.predict_proba(X_test)
-
-    proba_df = pd.DataFrame(proba, columns=['class_prob_' + str(i + 1) for i in range(N_CLASSES)])
-    if save_url is None:
-        pass
-    elif save_url.endswith('.pk'):
-        joblib.dump(proba_df, save_url)
-    elif save_url.endswith('.csv'):
-        proba_df.to_csv(save_url, index_label='id')
-    return proba_df
-
-
 def main():
     clfs = init_clfs()
     # clfs = init_linear_clfs()
@@ -277,7 +242,7 @@ def main():
     X_test = np.append(X_test, generate_meta_feature(test_url), axis=1)
 
     print(X.shape, y.shape, X_test.shape)
-    # train_clfs(clfs, X, y, tuning=True, random_state=RANDOM_STATE)
+    train_clfs(clfs, X, y, tuning=True, random_state=RANDOM_STATE)
 
     # clf = LinearSVC(C=1)
     clf = XGBClassifier(n_jobs=-1)  # xgb's default n_jobs=1
@@ -289,7 +254,7 @@ def main():
     # train_and_gen_result(clf, X, y, X_test, use_proba=use_proba, save_url=save_url)
 
     save_url = from_project_root("processed_data/vector/{}_xgb.pk".format(X.shape[1] // N_CLASSES))
-    joblib.dump(gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=233), save_url)
+    # joblib.dump(gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=233), save_url)
 
     pass
 

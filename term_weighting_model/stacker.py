@@ -16,7 +16,7 @@ import pandas as pd
 from utils.path_util import from_project_root
 from term_weighting_model.transformer import generate_vectors
 from utils.data_util import load_to_df
-from term_weighting_model.classifiers_d import predict_proba
+from utils.proba_util import predict_proba
 
 N_CLASSES = 19
 RANDOM_STATE = 233
