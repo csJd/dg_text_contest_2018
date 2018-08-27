@@ -5,8 +5,6 @@ from xgboost.sklearn import XGBClassifier
 from lightgbm.sklearn import LGBMClassifier
 from sklearn.svm import SVC, LinearSVC
 from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold
-from sklearn.calibration import CalibratedClassifierCV
-from sklearn.multiclass import OneVsRestClassifier
 from sklearn.linear_model import SGDClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.externals import joblib
@@ -223,10 +221,10 @@ def main():
     # X, y, X_test = joblib.load(pk_url)
 
     # load from stacking
-    pk_urls = {
+    pk_urls = [
         from_project_root("processed_data/vector/proba_34_xgb_0.787.pk"),
         from_project_root("processed_data/vector/xingwei_0.7897.pk")
-    }
+    ]
     X, y, X_test = model_stacking_from_pk(pk_urls)
 
     train_url = from_project_root("data/train_set.csv")
