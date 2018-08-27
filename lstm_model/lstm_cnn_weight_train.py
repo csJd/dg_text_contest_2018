@@ -217,7 +217,7 @@ with tf.Session(config=gpuConfig) as sess,tf.device('/device:GPU:0'):
         step, summaries, cost, accuracy = sess.run(
             [global_step, dev_summary_op,loss,acc],feed_dict)
         time_str = datetime.datetime.now().isoformat()
-        print("{}: step {}, loss {:g}, acc {:g}".format(time_str, step, loss, accuracy))
+        print("{}: step {}, loss {:g}, acc {:g}".format(time_str, step, cost, accuracy))
 
         if writer:
             writer.add_summary(summaries, step)

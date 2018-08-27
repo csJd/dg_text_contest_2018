@@ -40,11 +40,7 @@ def main():
             # model checkpoint path
             step = str(step_i)
             cv_num = str(cv_num_i)
-            # tf.flags.DEFINE_string("meta_path", "./runs/"+model_path[cv_num_i]+"/checkpoints/model-" + step + ".meta", "meta_path")
-            # tf.flags.DEFINE_string("model_path", "./runs/"+model_path[cv_num_i]+"/checkpoints/model-" + step, "model_path")
-            # tf.flags.DEFINE_string("dc_file", "lstm_model/processed_data/one_gram/phrase_level_1gram_dc.json",
-            #                        "dc file url")
-            #
+
             # tf.flags.DEFINE_string("result_path", "lstm_model/result_test/result_predict" + cv_num + "-" + step + ".csv",
             #                        "result path")
             #
@@ -59,8 +55,8 @@ def main():
                 sess = tf.Session(config=session_conf)
                 with sess.as_default():
                     # 加载训练好的模型
-                    saver = tf.train.import_meta_graph(FLAGS.meta_path)
-                    saver.restore(sess, FLAGS.model_path)
+                    saver = tf.train.import_meta_graph("./runs/"+model_path[cv_num]+"/checkpoints/model-" + step + ".meta")
+                    saver.restore(sess, "./runs/"+model_path[cv_num_i]+"/checkpoints/model-" + step)
                     # 获取模型输入
                     input_x = graph.get_operation_by_name("placeholder/input_x").outputs[0]
                     dropout_keep_prob = graph.get_operation_by_name("placeholder/dropout_keep_prob").outputs[0]
@@ -111,7 +107,7 @@ def main():
                     print("=======================================")
 
                     # 写入文件
-                    pk.dump(batch_prediction_pro_all, open(from_project_root(FLAGS.result_path), 'wb'))
+                    pk.dump(batch_prediction_pro_all, open(from_project_root( "hierarchicalAttention_Model/result/result_predict" + cv_num + "-" + step + ".pk"), 'wb'))
 
 if __name__ == '__main__':
     main()
