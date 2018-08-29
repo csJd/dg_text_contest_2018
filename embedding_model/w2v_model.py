@@ -9,24 +9,22 @@ from time import time
 
 import numpy as np
 
-# define some val
-
 DATA_URL = from_project_root("lstm_model/processed_data/phrase_level_data.csv")
 N_JOBS = 4
 
 
-def train_w2v_model(data_url, model_url, args):
+def train_w2v_model(data_url, kwargs):
     """ get or train a new d2v_model
 
     Args:
         data_url: url to data file
-        model_url: url to save trained model
-        args: args for d2v model
+        kwargs: args for d2v model
 
     Returns:
         w2v_model
 
     """
+    model_url = args_to_url(kwargs)
     if exists(model_url):
         return Word2Vec.load(model_url)
 
@@ -34,11 +32,7 @@ def train_w2v_model(data_url, model_url, args):
     print("Word2Vec model is training...\n trained model will be saved at \n ", model_url)
     s_time = time()
     # more info here [https://radimrehurek.com/gensim/models/word2vec.html#gensim.models.word2vec.Word2Vec]
-    model = Word2Vec(documents, workers=N_JOBS,
-                     size=args['dim'],
-                     min_count=args['min_count'],
-                     window=args['window'],
-                     iter=args['epochs'])
+    model = Word2Vec(documents, workers=N_JOBS, **kwargs)
     e_time = time()
     print("training finished in %.3f seconds" % (e_time - s_time))
     model.save(model_url)
@@ -71,6 +65,7 @@ def args_to_url(args):
         str: model_url for train_w2v_model
 
     """
+    args = dict(sorted(args.items(), key=lambda x: x[0]))
     filename = '_'.join([str(x) for x in args.values()]) + '.bin'
     return from_project_root("embedding_model/models/w2v_phrase_" + filename)
 
@@ -116,13 +111,15 @@ def infer_avg_wvs(wv_url, sentences):
 
 
 def main():
-    args = {
-        'dim': 64,
+    kwargs = {
+        'size': 64,
         'min_count': 2,
         'window': 5,
-        'epochs': 3
+        'iter': 3,
+        'sg': 1,
+        'hs': 1
     }
-    model = train_w2v_model(DATA_URL, args_to_url(args), args=args)
+    model = train_w2v_model(DATA_URL, kwargs=kwargs)
     print(len(model.wv.vocab))
     pass
 
