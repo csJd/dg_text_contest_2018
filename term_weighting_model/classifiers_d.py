@@ -223,9 +223,10 @@ def main():
 
     # load from stacking
     pk_urls = [
-        from_project_root("processed_data/vector/proba_34_xgb_0.787.pk"),
-        from_project_root("processed_data/vector/xingwei_0.7897.pk"),
-        from_project_root("processed_data/vector/xingwei_lstmo_cv_0.788.pk"),
+        from_project_root("processed_data/vector/deng_34_xgb_0.787.pk"),
+        from_project_root("processed_data/vector/xingwei_rcnn_0.7897.pk"),
+        from_project_root("processed_data/vector/xingwei_lstm_0.788.pk"),
+        from_project_root("processed_data/vector/xingwei_rcnn_0.79242.pk"),
         from_project_root("processed_data/vector/xhz_baseline_0.76.pkl"),
         from_project_root("processed_data/vector/xhz_cnn_0.77.pkl"),
     ]
@@ -254,7 +255,8 @@ def main():
     n_splits = 5
     save_url = from_project_root("processed_data/com_result/{}_xgb_{}_{}_fold.csv"
                                  .format(X.shape[1] // N_CLASSES, 'proba' if use_proba else 'label', n_splits))
-    train_and_gen_result(clf, X, y, X_test, use_proba=use_proba, save_url=save_url, n_splits=n_splits)
+    train_and_gen_result(clf, X, y, X_test, use_proba=use_proba, save_url=save_url,
+                         n_splits=n_splits, random_state=RANDOM_STATE)
 
     save_url = from_project_root("processed_data/vector/{}_xgb.pk".format(X.shape[1] // N_CLASSES))
     # joblib.dump(gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=233), save_url)
