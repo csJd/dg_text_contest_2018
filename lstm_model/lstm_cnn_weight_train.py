@@ -17,28 +17,29 @@ import tqdm
 from sklearn.metrics import f1_score
 from sklearn.metrics import accuracy_score
 import datetime
+import random
 
 #Data loading params
 tf.flags.DEFINE_integer("num_classes",19,"number of classes")
-tf.flags.DEFINE_integer("embedding_size",128,"Dimensionality of word embedding")
+tf.flags.DEFINE_integer("embedding_size",64,"Dimensionality of word embedding")
 tf.flags.DEFINE_integer("hidden_size",64,"Dimensionality of GRU hidden layer(default 50)") #===============
 tf.flags.DEFINE_float("dev_sample_percentage",0.002,"dev_sample_percentage")
 tf.flags.DEFINE_integer("batch_size",100,"Batch Size of training data(default 50)")
 tf.flags.DEFINE_integer("checkpoint_every",100,"Save model after this many steps (default 100)")
 tf.flags.DEFINE_integer("num_checkpoints",15,"Number of checkpoints to store (default 5)")
-tf.flags.DEFINE_integer("evaluate_every",3,"evaluate every this many batches")
+tf.flags.DEFINE_integer("evaluate_every",50,"evaluate every this many batches")
 tf.flags.DEFINE_float("learning_rate",0.01,"learning rate")  # ====================
 tf.flags.DEFINE_integer("grad_clip",5,"grad clip to prevent gradient explode")
 tf.flags.DEFINE_integer("epoch",3,"number of epoch")
-tf.flags.DEFINE_integer("max_word_in_sent",800,"max_word_in_sent")
+tf.flags.DEFINE_integer("max_word_in_sent",500,"max_word_in_sent")
 tf.flags.DEFINE_float("regularization_rate",0.001,"regularization rate random") # =======================
 
 # cnn
 tf.flags.DEFINE_string("filter_sizes","2,3,4","the size of the filter")
 tf.flags.DEFINE_integer("num_filters",64,"the num of channels in per filter")
 
-tf.flags.DEFINE_float("rnn_input_keep_prob",0.9,"rnn_input_keep_prob")
-tf.flags.DEFINE_float("rnn_output_keep_prob",0.9,"rnn_output_keep_prob")
+tf.flags.DEFINE_float("rnn_input_keep_prob",0.7,"rnn_input_keep_prob")
+tf.flags.DEFINE_float("rnn_output_keep_prob",0.7,"rnn_output_keep_prob")
 
 tf.flags.DEFINE_string("train_file0","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200_0.csv","train file url")
 tf.flags.DEFINE_string("train_file1","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200_1.csv","train file url")
@@ -46,10 +47,9 @@ tf.flags.DEFINE_string("train_file2","lstm_model/processed_data/one_gram/filter-
 tf.flags.DEFINE_string("train_file3","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200_3.csv","train file url")
 tf.flags.DEFINE_string("train_file4","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200_4.csv","train file url")
 
-
 tf.flags.DEFINE_string("vocab_file","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200_vocab.pk","vocab file url")
 tf.flags.DEFINE_string("vocab_file_csv","lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200_vocab.csv","vocab csv file url")
-tf.flags.DEFINE_string("word2vec_file","embedding_model/models/w2v_phrase_128_2_10_15.bin","vocab csv file url")
+tf.flags.DEFINE_string("word2vec_file","embedding_model/models/w2v_phrase_64_2_10_15.bin","vocab csv file url")
 tf.flags.DEFINE_string("dc_file","lstm_model/processed_data/one_gram/phrase_level_1gram_dc.json","dc file url")
 
 # add
@@ -76,7 +76,7 @@ train_y.extend(train_y3)
 train_y.extend(train_y4)
 
 # dev_x_text,dev_y = Data_helper.get_predict_data(from_project_root(FLAGS.train_file2))
-dev_x_text,dev_y = Data_helper.load_data_and_labels(from_project_root(FLAGS.train_file2))
+dev_x_text,dev_y = Data_helper.get_predict_data(from_project_root(FLAGS.train_file2))
 
 # =====================build vocab =====================================================================================
 train_x_vecs = get_index_text(train_x_text,FLAGS.max_word_in_sent,from_project_root(FLAGS.vocab_file))
@@ -97,7 +97,7 @@ with open(from_project_root(FLAGS.vocab_file_csv),'r',encoding='utf-8') as f:
             init_embedding_mat.append([1.0] * FLAGS.embedding_size)
         else:
             init_embedding_mat.append(model[word])
-
+del model
 embedding_mat = tf.Variable(init_embedding_mat,name="embedding")
 print("加载数据完成.....")
 
@@ -148,8 +148,6 @@ with tf.Session(config=gpuConfig) as sess,tf.device('/device:GPU:0'):
     out_dir = os.path.abspath(os.path.join(os.path.curdir,"runs",timestamp))
     print("Wrinting to {} \n".format(out_dir))
 
-
-
     # global step
     global_step = tf.Variable(0,trainable=False)
     optimizer = tf.train.AdamOptimizer(FLAGS.learning_rate)
@@ -191,6 +189,9 @@ with tf.Session(config=gpuConfig) as sess,tf.device('/device:GPU:0'):
 
     def train_step(x_batch,y_batch,term_weight_batch):
 
+        # 数据增强
+        x_batch = random_x_batch(x_batch, dropout_pro=0.25, shuffle_pro=0.5)
+
         feed_dict={
             new_model.input_x:x_batch,
             new_model.input_y:y_batch,
@@ -205,6 +206,33 @@ with tf.Session(config=gpuConfig) as sess,tf.device('/device:GPU:0'):
 
         return step
 
+    # 以一定概率打乱或者删除句中的单词
+    def random_x_batch(x_batch, dropout_pro, shuffle_pro):
+
+        new_x_batch = []
+        for sentence in x_batch:
+            temp = random.random()
+            if temp < dropout_pro:
+                new_sentence = []
+                new_sentence_ = [0] * len(sentence)
+                for word in sentence:
+                    if random.random() < 0.5:
+                        new_sentence.append(word)
+                for i in range(len(new_sentence)):
+                    new_sentence_[i] = new_sentence[i]
+                new_x_batch.append(new_sentence_)
+                continue
+
+            elif temp < shuffle_pro:
+
+                sentence = np.random.permutation(sentence)
+                new_x_batch.append(sentence)
+                continue
+
+            new_x_batch.append(sentence)
+
+        return np.array(new_x_batch)
+
     def small_dev_step(x_batch,y_batch,term_weight_batch,writer=None):
 
         feed_dict = {
@@ -214,14 +242,15 @@ with tf.Session(config=gpuConfig) as sess,tf.device('/device:GPU:0'):
             new_model.rnn_input_keep_prob: 1.0,
             new_model.rnn_output_keep_prob: 1.0
         }
+
         step, summaries, cost, accuracy = sess.run(
             [global_step, dev_summary_op,loss,acc],feed_dict)
         time_str = datetime.datetime.now().isoformat()
         print("{}: step {}, loss {:g}, acc {:g}".format(time_str, step, cost, accuracy))
-
         if writer:
             writer.add_summary(summaries, step)
         return step
+
 
 
     def dev_step(dev_x_vecs,dev_y,dev_term_wegits,per_predict_limit):
@@ -274,8 +303,8 @@ with tf.Session(config=gpuConfig) as sess,tf.device('/device:GPU:0'):
             step = train_step(x_batch,y_batch,term_weight_batch)
 
             if step % FLAGS.evaluate_every == 0:
-                # dev_step(dev_x_vecs,dev_y,dev_term_wegits,FLAGS.batch_size)
-                small_dev_step(dev_x_vecs[:1000],dev_y[:1000],dev_term_wegits[:1000],dev_summary_writer)
+                dev_step(dev_x_vecs[:5000],dev_y[:5000],dev_term_wegits[:5000],FLAGS.batch_size)
+                # small_dev_step(dev_x_vecs[:1000],dev_y[:1000],dev_term_wegits[:1000],dev_summary_writer)
 
             if step % FLAGS.checkpoint_every == 0 :
                 path = saver.save(sess,checkpoint_prefix,global_step=step)

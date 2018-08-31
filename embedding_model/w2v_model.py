@@ -119,8 +119,8 @@ def main():
     args = {
         'dim': 64,
         'min_count': 2,
-        'window': 5,
-        'epochs': 3
+        'window':10,
+        'epochs': 15
     }
     model = train_w2v_model(DATA_URL, args_to_url(args), args=args)
     print(len(model.wv.vocab))

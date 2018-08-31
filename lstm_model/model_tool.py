@@ -82,7 +82,7 @@ def write_to_csv(part_data,train_data_file,i):
             f.write(line+"\n")
 
 def main():
-    train_data_file= from_project_root("lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data.csv")
+    train_data_file= from_project_root("lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200.csv")
     n_parts=5
     dev_nums = 5000
     split_data_to_parts(train_data_file,n_parts,dev_nums)

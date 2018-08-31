@@ -25,6 +25,7 @@ def read_all_filenames(dir_url):
 def main(result_dir):
 
     all_predict_files = read_all_filenames(from_project_root(result_dir))
+    weight = [0.7,0.1,0.2]
 
     all_predict_results = []
     for predict_file in all_predict_files:
@@ -38,10 +39,10 @@ def main(result_dir):
 
         for j in range(len(all_predict_results)):
 
-            predict_one_merge = predict_one_merge + np.array(all_predict_results[j][i])
+            predict_one_merge = predict_one_merge + np.array(all_predict_results[j][i]) * weight[j]
 
         #
-        predict_one_merge = predict_one_merge / len(all_predict_results)
+        # predict_one_merge = predict_one_merge / len(all_predict_results)
         max_index = np.where(predict_one_merge == np.max(predict_one_merge))[0][0]
         predict_all.append(max_index + 1)
         predict_all_pro.append(predict_one_merge)
@@ -60,5 +61,5 @@ def main(result_dir):
 
 if __name__ == "__main__":
 
-    result_dir = from_project_root("hierarchicalAttention_Model/result")
+    result_dir = from_project_root("hierarchicalAttention_Model/temp")
     main(result_dir)

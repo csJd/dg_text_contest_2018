@@ -122,11 +122,9 @@ def main():
     dc_pickle = from_project_root("lstm_model/processed_data/one_gram/phrase_level_1gram_dc.json")
 
     train_file = from_project_root("lstm_model/processed_data/phrase_level_data.csv")
-    processed_data_file = from_project_root("lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data.csv")
+    processed_data_file = from_project_root("lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200.csv")
     pre_processed_sen(bdc_pickle, tf_pickle,dc_pickle,train_file, processed_data_file, limit_word=200)
     pass
 
 if __name__ == '__main__':
     main()
-
-

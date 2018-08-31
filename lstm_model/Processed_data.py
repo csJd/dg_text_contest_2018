@@ -188,6 +188,8 @@ def cal_df(train_file,df_pickle):
     pass
 
 def main():
+
+    # exit()
     #计算df
     # train_file = from_project_root("lstm_model/processed_data/phrase_level_data.csv")
     # df_pickle = from_project_root("lstm_model/processed_data/one_gram/phrase_level_df.pk")
@@ -201,25 +203,25 @@ def main():
     # exit()
 
     # 根据train_file建立字典
-    # train_file = from_project_root("lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data.csv")
-    # vocab_pickle = from_project_root("lstm_model/processed_data/one_gram/filter-1gram_phrase_level_vocab.pk")
+    # train_file = from_project_root("lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200.csv")
+    # vocab_pickle = from_project_root("lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200_vocab.pk")
     # create_vocab_dict(train_file,vocab_pickle)
     # exit()
 
     # 将pk转化为csv文件
-    # pickle_file = from_project_root("lstm_model/processed_data/one_gram/filter-1gram_phrase_level_vocab.pk")
-    # save_csv_file = from_project_root("lstm_model/processed_data/one_gram/filter-1gram_phrase_level_vocab.csv")
-    # transfer_pk_to_csv(pickle_file, save_csv_file)
-    # exit()
+    pickle_file = from_project_root("lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200_vocab.pk")
+    save_csv_file = from_project_root("lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200_vocab.csv")
+    transfer_pk_to_csv(pickle_file, save_csv_file)
+    exit()
 
     # 计算平均句子长度
     # get_average_sen_len(from_project_root("lstm_model/processed_data/two_gram/filter_2-gram_phrase_level_data.csv"))
     # exit()
 
     # extract data
-    extract_data(from_project_root("data/test_set.csv"),[0,2],
-                 from_project_root("lstm_model/processed_data/phrase_level_test_data.csv"))
-    exit()
+    # extract_data(from_project_root("data/test_set.csv"),[0,2],
+    #              from_project_root("lstm_model/processed_data/phrase_level_test_data.csv"))
+    # exit()
 
     # 划分数据集
     # train_dev_split(from_project_root("lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data.csv"))
