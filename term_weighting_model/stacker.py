@@ -13,7 +13,7 @@ import scipy as sp
 import numpy as np
 import pandas as pd
 
-from utils.path_util import from_project_root
+from utils.path_util import from_project_root, basename
 from term_weighting_model.transformer import generate_vectors
 from utils.data_util import load_to_df
 from utils.proba_util import predict_proba
@@ -176,6 +176,10 @@ def model_stacking_from_pk(model_urls):
     if model_urls is None or len(model_urls) < 1:
         print("invalid model_urls")
         return
+
+    print("files for stacking ...")
+    for url in model_urls:
+        print(' ', basename(url))
 
     X, y, X_test = joblib.load(model_urls[0])
     for url in model_urls[1:]:
