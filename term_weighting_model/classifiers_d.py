@@ -20,7 +20,7 @@ from term_weighting_model.transformer import generate_vectors
 from term_weighting_model.stacker import generate_meta_feature, gen_data_for_stacking
 from term_weighting_model.stacker import model_stacking_from_pk
 
-N_JOBS = -1
+N_JOBS = 1
 N_CLASSES = 19
 RANDOM_STATE = 233
 CV = 5
@@ -173,7 +173,7 @@ def train_clfs(clfs, X, y, test_size=0.2, tuning=False, random_state=None):
     return clfs
 
 
-def train_and_gen_result(clf, X, y, X_test, use_proba=False, save_url=None, n_splits=None):
+def train_and_gen_result(clf, X, y, X_test, use_proba=False, save_url=None, n_splits=1, random_state=None):
     """ train and generate result with specific clf
 
     Args:
@@ -184,10 +184,11 @@ def train_and_gen_result(clf, X, y, X_test, use_proba=False, save_url=None, n_sp
         use_proba: predict probabilities of labels instead of label
         save_url: url to save the result file
         n_splits: n_splits for K-fold, None to not use k-fold
+        random_state: random_state for 5-fold
 
     """
-    if n_splits and n_splits > 1:
-        slf = StratifiedKFold(n_splits=n_splits)
+    if n_splits > 1:
+        slf = StratifiedKFold(n_splits=n_splits, shuffle=bool(random_state), random_state=random_state)
         y_pred_proba = np.zeros(X_test.shape[0], N_CLASSES)
         for train_index, cv_index in slf.split(X, y):
             X_train = X[train_index]
@@ -243,16 +244,17 @@ def main():
     # X_test = np.append(X_test, generate_meta_feature(test_url), axis=1)
 
     print(X.shape, y.shape, X_test.shape)
-    train_clfs(clfs, X, y, tuning=True, random_state=RANDOM_STATE)
+    # train_clfs(clfs, X, y, tuning=True, random_state=RANDOM_STATE)
 
     # clf = LinearSVC(C=1)
     clf = XGBClassifier(n_jobs=-1)  # xgb's default n_jobs=1
     # clf = LGBMClassifier()
 
-    use_proba = True
-    save_url = from_project_root("processed_data/com_result/{}_xgb_{}.csv"
-                                 .format(X.shape[1] // N_CLASSES, 'proba' if use_proba else 'label'))
-    # train_and_gen_result(clf, X, y, X_test, use_proba=use_proba, save_url=save_url)
+    use_proba = False
+    n_splits = 5
+    save_url = from_project_root("processed_data/com_result/{}_xgb_{}_{}_fold.csv"
+                                 .format(X.shape[1] // N_CLASSES, 'proba' if use_proba else 'label', n_splits))
+    train_and_gen_result(clf, X, y, X_test, use_proba=use_proba, save_url=save_url, n_splits=n_splits)
 
     save_url = from_project_root("processed_data/vector/{}_xgb.pk".format(X.shape[1] // N_CLASSES))
     # joblib.dump(gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=233), save_url)
