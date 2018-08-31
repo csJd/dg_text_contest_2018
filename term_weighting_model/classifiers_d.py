@@ -223,7 +223,10 @@ def main():
     # load from stacking
     pk_urls = [
         from_project_root("processed_data/vector/proba_34_xgb_0.787.pk"),
-        from_project_root("processed_data/vector/xingwei_0.7897.pk")
+        from_project_root("processed_data/vector/xingwei_0.7897.pk"),
+        from_project_root("processed_data/vector/xingwei_lstmo_cv_0.788.pk"),
+        from_project_root("processed_data/vector/xhz_baseline_0.76.pkl"),
+        from_project_root("processed_data/vector/xhz_cnn_0.77.pkl"),
     ]
     X, y, X_test = model_stacking_from_pk(pk_urls)
 
@@ -236,8 +239,8 @@ def main():
     # X = sp.hstack([X, X_a])  # append horizontally on sparse matrix
 
     # generate meta features
-    X = np.append(X, generate_meta_feature(train_url), axis=1)
-    X_test = np.append(X_test, generate_meta_feature(test_url), axis=1)
+    # X = np.append(X, generate_meta_feature(train_url), axis=1)
+    # X_test = np.append(X_test, generate_meta_feature(test_url), axis=1)
 
     print(X.shape, y.shape, X_test.shape)
     train_clfs(clfs, X, y, tuning=True, random_state=RANDOM_STATE)
