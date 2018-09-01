@@ -20,7 +20,7 @@ from term_weighting_model.transformer import generate_vectors
 from term_weighting_model.stacker import generate_meta_feature, gen_data_for_stacking
 from term_weighting_model.stacker import model_stacking_from_pk
 
-N_JOBS = -1
+N_JOBS = 1
 N_CLASSES = 19
 RANDOM_STATE = 233
 CV = 5
@@ -173,7 +173,7 @@ def train_clfs(clfs, X, y, test_size=0.2, tuning=False, random_state=None):
     return clfs
 
 
-def train_and_gen_result(clf, X, y, X_test, use_proba=False, save_url=None, n_splits=None):
+def train_and_gen_result(clf, X, y, X_test, use_proba=False, save_url=None, n_splits=1, random_state=None):
     """ train and generate result with specific clf
 
     Args:
@@ -184,10 +184,11 @@ def train_and_gen_result(clf, X, y, X_test, use_proba=False, save_url=None, n_sp
         use_proba: predict probabilities of labels instead of label
         save_url: url to save the result file
         n_splits: n_splits for K-fold, None to not use k-fold
+        random_state: random_state for 5-fold
 
     """
-    if n_splits and n_splits > 1:
-        slf = StratifiedKFold(n_splits=n_splits)
+    if n_splits > 1:
+        slf = StratifiedKFold(n_splits=n_splits, shuffle=bool(random_state), random_state=random_state)
         y_pred_proba = np.zeros(X_test.shape[0], N_CLASSES)
         for train_index, cv_index in slf.split(X, y):
             X_train = X[train_index]
@@ -222,9 +223,10 @@ def main():
 
     # load from stacking
     pk_urls = [
-        from_project_root("processed_data/vector/proba_34_xgb_0.787.pk"),
-        from_project_root("processed_data/vector/xingwei_0.7897.pk"),
-        from_project_root("processed_data/vector/xingwei_lstmo_cv_0.788.pk"),
+        from_project_root("processed_data/vector/deng_34_xgb_0.787.pk"),
+        from_project_root("processed_data/vector/xingwei_rcnn_0.7897.pk"),
+        from_project_root("processed_data/vector/xingwei_lstm_0.788.pk"),
+        from_project_root("processed_data/vector/xingwei_rcnn_0.79242.pk"),
         from_project_root("processed_data/vector/xhz_baseline_0.76.pkl"),
         from_project_root("processed_data/vector/xhz_cnn_0.77.pkl"),
     ]
@@ -250,9 +252,11 @@ def main():
     # clf = LGBMClassifier()
 
     use_proba = False
-    save_url = from_project_root("processed_data/com_result/{}_xgb_{}.csv"
-                                 .format(X.shape[1] // N_CLASSES, 'proba' if use_proba else 'label'))
-    train_and_gen_result(clf, X, y, X_test, use_proba=use_proba, save_url=save_url)
+    n_splits = 5
+    save_url = from_project_root("processed_data/com_result/{}_xgb_{}_{}_fold.csv"
+                                 .format(X.shape[1] // N_CLASSES, 'proba' if use_proba else 'label', n_splits))
+    train_and_gen_result(clf, X, y, X_test, use_proba=use_proba, save_url=save_url,
+                         n_splits=n_splits, random_state=RANDOM_STATE)
 
     save_url = from_project_root("processed_data/vector/{}_xgb.pk".format(X.shape[1] // N_CLASSES))
     # joblib.dump(gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=233), save_url)

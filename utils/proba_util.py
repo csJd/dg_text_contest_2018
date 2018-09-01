@@ -82,8 +82,14 @@ def merge_probas(proba_dict, save_url):
 
 def main():
     proba_dict = {
-        from_project_root('processed_data/com_result/50_meta_xgb_proba_0.786.csv'): 0.5,
-        from_project_root('processed_data/com_result/prob_rcnnon_cv_0.7897.csv'): 0.1,
+        from_project_root('processed_data/com_result/34_xgb_proba_0.787.csv'): 0.2,
+        from_project_root('processed_data/com_result/50_xgb_proba_0.786.csv'): 0.2,
+        from_project_root('processed_data/com_result/pro_rcnn_rnn_cnn_attention_0.794.csv'): 0.2,
+        from_project_root('processed_data/com_result/prob_rcnnbo_cv_0.787.csv'): 0.2 / 5,
+        from_project_root('processed_data/com_result/prob_rcnnon_cv_0.7897.csv'): 0.2 / 5,
+
+        from_project_root('processed_data/com_result/prob_rcnn_cv_0.79242.csv'): 0.4,
+        from_project_root('processed_data/com_result/result_han_cv_0.767.pk'): 0.2
     }
     save_url = from_project_root('processed_data/result.csv')
     merge_probas(proba_dict, save_url)
