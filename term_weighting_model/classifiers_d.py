@@ -243,16 +243,16 @@ def main():
     # X_test = np.append(X_test, generate_meta_feature(test_url), axis=1)
 
     print(X.shape, y.shape, X_test.shape)
-    train_clfs(clfs, X, y, tuning=True, random_state=RANDOM_STATE)
+    # train_clfs(clfs, X, y, tuning=True, random_state=RANDOM_STATE)
 
     # clf = LinearSVC(C=1)
     clf = XGBClassifier(n_jobs=-1)  # xgb's default n_jobs=1
     # clf = LGBMClassifier()
 
-    use_proba = True
+    use_proba = False
     save_url = from_project_root("processed_data/com_result/{}_xgb_{}.csv"
                                  .format(X.shape[1] // N_CLASSES, 'proba' if use_proba else 'label'))
-    # train_and_gen_result(clf, X, y, X_test, use_proba=use_proba, save_url=save_url)
+    train_and_gen_result(clf, X, y, X_test, use_proba=use_proba, save_url=save_url)
 
     save_url = from_project_root("processed_data/vector/{}_xgb.pk".format(X.shape[1] // N_CLASSES))
     # joblib.dump(gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=233), save_url)

@@ -100,10 +100,8 @@ with open(from_project_root(FLAGS.vocab_file_csv),'r',encoding='utf-8') as f:
 del model
 embedding_mat = tf.Variable(init_embedding_mat,name="embedding")
 print("加载数据完成.....")
-
 # 格式化输出
 print("Train / Dev split: {:d} / {:d}".format(len(train_y),len(dev_y)))
-
 # =====================split dev and text ==============================================================================
 
 print("data load finished!!!")
@@ -250,8 +248,6 @@ with tf.Session(config=gpuConfig) as sess,tf.device('/device:GPU:0'):
         if writer:
             writer.add_summary(summaries, step)
         return step
-
-
 
     def dev_step(dev_x_vecs,dev_y,dev_term_wegits,per_predict_limit):
 
