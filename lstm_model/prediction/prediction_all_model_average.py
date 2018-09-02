@@ -25,7 +25,6 @@ def read_all_filenames(dir_url):
 def main(result_dir):
 
     all_predict_files = read_all_filenames(from_project_root(result_dir))
-    weight = [0.7,0.1,0.2]
 
     all_predict_results = []
     for predict_file in all_predict_files:
@@ -39,27 +38,27 @@ def main(result_dir):
 
         for j in range(len(all_predict_results)):
 
-            predict_one_merge = predict_one_merge + np.array(all_predict_results[j][i]) * weight[j]
+            predict_one_merge = predict_one_merge + np.array(all_predict_results[j][i])
 
         #
-        # predict_one_merge = predict_one_merge / len(all_predict_results)
+        predict_one_merge = predict_one_merge / len(all_predict_results)
         max_index = np.where(predict_one_merge == np.max(predict_one_merge))[0][0]
         predict_all.append(max_index + 1)
         predict_all_pro.append(predict_one_merge)
 
-    # predict_context, predict_labels = Data_helper.get_predict_data(from_project_root(
-    #     "lstm_model/processed_data/one_gram/filter_1-gram_phrase_level_data_400_dev.csv"))
-    #
-    # macro_f1 = f1_score(predict_all, predict_labels, average='macro')
-    # accuracy_score1 = accuracy_score(predict_all, predict_labels, normalize=True)
-    #
-    # print("macro_f1:{}".format(macro_f1))
-    # print("accuracy:{}".format(accuracy_score1))
+    predict_context, predict_labels = Data_helper.get_predict_data(from_project_root(
+        "lstm_model/processed_data/one_gram/filter-1gram_phrase_level_data_200_dev.csv"))
+
+    macro_f1 = f1_score(predict_all, predict_labels, average='macro')
+    accuracy_score1 = accuracy_score(predict_all, predict_labels, normalize=True)
+
+    print("macro_f1:{}".format(macro_f1))
+    print("accuracy:{}".format(accuracy_score1))
 
     # save
-    pk.dump(predict_all_pro,open(result_dir+"/predict_merge.pk",'wb'))
+    pk.dump(predict_all_pro,open(result_dir+"/predict_merge_dev.pk",'wb'))
 
 if __name__ == "__main__":
 
-    result_dir = from_project_root("hierarchicalAttention_Model/temp")
+    result_dir = from_project_root("hierarchicalAttention_Model/result/stacking_result/dev")
     main(result_dir)

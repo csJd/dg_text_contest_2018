@@ -94,6 +94,7 @@ embedding_mat = tf.Variable(init_embedding_mat,name="embedding")
 print("Train / embed_sizeDev split: {:d} / {:d}".format(len(train_y),len(dev_y)))
 
 with tf.Session() as sess:
+
     # 创建对象
     model=HierarchicalAttention(FLAGS.num_classes,
                                 FLAGS.learning_rate,
