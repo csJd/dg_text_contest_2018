@@ -31,48 +31,81 @@ def load_params():
         list, list of params dict
 
     """
+    # Hybrid
+    # params_grad = [
+    #     {
+    #         'column': ['word_seg'],
+    #         'trans_type': ['dc', 'idf'],
+    #         'max_n': [1],
+    #         'min_df': [2],
+    #         'max_df': [0.9],
+    #         'max_features': [200000],
+    #         'balanced': [False, True],
+    #         're_weight': [0]
+    #     },  # 4
+    #     {
+    #         'column': ['word_seg', 'article'],
+    #         'trans_type': ['dc'],
+    #         'max_n': [2],
+    #         'min_df': [3],
+    #         'max_df': [0.8],
+    #         'max_features': [200000, 2000000],
+    #         'balanced': [False, True],
+    #         're_weight': [9]
+    #     },  # 8
+    #     {
+    #         'column': ['word_seg', 'article'],
+    #         'trans_type': ['dc'],
+    #         'max_n': [3],
+    #         'min_df': [3],
+    #         'max_df': [0.8],
+    #         'max_features': [500000, 4000000],
+    #         'balanced': [False, True],
+    #         're_weight': [0, 9]
+    #     },  # 16
+    #
+    #     {
+    #         'column': ['word_seg', 'article'],
+    #         'trans_type': ['idf'],
+    #         'max_n': [3],
+    #         'min_df': [3],
+    #         'max_df': [0.8],
+    #         'max_features': [300000, 2000000],
+    #         'balanced': [False, True],
+    #     },  # 8
+    # ]  # 36
+
+    # Only tf-idf, tf
     params_grad = [
         {
-            'column': ['word_seg'],
-            'trans_type': ['dc', 'idf'],
+            'column': ['word_seg', 'article'],
+            'trans_type': ['idf'],
             'max_n': [1],
             'min_df': [2],
             'max_df': [0.9],
-            'max_features': [200000],
+            'max_features': [5000, 200000],
             'balanced': [False, True],
-            're_weight': [0]
-        },  # 4
+        },  # 8
         {
             'column': ['word_seg', 'article'],
-            'trans_type': ['dc'],
+            'trans_type': ['idf'],
             'max_n': [2],
             'min_df': [3],
             'max_df': [0.8],
             'max_features': [200000, 2000000],
             'balanced': [False, True],
-            're_weight': [9]
         },  # 8
-        {
-            'column': ['word_seg', 'article'],
-            'trans_type': ['dc'],
-            'max_n': [3],
-            'min_df': [3],
-            'max_df': [0.8],
-            'max_features': [500000, 4000000],
-            'balanced': [False, True],
-            're_weight': [0, 9]
-        },  # 16
-
         {
             'column': ['word_seg', 'article'],
             'trans_type': ['idf'],
             'max_n': [3],
             'min_df': [3],
             'max_df': [0.8],
-            'max_features': [300000, 2000000],
+            'max_features': [500000, 2000000, 4000000],
             'balanced': [False, True],
-        },  # 8
-    ]  # 36
+        },  # 12
+
+    ]  # 28
 
     params_list = list()
     for params_dict in params_grad:
@@ -267,7 +300,7 @@ def generate_meta_feature(data_url, normalize=True):
 def main():
     params = load_params()
     print("len(params) =", len(params))
-    save_url = from_project_root("processed_data/vector/stacked_proba_XyX_test_%d.pk" % len(load_params()))
+    save_url = from_project_root("processed_data/vector/stacked_idf_XyX_test_%d.pk" % len(load_params()))
     joblib.dump(feature_stacking(use_proba=True, random_state=RANDOM_STATE), save_url)
 
 

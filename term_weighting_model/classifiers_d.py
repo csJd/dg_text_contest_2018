@@ -189,14 +189,14 @@ def train_and_gen_result(clf, X, y, X_test, use_proba=False, save_url=None, n_sp
     """
     if n_splits > 1:
         slf = StratifiedKFold(n_splits=n_splits, shuffle=bool(random_state), random_state=random_state)
-        y_pred_proba = np.zeros(X_test.shape[0], N_CLASSES)
+        y_pred_proba = np.zeros((X_test.shape[0], N_CLASSES))
         for train_index, cv_index in slf.split(X, y):
             X_train = X[train_index]
             y_train = y[train_index]
             clf.fit(X_train, y_train)
             y_pred_proba += predict_proba(clf, X_test, X_train, y_train)
         y_pred_proba /= n_splits
-        y_pred = y_pred_proba.argmax(axis=1)
+        y_pred = y_pred_proba.argmax(axis=1) + 1
 
     else:
         clf.fit(X, y)
