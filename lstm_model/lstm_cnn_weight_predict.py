@@ -34,7 +34,7 @@ def main():
     x_vecs = get_index_text(predict_context, FLAGS.max_word_in_sent, from_project_root(FLAGS.vocab_file))
     term_wegits_vec = get_term_weight(predict_context, FLAGS.max_word_in_sent, from_project_root(FLAGS.dc_file))
 
-    # 将保存的预测结果进行预测
+    # 将保存的预测结果进行预
     model_path = ['1535556239_2']
     for cv_num_i in range(1):
 

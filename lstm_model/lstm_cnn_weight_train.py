@@ -86,7 +86,9 @@ train_term_weights = get_term_weight(train_x_text,FLAGS.max_word_in_sent,from_pr
 dev_term_wegits = get_term_weight(dev_x_text, FLAGS.max_word_in_sent, from_project_root(FLAGS.dc_file))
 
 # 使用预训练的embedding
-model = gensim.models.Word2Vec.load(from_project_root(FLAGS.word2vec_file))
+# model = gensim.models.Word2Vec.load(from_project_root(FLAGS.word2vec_file))
+model = gensim.models.KeyedVectors.load_word2vec_format(
+    from_project_root("embedding_model/models/wv_phrase_64_2_10_15.txt"))
 init_embedding_mat = []
 init_embedding_mat.append([1.0] * FLAGS.embedding_size)
 with open(from_project_root(FLAGS.vocab_file_csv),'r',encoding='utf-8') as f:
@@ -100,10 +102,8 @@ with open(from_project_root(FLAGS.vocab_file_csv),'r',encoding='utf-8') as f:
 del model
 embedding_mat = tf.Variable(init_embedding_mat,name="embedding")
 print("加载数据完成.....")
-
 # 格式化输出
 print("Train / Dev split: {:d} / {:d}".format(len(train_y),len(dev_y)))
-
 # =====================split dev and text ==============================================================================
 
 print("data load finished!!!")
@@ -250,8 +250,6 @@ with tf.Session(config=gpuConfig) as sess,tf.device('/device:GPU:0'):
         if writer:
             writer.add_summary(summaries, step)
         return step
-
-
 
     def dev_step(dev_x_vecs,dev_y,dev_term_wegits,per_predict_limit):
 
