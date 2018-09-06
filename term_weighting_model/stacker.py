@@ -20,6 +20,7 @@ from utils.proba_util import predict_proba
 
 N_CLASSES = 19
 RANDOM_STATE = 233
+DROP_WORDS = 0.3
 N_JOBS = 10
 CV = 5
 
@@ -134,7 +135,7 @@ def run_parallel(index, train_url, test_url, params, clf, n_splits, random_state
 
     """
 
-    X, y, X_test = generate_vectors(train_url, test_url, verbose=verbose, **params)
+    X, y, X_test = generate_vectors(train_url, test_url, drop_words=DROP_WORDS, verbose=verbose, **params)
     if not sp.sparse.isspmatrix_csr(X):
         X = sp.sparse.csr_matrix(X)
 
@@ -300,7 +301,7 @@ def generate_meta_feature(data_url, normalize=True):
 def main():
     params = load_params()
     print("len(params) =", len(params))
-    save_url = from_project_root("processed_data/vector/stacked_idf_XyX_test_%d.pk" % len(load_params()))
+    save_url = from_project_root("processed_data/vector/stacked_aug_idf_XyX_test_%d.pk" % len(load_params()))
     joblib.dump(feature_stacking(use_proba=True, random_state=RANDOM_STATE), save_url)
 
 

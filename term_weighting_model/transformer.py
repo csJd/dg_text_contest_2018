@@ -162,7 +162,7 @@ class TfdcTransformer(BaseEstimator, TransformerMixin):
 
 
 def generate_vectors(train_url, test_url=None, column='article', trans_type=None, max_n=1, min_df=1, max_df=1.0,
-                     max_features=1, sublinear_tf=True, balanced=False, re_weight=0, verbose=False):
+                     max_features=1, sublinear_tf=True, balanced=False, re_weight=0, verbose=False, drop_words=0):
     """ generate X, y, X_test vectors with csv(with header) url use pandas and CountVectorizer
 
     Args:
@@ -178,6 +178,7 @@ def generate_vectors(train_url, test_url=None, column='article', trans_type=None
         balanced: balanced for default TfdcTransformer, for idf transformer, it is use_idf
         re_weight: re_weight for TfdcTransformer
         verbose: True to show more information
+        drop_words: randomly delete some words from sentences
 
     Returns:
         X, y, X_test
@@ -193,10 +194,19 @@ def generate_vectors(train_url, test_url=None, column='article', trans_type=None
     s_time = time()
     verbose and print("finish loading, vectorizing")
     verbose and print("vectorizer params:", vec.get_params())
-    X = vec.fit_transform(train_df[column])
+
+    sequences = train_df[column]
+    # delete some words randomly
+    for i, row in enumerate(sequences):
+        if drop_words <= 0:
+            break
+        if np.random.ranf() < drop_words:
+            row = np.array(row.split())
+            sequences.at[i] = row[np.random.ranf(row.shape) > 0.35]
+
+    X = vec.fit_transform(sequences)
     e_time = time()
     verbose and print("finish vectorizing in %.3f seconds, transforming" % (e_time - s_time))
-
     # transformer
     if trans_type is None or trans_type == 'idf':
         trans = TfidfTransformer(sublinear_tf=sublinear_tf, use_idf=balanced)
