@@ -22,35 +22,8 @@ from term_weighting_model.stacker import model_stacking_from_pk
 
 N_JOBS = 1
 N_CLASSES = 19
-RANDOM_STATE = 233
+RANDOM_STATE = 10
 CV = 5
-
-
-def tune_clf(clf, X, y, param_grid):
-    """
-
-    Args:
-        clf: clf to be tuned
-        param_grid: param_grid for GridSearchCV
-        X: X for fit
-        y: y for fit
-
-    Returns:
-        GridSearchCV: fitted clf
-
-    """
-    if param_grid is None:
-        print("None as param_grid is invalid, the original clf will be returned")
-        return clf
-    s_time = time()
-    clf = GridSearchCV(clf, param_grid, scoring='f1_macro', n_jobs=N_JOBS, cv=CV,
-                       error_score=0, verbose=True)
-    clf.fit(X, y)
-    e_time = time()
-    # print cv results
-    print("grid_search_cv is done in %.3f seconds" % (e_time - s_time))
-    print("mean_test_macro_f1 =", clf.cv_results_['mean_test_score'])
-    return clf
 
 
 def init_param_grid(clf=None, clf_type=None):
@@ -131,6 +104,36 @@ def init_clfs():
     return clfs
 
 
+def tune_clf(clf, X, y, param_grid):
+    """
+
+    Args:
+        clf: clf to be tuned
+        param_grid: param_grid for GridSearchCV
+        X: X for fit
+        y: y for fit
+
+    Returns:
+        GridSearchCV: fitted clf
+
+    """
+    if param_grid is None:
+        print("None as param_grid is invalid, the original clf will be returned")
+        return clf
+    s_time = time()
+    clf = GridSearchCV(clf, param_grid, scoring='f1_macro', n_jobs=N_JOBS, cv=CV,
+                       error_score=0, verbose=True)
+    clf.fit(X, y)
+    e_time = time()
+    # print cv results
+    print("grid_search_cv is done in %.3f seconds" % (e_time - s_time))
+    for i in range(CV):
+        col = 'split{}_test_score'.format(i)
+        print(col, '=', clf.cv_results_[col])
+    print("mean_macro_f1 =", clf.cv_results_['mean_test_score'])
+    return clf
+
+
 def train_clfs(clfs, X, y, test_size=0.2, tuning=False, random_state=None):
     """ train clfs
 
@@ -155,7 +158,7 @@ def train_clfs(clfs, X, y, test_size=0.2, tuning=False, random_state=None):
             print("grid search cv on %s is running" % clf_name)
             param_grid = init_param_grid(clf)
             clf = tune_clf(clf, X, y, param_grid)
-            print('cv_results\n', clf.cv_results_)
+            # print('cv_results\n', clf.cv_results_)
             clf = clf.best_estimator_
 
         print("%s model is training" % clf_name)
@@ -224,11 +227,17 @@ def main():
     # load from stacking
     pk_urls = [
         from_project_root("processed_data/vector/deng_34_xgb_0.787.pk"),
+        from_project_root("processed_data/vector/deng_28_idf_xgb_0.782.pk"),
+        from_project_root("processed_data/vector/deng_50_bdc_xgb_0.782.pk"),
         from_project_root("processed_data/vector/xingwei_rcnn_0.7897.pk"),
         from_project_root("processed_data/vector/xingwei_lstm_0.788.pk"),
         from_project_root("processed_data/vector/xingwei_rcnn_0.79242.pk"),
+        from_project_root("processed_data/vector/xingwei_lstm_0.790.pk"),
         from_project_root("processed_data/vector/xhz_baseline_0.76.pkl"),
+        from_project_root("processed_data/vector/xhz_baseline_max_0.71.pkl"),
         from_project_root("processed_data/vector/xhz_cnn_0.77.pkl"),
+        from_project_root("processed_data/vector/peng_han_0.767.pk"),
+        from_project_root("processed_data/vector/zt_fasttext_400.pk"),
     ]
     X, y, X_test = model_stacking_from_pk(pk_urls)
 
@@ -252,13 +261,13 @@ def main():
     # clf = LGBMClassifier()
 
     use_proba = False
-    n_splits = 5
-    save_url = from_project_root("processed_data/com_result/{}_xgb_{}_{}_fold.csv"
+    n_splits = 1
+    save_url = from_project_root("processed_data/com_result/{}_stk_xgb_{}_{}_fold.csv"
                                  .format(X.shape[1] // N_CLASSES, 'proba' if use_proba else 'label', n_splits))
     train_and_gen_result(clf, X, y, X_test, use_proba=use_proba, save_url=save_url,
                          n_splits=n_splits, random_state=RANDOM_STATE)
 
-    save_url = from_project_root("processed_data/vector/{}_xgb.pk".format(X.shape[1] // N_CLASSES))
+    # save_url = from_project_root("processed_data/vector/{}_xgb.pk".format(X.shape[1] // N_CLASSES))
     # joblib.dump(gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=233), save_url)
 
     pass
