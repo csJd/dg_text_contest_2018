@@ -6,6 +6,7 @@ from utils.data_util import load_raw_data, load_to_df
 
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 from sklearn.externals import joblib
+from collections import OrderedDict
 from time import time
 
 import numpy as np
@@ -84,7 +85,7 @@ def args_to_url(args, prefix='d2v_word_seg_'):
         str: model_url for train_d2v_model
 
     """
-    filename = '_'.join([str(x) for x in args.values()]) + '.bin'
+    filename = '_'.join([str(x) for x in OrderedDict(args).values()]) + '.bin'
     return from_project_root("embedding_model/models/" + prefix + filename)
 
 
@@ -103,11 +104,12 @@ def main():
         'min_count': 5,
         'window': 5,
         'epochs': 5,
-        'sg': 1,
-        'hs': 1,
+        'hs': 0,
     }
     model = train_d2v_model(data_url=None, kwargs=kwargs)
     print('model vocab len = ', len(model.wv.vocab))
+    save_url = from_project_root("processed_data/vector/dvs_300.pk")
+    gen_data_for_clf(args_to_url(kwargs), save_url=save_url)
     pass
 
 

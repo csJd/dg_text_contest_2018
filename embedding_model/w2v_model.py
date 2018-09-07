@@ -6,6 +6,7 @@ from utils.data_util import load_raw_data, load_to_df
 
 from gensim.models.word2vec import Word2Vec, Word2VecKeyedVectors
 from sklearn.externals import joblib
+from collections import OrderedDict
 from time import time
 import numpy as np
 
@@ -78,7 +79,7 @@ def args_to_url(args, prefix='w2v_word_seg_'):
 
     """
     args = dict(sorted(args.items(), key=lambda x: x[0]))
-    filename = '_'.join([str(x) for x in args.values()]) + '.txt'
+    filename = '_'.join([str(x) for x in OrderedDict(args).values()]) + '.bin'
     return from_project_root("embedding_model/models/" + prefix + filename)
 
 
@@ -151,8 +152,10 @@ def main():
     }
     model = train_w2v_model(data_url=None, kwargs=kwargs)
     print(len(model.wv.vocab))
+
+    wv_url = from_project_root("embedding_model/models/wv_word_seg_300_5_5_5_1_1.txt")
     save_url = from_project_root("processed_data/vector/avg_wvs_300.pk")
-    gen_data_for_clf(args_to_url(kwargs), save_url=save_url)
+    gen_data_for_clf(wv_url, save_url=save_url)
     pass
 
 
