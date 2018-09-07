@@ -92,12 +92,7 @@ def train_ft_model(data_url, args):
     '''
 
     s_time = time()
-    clf = ft.supervised(data_url, model_url, thread=N_JOBS, label_prefix=FT_LABEL_PREFIX,
-                        lr=args['lr'],
-                        dim=args['dim'],
-                        ws=args['ws'],
-                        epoch=args['epochs'],
-                        word_ngrams=args['ngram'])
+    clf = ft.supervised(data_url, model_url, thread=N_JOBS, label_prefix=FT_LABEL_PREFIX, **args)
     e_time = time()
     print("training finished in %.3f second\n" % (e_time - s_time))
     return clf
@@ -148,8 +143,8 @@ def main():
         'lr': 0.1,
         'dim': 100,
         'ws': 5,
-        'epochs': 30,
-        'ngram': 1
+        'epoch': 30,
+        'word_ngrams': 1
     }
     clf = train_ft_model(TRAIN_URL, args)
     print_model_details(clf)

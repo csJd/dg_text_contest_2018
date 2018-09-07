@@ -1,7 +1,6 @@
 # coding: utf-8
 # created by deng on 7/25/2018
 
-
 from utils.path_util import from_project_root, exists
 from utils.data_util import load_raw_data
 from gensim.models.word2vec import Word2Vec, Word2VecKeyedVectors
@@ -9,7 +8,7 @@ from time import time
 
 import numpy as np
 
-DATA_URL = from_project_root("lstm_model/processed_data/phrase_level_data.csv")
+DATA_URL = from_project_root("processed_data/phrase_level_data.csv")
 N_JOBS = 4
 
 
@@ -112,10 +111,10 @@ def infer_avg_wvs(wv_url, sentences):
 
 def main():
     kwargs = {
-        'size': 64,
-        'min_count': 2,
+        'size': 300,
+        'min_count': 5,
         'window': 5,
-        'iter': 3,
+        'iter': 5,
         'sg': 1,
         'hs': 1
     }
