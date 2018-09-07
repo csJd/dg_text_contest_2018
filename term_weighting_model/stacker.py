@@ -76,37 +76,71 @@ def load_params():
     #     },  # 8
     # ]  # 36
 
-    # Only tf-idf, tf
+    # # Only tf-idf, tf
+    # params_grad = [
+    #     {
+    #         'column': ['word_seg', 'article'],
+    #         'trans_type': ['idf'],
+    #         'max_n': [1],
+    #         'min_df': [2],
+    #         'max_df': [0.9],
+    #         'max_features': [5000, 200000],
+    #         'balanced': [False, True],
+    #     },  # 8
+    #     {
+    #         'column': ['word_seg', 'article'],
+    #         'trans_type': ['idf'],
+    #         'max_n': [2],
+    #         'min_df': [3],
+    #         'max_df': [0.8],
+    #         'max_features': [200000, 2000000],
+    #         'balanced': [False, True],
+    #     },  # 8
+    #     {
+    #         'column': ['word_seg', 'article'],
+    #         'trans_type': ['idf'],
+    #         'max_n': [3],
+    #         'min_df': [3],
+    #         'max_df': [0.8],
+    #         'max_features': [500000, 2000000, 4000000],
+    #         'balanced': [False, True],
+    #     },  # 12
+    #
+    # ]  # 28
+
+    # only dc 50
     params_grad = [
         {
-            'column': ['word_seg', 'article'],
-            'trans_type': ['idf'],
+            'column': ['word_seg'],
+            'trans_type': ['dc'],
             'max_n': [1],
-            'min_df': [2],
-            'max_df': [0.9],
-            'max_features': [5000, 200000],
-            'balanced': [False, True],
-        },  # 8
+            'min_df': [2, 3],
+            'max_df': [0.8],
+            'max_features': [200000],
+            'balanced': [False],
+            're_weight': [0]
+        },
         {
             'column': ['word_seg', 'article'],
-            'trans_type': ['idf'],
+            'trans_type': ['dc'],
             'max_n': [2],
             'min_df': [3],
-            'max_df': [0.8],
-            'max_features': [200000, 2000000],
+            'max_df': [0.8, 0.9],
+            'max_features': [500000, 2000000],
             'balanced': [False, True],
-        },  # 8
+            're_weight': [0, 9]
+        },
         {
             'column': ['word_seg', 'article'],
-            'trans_type': ['idf'],
+            'trans_type': ['dc'],
             'max_n': [3],
             'min_df': [3],
             'max_df': [0.8],
-            'max_features': [500000, 2000000, 4000000],
+            'max_features': [1000000, 4000000],
             'balanced': [False, True],
-        },  # 12
-
-    ]  # 28
+            're_weight': [0, 9]
+        },
+    ]
 
     params_list = list()
     for params_dict in params_grad:
@@ -117,7 +151,8 @@ def load_params():
     return params_list
 
 
-def run_parallel(index, train_url, test_url, params, clf, n_splits, random_state, use_proba=False, verbose=False):
+def run_parallel(index, train_url, test_url, params, clf, n_splits, random_state,
+                 use_proba=False, verbose=False, drop_words=0):
     """ for run cvs parallel
 
     Args:
@@ -130,12 +165,13 @@ def run_parallel(index, train_url, test_url, params, clf, n_splits, random_state
         random_state: random_state for KFold
         use_proba: True to predict probabilities of labels instead of labels
         verbose: True to print more info
+        drop_words: drop_words for generate_vectors
 
     Returns:
 
     """
 
-    X, y, X_test = generate_vectors(train_url, test_url, drop_words=DROP_WORDS, verbose=verbose, **params)
+    X, y, X_test = generate_vectors(train_url, test_url, drop_words=drop_words, verbose=verbose, **params)
     if not sp.sparse.isspmatrix_csr(X):
         X = sp.sparse.csr_matrix(X)
 
@@ -161,7 +197,7 @@ def run_parallel(index, train_url, test_url, params, clf, n_splits, random_state
     return index, y_pred_proba, y_test_pred_proba
 
 
-def feature_stacking(n_splits=CV, random_state=None, use_proba=False, verbose=False):
+def feature_stacking(n_splits=CV, random_state=None, use_proba=False, verbose=False, drop_words=DROP_WORDS):
     """
 
     Args:
@@ -169,6 +205,7 @@ def feature_stacking(n_splits=CV, random_state=None, use_proba=False, verbose=Fa
         random_state: random_state for KFlod
         use_proba: True to predict probabilities of labels instead of labels
         verbose: True to print more info
+        drop_words: drop_words for run_parallel
 
     Returns:
         X, y, X_test
@@ -184,7 +221,7 @@ def feature_stacking(n_splits=CV, random_state=None, use_proba=False, verbose=Fa
     params_list = load_params()
     parallel = joblib.Parallel(n_jobs=N_JOBS, verbose=True)
     rets = parallel(joblib.delayed(run_parallel)(
-        ind, train_url, test_url, params, clone(clf), n_splits, random_state, use_proba, verbose
+        ind, train_url, test_url, params, clone(clf), n_splits, random_state, use_proba, verbose, drop_words
     ) for ind, params in enumerate(params_list))
     rets = sorted(rets, key=lambda x: x[0])
 
@@ -301,7 +338,7 @@ def generate_meta_feature(data_url, normalize=True):
 def main():
     params = load_params()
     print("len(params) =", len(params))
-    save_url = from_project_root("processed_data/vector/stacked_aug_idf_XyX_test_%d.pk" % len(load_params()))
+    save_url = from_project_root("processed_data/vector/stacked_aug_dc_XyX_test_%d.pk" % len(load_params()))
     joblib.dump(feature_stacking(use_proba=True, random_state=RANDOM_STATE), save_url)
 
 

@@ -202,7 +202,7 @@ def generate_vectors(train_url, test_url=None, column='article', trans_type=None
             break
         if np.random.ranf() < drop_words:
             row = np.array(row.split())
-            sequences.at[i] = row[np.random.ranf(row.shape) > 0.35]
+            sequences.at[i] = ' '.join(row[np.random.ranf(row.shape) > 0.35])
 
     X = vec.fit_transform(sequences)
     e_time = time()
