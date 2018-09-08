@@ -60,7 +60,6 @@ def train_ft_model(args, data_url=None):
     Args:
         data_url: train data url
         args: args for model
-        validation: do validation or not
 
     Returns:
         ft model
@@ -126,11 +125,12 @@ def args_to_url(data_url, args):
     return from_project_root("embedding_model/models/ft_" + filename)
 
 
-def print_model_details(clf):
+def print_model_details(clf, val_url):
     """ print details of ft model
 
     Args:
         clf: ft model
+        val_url: val_url url to validation file
 
     """
     print(" labels_cnt  :", len(clf.labels))
@@ -139,7 +139,7 @@ def print_model_details(clf):
     print(" epochs      :", clf.epoch)
     print(" max ngram   :", clf.word_ngrams)
 
-    labels, sentences = load_raw_data()
+    labels, sentences = load_raw_data(val_url)
     sentences = [' '.join(sentence) for sentence in sentences]
     # ft predicted label is a list
     pred_labels = [int(label[0]) for label in clf.predict(sentences)]
@@ -165,8 +165,8 @@ def gen_data_for_stacking(args, column='word_seg', n_splits=5, random_state=None
 
     train_df = load_to_df(TRAIN_URL)
     y = train_df['class'].values
-    X = train_df[column]
-    X_test = load_to_df(TEST_URL)[column]
+    X = train_df[column].values
+    X_test = load_to_df(TEST_URL)[column].values
 
     skf = StratifiedKFold(n_splits=n_splits, shuffle=bool(random_state), random_state=random_state)
     y_pred = np.zeros((X.shape[0],))  # for printing score of each fold
@@ -182,22 +182,20 @@ def gen_data_for_stacking(args, column='word_seg', n_splits=5, random_state=None
                 for i in range(len(y_train)):
                     label = FT_LABEL_PREFIX + str(y_train[i])
                     ft_file.write('{} {}\n'.format(label, X_train[i]))
+
             clf = ft.supervised(t_file.name, output=None, thread=N_JOBS, label_prefix=FT_LABEL_PREFIX, **args)
+
             y_pred[cv_index] = [int(label[0]) for label in clf.predict(X_cv)]
             y_pred_proba[cv_index] = [[t[1] for t in sorted(proba, key=lambda x: int(x[0]))]
                                       for proba in clf.predict_proba(X_cv, N_CLASSES)]
 
-            if ind == 0:
-                print(sorted(proba, key=lambda x: int(x[0]))
-                      for proba in clf.predict_proba(X_cv[0], N_CLASSES))
-
-            print("%d/%d cv macro f1 :" % (ind + 1, n_splits),
-                  f1_score(y_cv, y_pred[cv_index], average='macro'))
+            print("%d/%d cv macro f1 :" % (ind + 1, n_splits), f1_score(y_cv, y_pred[cv_index], average='macro'))
             y_test_pred_proba += [[t[1] for t in sorted(proba, key=lambda x: int(x[0]))]
                                   for proba in clf.predict_proba(X_test, N_CLASSES)]
 
     print("macro f1:", f1_score(y, y_pred, average='macro'))  # calc macro_f1 score
     y_test_pred_proba /= n_splits  # normalize to 1
+
     return y_pred_proba, y, y_test_pred_proba
 
 
@@ -207,11 +205,12 @@ def main():
         'dim': 300,
         'ws': 5,
         'epoch': 10,
-        'word_ngrams': 5
+        'word_ngrams': 4,
+        'bucket': 2000000
     }
     # clf = train_ft_model(args, TRAIN_URL)
     # print_model_details(clf)
-    joblib.dump(gen_data_for_stacking(args), from_project_root("ft_300.pk"))
+    joblib.dump(gen_data_for_stacking(args), from_project_root("processed_data/vector/ft_300.pk"))
     pass
 
 
