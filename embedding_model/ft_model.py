@@ -183,7 +183,7 @@ def gen_data_for_stacking(args, column='word_seg', n_splits=5, random_state=None
                     label = FT_LABEL_PREFIX + str(y_train[i])
                     ft_file.write('{} {}\n'.format(label, X_train[i]))
 
-            clf = ft.supervised(t_file.name, output=None, thread=N_JOBS, label_prefix=FT_LABEL_PREFIX, **args)
+            clf = ft.supervised(t_file.name, output="tmp", thread=N_JOBS, label_prefix=FT_LABEL_PREFIX, **args)
 
             y_pred[cv_index] = [int(label[0]) for label in clf.predict(X_cv)]
             y_pred_proba[cv_index] = [[t[1] for t in sorted(proba, key=lambda x: int(x[0]))]
@@ -201,10 +201,10 @@ def gen_data_for_stacking(args, column='word_seg', n_splits=5, random_state=None
 
 def main():
     args = {
-        'lr': 0.01,
+        'lr': 0.1,
         'dim': 300,
         'ws': 5,
-        'epoch': 10,
+        'epoch': 30,
         'word_ngrams': 4,
         'bucket': 2000000
     }
