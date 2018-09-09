@@ -228,16 +228,17 @@ def main():
     pk_urls = [
         from_project_root("processed_data/vector/deng_34_xgb_0.787.pk"),
         from_project_root("processed_data/vector/deng_28_idf_xgb_0.782.pk"),
-        from_project_root("processed_data/vector/deng_50_bdc_xgb_0.782.pk"),
+        from_project_root("processed_data/vector/deng_50_bdc_xgb_0.786.pk"),
         from_project_root("processed_data/vector/xingwei_rcnn_0.7897.pk"),
         from_project_root("processed_data/vector/xingwei_lstm_0.788.pk"),
         from_project_root("processed_data/vector/xingwei_rcnn_0.79242.pk"),
-        from_project_root("processed_data/vector/xingwei_lstm_0.790.pk"),
+        from_project_root("processed_data/vector/xingwei_lstm_0.79.pk"),
         from_project_root("processed_data/vector/xhz_baseline_0.76.pkl"),
         from_project_root("processed_data/vector/xhz_baseline_max_0.71.pkl"),
         from_project_root("processed_data/vector/xhz_cnn_0.77.pkl"),
         from_project_root("processed_data/vector/peng_han_0.767.pk"),
         from_project_root("processed_data/vector/zt_fasttext_400.pk"),
+        from_project_root("processed_data/vector/ft_300_0.72.pk"),
     ]
     X, y, X_test = model_stacking_from_pk(pk_urls)
 
@@ -254,7 +255,7 @@ def main():
     # X_test = np.append(X_test, generate_meta_feature(test_url), axis=1)
 
     print(X.shape, y.shape, X_test.shape)
-    # train_clfs(clfs, X, y, tuning=True, random_state=RANDOM_STATE)
+    train_clfs(clfs, X, y, tuning=True, random_state=RANDOM_STATE)
 
     # clf = LinearSVC(C=1)
     clf = XGBClassifier(n_jobs=-1)  # xgb's default n_jobs=1
@@ -267,8 +268,8 @@ def main():
     train_and_gen_result(clf, X, y, X_test, use_proba=use_proba, save_url=save_url,
                          n_splits=n_splits, random_state=RANDOM_STATE)
 
-    # save_url = from_project_root("processed_data/vector/{}_xgb.pk".format(X.shape[1] // N_CLASSES))
-    # joblib.dump(gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=233), save_url)
+    # save_url = from_project_root("processed_data/vector/{}_aug_dc_xgb.pk".format(X.shape[1] // N_CLASSES))
+    # joblib.dump(gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=None), save_url)
 
     pass
 
