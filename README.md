@@ -1,7 +1,7 @@
 ## 数据集基本情况
     
 * 文件基本说明
-    * 共有 102277个训练样本, 102277个测试样本
+    * 共有102277个训练样本(train_set.csv), 102277个测试样本(test_set.csv)
     * 第0列(id)       ：文章id  
     * 第1列(article)  ：“字”级别上的表示 
     * 第2列(word_seg) ：“词”级别上的表示  
@@ -12,11 +12,11 @@
         * 1:5375, 2:2901, 3:8313, 4:3824, 5:2369, 6:6888, 7:3038, 8:6972, 9:7675, 10:4963,
         * 11:3571, 12:5326, 13:7907, 14:6740, 15:7511, 16:3220, 17:3094, 18:7066, 19:5524
 
-    * phrase_level训练集
+    * 训练集 `word_seg`
         * 字典维度有 875129 
         * 平均长度 717, 最大 39759, 最小 6
         
-    * word_level训练集
+    * 训练集 `article`
         * 字典维度 13516
         * 平均长度 1177, 最大 55804, 最小 50
     
@@ -94,7 +94,7 @@
 	    * "phrase" 级别上的bdc值
 	    * 调用文件../term_weighting_model/calc_weightings.py中的方法calc_bdc(..)
 		
-* vector/根据weight_type将数据集转化成稀疏矩阵，并存储到本地文件
+* vector/ 存储训练集测试集经过向量化得到的(X, y, X_test)
 
 	* phrase_dc_train.mtx
 		* "phrase"级别上以dc值将训练数据集转化成稀疏矩阵
@@ -114,22 +114,8 @@
 		* "phrase"级别上词出现在各个类别的文档数
 		* 调用文件./pre_process/data_util.py中方法word_in_label(..)
 		
-* com_result/结果的比较
+* result/ 保存得到的结果文件
 
-## term_weighting_model/特征权重模型文件说明
-
-* text_represent.py/所有特征权重函数均放在这个模块里
-```python
-def sentence_to_vector(sentence_data, word_list, word_df, is_tf=False):
-    """
-	将数据集转化成稀疏矩阵
-	:param sentence_data:
-	:param word_list:
-	:param word_df:
-	:param is_tf:
-	:return:
-    """
-```
 
 ## utils 下部分工具方法说明
 
@@ -147,15 +133,6 @@ ju.dump(bdc_dict, bdc_json_url)  # dump dict object to json file
   * `generate_level_data`, 生成`processed_data/phrase_level_data.csv`和`processed_data/word_level_data.csv`，可选是否包括`header`
 
 
-## 初步分工
-
-* 分配部分
-    * term weight(Important!) +多分类器 【小黑仔，登登】   
-    * word_embedding 训练 + doc2vec (LDA)【小黑仔，登登】    
-    * deep_learning_model (CNN+RNN) 【鹏鹏，编写各种深度模型】
-        【小黑仔，登登，看论文！】
-        
-        
 ## Git使用说明
 * 登录 Github 添加自己公钥到 Github 账号
   * `git-bash` 运行 `cat ~/.ssh/id_rsa.pub`，复制结果在[此处](https://github.com/settings/keys)选择`New SSH key`粘贴到`Key`输入框，提示文件不存在则先运行`ssh-keygen`一直点回车就行
@@ -200,7 +177,7 @@ git push
     * 可以自己按需修改
 
 ```python
-# coding: utf-8
+# encoding: utf-8
 # created by ${USER} on ${DATE}
 
 
