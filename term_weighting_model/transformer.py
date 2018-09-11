@@ -162,7 +162,7 @@ class TfdcTransformer(BaseEstimator, TransformerMixin):
 
 
 def generate_vectors(train_url, test_url=None, column='article', trans_type=None, max_n=1, min_df=1, max_df=1.0,
-                     max_features=1, sublinear_tf=True, balanced=False, re_weight=0, verbose=False, drop_words=0):
+                     max_features=1, sublinear_tf=True, balanced=False, re_weight=0, verbose=False, drop_words=0.):
     """ generate X, y, X_test vectors with csv(with header) url use pandas and CountVectorizer
 
     Args:
@@ -198,7 +198,7 @@ def generate_vectors(train_url, test_url=None, column='article', trans_type=None
     sequences = train_df[column]
     # delete some words randomly
     for i, row in enumerate(sequences):
-        if drop_words <= 0:
+        if drop_words < 1e-3:
             break
         if np.random.ranf() < drop_words:
             row = np.array(row.split())

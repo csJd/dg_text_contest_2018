@@ -20,9 +20,6 @@
         * 字典维度 13516
         * 平均长度 1177, 最大 55804, 最小 50
     
-    * test_set.csv
-        * 共有102277个测试样本
-
 * 变量说明
 	* 源数据集的“article”对应sentencen_type=“word”
 	* 源数据集的“word_seg”对应的sentence_type=“phrase”

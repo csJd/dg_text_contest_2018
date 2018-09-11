@@ -20,7 +20,7 @@ from utils.proba_util import predict_proba
 
 N_CLASSES = 19
 RANDOM_STATE = 233
-DROP_WORDS = 0.3
+DROP_WORDS = 0
 N_JOBS = 10
 CV = 5
 
@@ -152,7 +152,7 @@ def load_params():
 
 
 def run_parallel(index, train_url, test_url, params, clf, n_splits, random_state,
-                 use_proba=False, verbose=False, drop_words=0):
+                 use_proba=False, verbose=False, drop_words=0.):
     """ for run cvs parallel
 
     Args:
@@ -197,7 +197,7 @@ def run_parallel(index, train_url, test_url, params, clf, n_splits, random_state
     return index, y_pred_proba, y_test_pred_proba
 
 
-def feature_stacking(n_splits=CV, random_state=None, use_proba=False, verbose=False, drop_words=DROP_WORDS):
+def feature_stacking(n_splits=CV, random_state=None, use_proba=False, verbose=False, drop_words=0.):
     """
 
     Args:
@@ -339,7 +339,7 @@ def main():
     params = load_params()
     print("len(params) =", len(params))
     save_url = from_project_root("processed_data/vector/stacked_aug_dc_XyX_test_%d.pk" % len(load_params()))
-    joblib.dump(feature_stacking(use_proba=True, random_state=RANDOM_STATE), save_url)
+    joblib.dump(feature_stacking(use_proba=True, random_state=RANDOM_STATE, drop_words=DROP_WORDS), save_url)
 
 
 if __name__ == '__main__':
